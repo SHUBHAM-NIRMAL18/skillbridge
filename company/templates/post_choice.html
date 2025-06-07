@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="center-wrapper">
+  <h4 class="text-center mb-4 small">Choose what you want to post</h4>
+  <div class="row justify-content-center gx-3">
+    <!-- Internship Post Card -->
+    <div class="col-sm-6 col-md-3 mb-3">
+      <div class="card h-100 text-center p-3">
+        <div class="mb-2">
+          <img src="{% static 'icons/intern.png' %}" alt="Internship" width="40" />
+        </div>
+        <h6 class="card-title small mb-1">Create an Internship Post</h6>
+        <p class="card-text text-muted small">Create an engaging internship post to attract talented students and graduates.</p>
+        <a href="#" class="btn btn-outline-primary btn-sm mt-auto small">Post Internship &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Job Post Card -->
+    <div class="col-sm-6 col-md-3 mb-3">
+      <div class="card h-100 text-center p-3">
+        <div class="mb-2">
+          <img src="{% static 'icons/job.jpg' %}" alt="Job" width="40" />
+        </div>
+        <h6 class="card-title small mb-1">Create a Job Post</h6>
+        <p class="card-text text-muted small">Post a job opportunity and connect with skilled professionals seeking employment.</p>
+        <a href="#" class="btn btn-outline-primary btn-sm mt-auto small">Post Job &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

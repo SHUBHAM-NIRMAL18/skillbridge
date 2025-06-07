@@ -5,3 +5,6 @@ def dashboard_view(request):
 
 def alljobs_view(request):
     return render(request, 'all_jobs.html')
+
+def post_choice_view(request):
+    return render(request, 'post_choice.html')
