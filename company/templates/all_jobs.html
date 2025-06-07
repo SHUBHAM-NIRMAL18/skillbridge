@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="center-wrapper">
+  <!-- Internships/Jobs Listing Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="m-0">My Internships/Jobs Listing</h3>
+    <a href="#" class="btn btn-danger">+ Post an Internship/Job</a>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="row mb-3">
+    <div class="col-md-2">
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
+          All
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="statusFilter">
+          <li><a class="dropdown-item" href="#">All</a></li>
+          <li><a class="dropdown-item" href="#">Jobs</a></li>
+          <li><a class="dropdown-item" href="#">Internships</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Search jobs title" aria-label="Search jobs title">
+        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+      </div>
+    </div>
+    <!-- Sort Dropdown with External Label -->
+    <div class="col-md-3 d-flex align-items-center">
+      <span class="me-3">Sort by:</span>
+      <div class="dropdown flex-grow-1">
+        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="sortBy" data-bs-toggle="dropdown" aria-expanded="false">
+          Deadline
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="sortBy">
+          <li><a class="dropdown-item" href="#">Nearest Deadline</a></li>
+          <li><a class="dropdown-item" href="#">Newest</a></li>
+          <li><a class="dropdown-item" href="#">Oldest</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#">All Jobs</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Active</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Pending</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Closed</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Rejected</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">Featured</a></li>
+  </ul>
+
+  <!-- Jobs Table -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Applications</th>
+          <th>Openings</th>
+          <th>Location</th>
+          <th>Deadline</th>
+          <th>Created At</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-file-earmark-excel" style="font-size: 2rem;"></i><br>
+            No Results
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
