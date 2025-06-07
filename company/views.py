@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-# Create your views here.
+def dashboard_view(request):
+    return render(request, 'dashboard.html')
 
-def base_view(request):
-    return render(request, 'base.html')
-
+def alljobs_view(request):
+    return render(request, 'all_jobs.html')
