@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "company",
+    'bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -129,6 +131,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+
+
+# (Optional, for development)
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Only if you have a global static folder
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
