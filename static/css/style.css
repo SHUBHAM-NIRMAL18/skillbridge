@@ -56,11 +56,7 @@ footer .row > div { margin-bottom: 1.5rem; }
   background-color: #e5deb0;
 }
 
-/* Make the candidate/employer paragraphs small */
-.card-content p {
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
+
 
 
 
