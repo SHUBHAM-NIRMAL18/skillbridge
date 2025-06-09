@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   {% bootstrap_css %}
-  <link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+  <link href="{% static 'company/css/dashboard.css' %}" rel="stylesheet" />
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -18,7 +18,7 @@
     <!-- Logo / Brand -->
     <div class="logo-container">
       <a class="navbar-brand" href="#">
-        <img src="{% static 'icons/SB-LOGO.png' %}" alt="Logo" width="120" height="auto" />
+        <img src="{% static 'company/icons/sb-logo.png' %}" alt="Logo" width="120" height="auto" />
       </a>
     </div>
     <!-- Nav items: wrapped in a flex‐growing container -->
@@ -138,7 +138,7 @@
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="{% static 'icons/profile.jpg' %}" alt="Profile" class="rounded-circle" width="30" height="30" />
+              <img src="{% static 'company/icons/profile.jpg' %}" alt="Profile" class="rounded-circle" width="30" height="30" />
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" href="#">Profile</a></li>

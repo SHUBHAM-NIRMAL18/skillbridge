@@ -1,8 +1,239 @@
 {% extends 'website/base.html' %}
+{% load static %}
 
 {% block title %}Home – SkillBridge{% endblock %}
 
+{% block hero %}
+<section class="hero-section bg-dark text-white py-5">
+  <div class="container-fluid px-0">
+    <div class="text-center">
+      <h1 class="mb-3">Join the most popular internships and companies.</h1>
+      <p class="mb-4">We’ve helped over 2,500 freshers to get into the most popular internships.</p>
+
+      <form class="d-flex justify-content-center mb-3">
+            <div class="input-group w-50 rounded-pill">
+
+                <!-- add form-select-sm for a smaller height and w-auto + a max-width -->
+                <select 
+                class="form-select form-select-sm bg-white text-dark w-auto" 
+                style="max-width: 180px;"
+                aria-label="Opportunity type">
+                <option selected>All Opportunities</option>
+                <option value="internships">Internships</option>
+                <option value="jobs">Jobs</option>
+                <option value="events">Events</option>
+                </select>
+
+                <input
+                type="text"
+                class="form-control"
+                placeholder="Enter title, keywords or phrase"
+                aria-label="Search keywords" />
+
+                <button class="btn btn-danger" type="submit" aria-label="Search">
+                <i class="bi bi-search fs-5"></i>
+                </button>
+            </div>
+        </form>
+      <div>
+        <small>Popular Searches:
+        <a href="#" class="text-white ms-2">Business development</a> |
+        <a href="#" class="text-white">UI/UX Design</a> |
+        <a href="#" class="text-white">Frontend</a> |
+        <a href="#" class="text-white">Backend</a>
+        </small>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
 {% block content %}
-<h1>Welcome to SkillBridge</h1>
-<p>Find internships, post jobs, and connect with peers.</p>
+
+<!-- Candidate / Employer Cards -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- For Candidate -->
+      <div class="col-md-6 d-flex">
+        <div class="card border-0 rounded overflow-hidden w-100 h-100">
+          <div class="row g-0 h-100">
+
+            <div class="col-6 bg-light d-flex flex-column justify-content-center p-4 card-content">
+              <!-- larger heading -->
+              <h4 class="mb-3">For Candidate</h4>
+              <!-- smaller paragraph -->
+              <p>Unlock endless opportunities and connect with top employers. Let your skills shine and land your dream job.</p>
+              <!-- cream button with red text -->
+              <a href="#" class="btn btn-cream align-self-start">Upload your CV</a>
+            </div>
+
+            <div class="col-6">
+              <img
+                src="{% static 'icons/employee.svg' %}"
+                alt="Candidate illustration"
+                class="img-fluid h-100 w-100 object-fit-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- For Employer -->
+      <div class="col-md-6 d-flex">
+        <div class="card border-0 rounded overflow-hidden w-100 h-100">
+          <div class="row g-0 h-100">
+
+            <div class="col-6 bg-primary text-white d-flex flex-column justify-content-center p-4 card-content">
+              <h4 class="mb-3">For Company</h4>
+              <p>Access a pool of skilled candidates and streamline your hiring process. Find the best talent for your company’s success.</p>
+              <a href="#" class="btn btn-cream align-self-start">Start Hiring</a>
+            </div>
+
+            <div class="col-6">
+              <img
+                src="{% static 'icons/employee.svg' %}"
+                alt="Employer illustration"
+                class="img-fluid h-100 w-100 object-fit-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Internship Listings -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Get your dream Internship now</h2>
+      <a href="#">Browse all internships</a>
+    </div>
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item"><a class="nav-link active" href="#">Featured</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Newest</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Nearest</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Oldest</a></li>
+    </ul>
+    <div class="row">
+      {% comment %} Replace these static cards with a {% for %} if you like {% endcomment %}
+      <div class="col-md-3 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Business Analyst</h5>
+            <p class="card-text">As a Business Analyst Intern, you will support the…</p>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <small>3 days ago</small>
+            <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
+          </div>
+        </div>
+      </div>
+      <!-- …repeat up to 4 cards/row… -->
+    </div>
+  </div>
+</section>
+
+<!-- Job Listings -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Get your dream Job now</h2>
+      <a href="#">Browse all jobs</a>
+    </div>
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item"><a class="nav-link active" href="#">Featured</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Newest</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Nearest</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Oldest</a></li>
+    </ul>
+    <div class="row">
+      <div class="col-md-3 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Junior React Native Developer</h5>
+            <p class="card-text">Our client is looking for a passionate…</p>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <small>1 day ago</small>
+            <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
+          </div>
+        </div>
+      </div>
+      <!-- …repeat… -->
+    </div>
+  </div>
+</section>
+
+<!-- Blog Previews -->
+<section class="py-5 bg-dark text-white">
+  <div class="container">
+    <h3 class="text-center mb-4">From Our Blogs</h3>
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="card bg-light h-100">
+          <img src="#" class="card-img-top" alt="…">
+          <div class="card-body">
+            <h5 class="card-title">Unlocking Success: 10 Best Reasons to Hire an Intern</h5>
+            <p class="card-text">Read more…</p>
+          </div>
+        </div>
+      </div>
+      <!-- …repeat 3 cards total… -->
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-5">
+  <div class="container">
+    <h3 class="text-center mb-4">Frequently Asked Questions</h3>
+    <div id="faqAccordion">
+      <div class="card mb-2">
+        <div class="card-header" id="faqOne">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+              What benefits does the internship offer?
+            </button>
+          </h5>
+        </div>
+        <div id="collapseOne" class="collapse show" data-bs-parent="#faqAccordion">
+          <div class="card-body">
+            <!-- answer here -->
+          </div>
+        </div>
+      </div>
+      <!-- …more FAQs… -->
+    </div>
+  </div>
+</section>
+
+<!-- Contact Departments -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <h3 class="text-center mb-4">Contact our Various Department</h3>
+    <div class="row">
+      <div class="col-md-4 text-center mb-4">
+        <h5>Sales</h5>
+        <p>+977 98020XXXXX</p>
+        <p>sales@internsathi.com</p>
+      </div>
+      <div class="col-md-4 text-center mb-4">
+        <h5>Technical HR</h5>
+        <p>+977 98020XXXXX</p>
+        <p>techhr@internsathi.com</p>
+      </div>
+      <div class="col-md-4 text-center mb-4">
+        <h5>Creative & Marketing HR</h5>
+        <p>+977 98020XXXXX</p>
+        <p>marketing@internsathi.com</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
