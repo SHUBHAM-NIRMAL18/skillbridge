@@ -1,0 +1,144 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden; /* prevent horizontal scroll */
+  margin: 0;
+  padding: 0;
+}
+
+/*--------------------------------------
+  Sidebar as FLEX‐COLUMN so Logout stays at bottom
+--------------------------------------*/
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 230px;
+  max-width: 230px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding-top: 1rem;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+}
+.sidebar .logo-container {
+  padding: 0 1rem 1rem 1rem;
+}
+.sidebar .logo-container .navbar-brand {
+  display: block;
+  font-weight: 600; /* Poppins SemiBold */
+  font-size: 1.1rem;
+  color: #333333;
+}
+.sidebar .logo-container .navbar-brand img {
+  max-width: 120px; /* constrain width so it doesn’t stretch */
+  height: auto;
+  display: block;
+}
+.sidebar .nav-items {
+  flex: 1 1 auto; /* expand to push logout down */
+  overflow-y: auto; /* scroll if too many items */
+}
+.sidebar .nav-items .nav-link {
+  color: #333333;
+  font-weight: 500;      /* Poppins Medium */
+  font-size: 0.85rem;    /* smaller font size */
+  padding: 0.65rem 1rem;
+}
+.sidebar .nav-items .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #000000;
+}
+.sidebar .nav-items .nav-link .bi {
+  font-size: 1.1rem;
+  margin-right: 8px;
+}
+.sidebar .nav-items .nav-link.active {
+  font-weight: 600;       /* Poppins SemiBold */
+  background-color: #f1f1f1;
+}
+.sidebar .nav-items .collapse .nav-link {
+  font-size: 0.85rem;
+  padding-left: 1.5rem; /* indent for submenu */
+}
+.sidebar .logout-container {
+  padding: 1rem;
+}
+.sidebar .logout-container .nav-link {
+  color: #d32f2f;
+  font-weight: 500;      /* Poppins Medium */
+  font-size: 0.85rem;    /* match sidebar links */
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1rem;
+}
+.sidebar .logout-container .nav-link:hover {
+  background-color: #fdecea;
+  color: #b71c1c;
+}
+.sidebar .logout-container .bi {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+/*--------------------------------------
+  Content Area: margin-left must equal sidebar width
+  We removed padding here so the inner container can handle centering.
+--------------------------------------*/
+.content-area {
+  margin-left: 230px; /* match .sidebar width */
+  padding: 0;         /* no built-in padding */
+}
+
+/*--------------------------------------
+  Navbar styling (inside content area)
+--------------------------------------*/
+.navbar-custom {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  margin-top: 0;
+}
+.navbar-custom .nav-link {
+  color: #555555;
+  font-weight: 500;      /* Poppins Medium */
+  font-size: 0.95rem;
+}
+.navbar-custom .nav-link:hover {
+  color: #000000;
+}
+.navbar-custom .navbar-brand {
+  font-weight: 600;      /* Poppins SemiBold */
+  font-size: 1.1rem;
+}
+
+/*--------------------------------------
+  Headings and Body Text Weights
+--------------------------------------*/
+h2, h4, h5, h6 {
+  font-weight: 600;      /* Poppins SemiBold */
+}
+p, li, span, label, a {
+  font-weight: 400;      /* Poppins Regular */
+}
+.fw-semibold {
+  font-weight: 600 !important; /* override if needed */
+}
+.btn {
+  font-weight: 500;      /* Poppins Medium on buttons */
+}
+
+/*--------------------------------------
+  Center wrapper: optional max-width to avoid excessive stretch
+--------------------------------------*/
+.center-wrapper {
+  max-width: 1200px;     /* or any width you prefer */
+  margin: 0 auto;        /* horizontally center */
+  padding: 1rem;         /* breathing room top & bottom */
+}
+
+.content-area h2 {
+  font-size: 1.4rem; /* down from ~1.75rem */
+}
+.content-area .card h5 {
+  font-size: 0.95rem; /* down from ~1.1rem */
+}

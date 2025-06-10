@@ -1,0 +1,148 @@
+{% load static %}
+{% load bootstrap5 %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Candidate Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  {% bootstrap_css %}
+  <link href="{% static 'candidate/css/dashboard.css' %}" rel="stylesheet" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <nav class="sidebar">
+    <!-- Logo / Brand -->
+    <div class="logo-container">
+      <a class="navbar-brand" href="#">
+        <img src="{% static 'candidate/icons/sb-logo.png' %}" alt="Logo" width="120" />
+      </a>
+    </div>
+
+    <div class="nav-items flex-grow-1">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'candidate_dashboard' %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-search"></i> Search Opportunities
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-chat-dots"></i> Inbox
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-person"></i> Profile
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="collapse" href="#collapseApplications" role="button" aria-expanded="false" aria-controls="collapseApplications">
+            <i class="bi bi-briefcase"></i> Applications
+            <i class="bi bi-chevron-down float-end"></i>
+          </a>
+          <div class="collapse ps-4" id="collapseApplications">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="#">All Applications</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Shortlisted</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-bookmark"></i> Bookmarks
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-plus-square"></i> Requests
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="collapse" href="#collapseContact" role="button" aria-expanded="false" aria-controls="collapseContact">
+            <i class="bi bi-telephone"></i> Contact Us
+            <i class="bi bi-chevron-down float-end"></i>
+          </a>
+          <div class="collapse ps-4" id="collapseContact">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="#">Support</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Feedback</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{#">
+            <i class="bi bi-gear"></i> Settings
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="logout-container">
+      <a class="nav-link text-danger" href="#">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="content-area">
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+      <div class="container-fluid px-3">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent"></div>
+
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item me-3">
+            <a class="nav-link position-relative" href="#">
+              <i class="bi bi-bell"></i>
+              
+                <span class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle">
+                  
+                </span>
+              
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+               role="button" data-bs-toggle="dropdown">
+              <img src="{% static 'candidate/icons/profile.jpg' %}"
+                   class="rounded-circle" width="30" height="30" alt="Avatar" />
+              <span class="ms-2">Shubham Nirmal</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="#">Profile</a></li>
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+  </div>
+
+  {% bootstrap_javascript %}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
