@@ -12,3 +12,9 @@ def login_view(request):
     Render the login page.
     """
     return render(request, 'accounts/login.html')
+
+def privacy_policy_view(request):
+    """
+    Render the privacy policy page.
+    """
+    return render(request, 'privacy.html')
