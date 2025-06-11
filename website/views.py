@@ -18,3 +18,10 @@ def privacy_policy_view(request):
     Render the privacy policy page.
     """
     return render(request, 'privacy.html')
+
+
+def termcondition_view(request):
+    """
+    Render the terms and conditions page.
+    """
+    return render(request, 'termcondition.html')
