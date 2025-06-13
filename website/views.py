@@ -25,3 +25,9 @@ def termcondition_view(request):
     Render the terms and conditions page.
     """
     return render(request, 'termcondition.html')
+
+def internship_view(request):
+    """
+    Render the internship page.
+    """
+    return render(request, 'internship.html')

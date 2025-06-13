@@ -6,6 +6,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('privacy/', views.privacy_policy_view, name='privacy'),
     path('terms/', views.termcondition_view, name='terms'),
+    path('internship/', views.internship_view, name='internship'),
     # Add other URL patterns for the website app here as needed
 ]
 
