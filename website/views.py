@@ -31,3 +31,9 @@ def internship_view(request):
     Render the internship page.
     """
     return render(request, 'internship.html')
+
+def fullinternship_view(request):
+    """
+    Render the view internship page.
+    """
+    return render(request, 'view-intern.html')

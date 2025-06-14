@@ -4,17 +4,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}SkillBridge{% endblock %}</title>
+
+  {# Bootstrap CSS #}
   {% bootstrap_css %}
+
+  {# Bootstrap Icons #}
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+  />
+
+  {# Your custom styles #}
   <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+
   {% block extra_head %}{% endblock %}
 </head>
 <body>
 
   {% include 'includes/header.html' %}
 
-  {# new—hero lives outside the fixed container #}
+  {# hero goes here if overridden #}
   {% block hero %}{% endblock %}
 
   <main class="py-5">
@@ -25,7 +36,13 @@
 
   {% include 'includes/footer.html' %}
 
+  {# Place any global modals here #}
+  {% block modals %}{% endblock %}
+
+  {# Bootstrap JS + Popper #}
   {% bootstrap_javascript %}
+
+  {# Page-specific scripts (e.g. copy-to-clipboard) #}
   {% block extra_js %}{% endblock %}
 </body>
 </html>

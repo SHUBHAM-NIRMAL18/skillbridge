@@ -1,0 +1,137 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block title %}View Internship{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row">
+    <!-- Main content -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h2 class="mb-2 fs-3">Digital Marketing Intern</h2>
+          <p class="text-muted fs-6">Sara Worldwide Business Pvt. Ltd. &middot; Kathmandu &middot; Full Time</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="#" class="text-dark" title="Bookmark">
+            <i class="bi bi-bookmark fs-4"></i>
+          </a>
+          <a href="#" class="text-dark" title="Share">
+            <i class="bi bi-share fs-4"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="row text-center bg-light py-3 rounded mb-4">
+        <div class="col-6 col-md-3">
+          <strong class="d-block fs-6">Salary</strong>
+          <div class="fs-7">Rs 10 000&ndash;15 000<span class="small d-block">Monthly</span></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <strong class="d-block fs-6">Location</strong>
+          <div class="fs-7">Onsite</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <strong class="d-block fs-6">Level</strong>
+          <div class="fs-7">Entry</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <strong class="d-block fs-6">Openings</strong>
+          <div class="fs-7">5</div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-light rounded mb-4">
+        <h5 class="fs-5">Job Description</h5>
+        <p class="fs-6">
+          As a Digital Marketing Intern, you’ll assist the marketing team in executing campaigns across various digital channels. You’ll gain hands-on experience in SEO, social media, content creation, and analytics, learning how to grow a brand online.
+        </p>
+      </div>
+
+      <div class="p-4 bg-light rounded mb-4">
+        <h6 class="fs-6 mb-3">Responsibilities of the Candidate:</h6>
+        <ul class="fs-6 mb-0">
+          <li>Assist in planning &amp; execution of digital marketing campaigns</li>
+          <li>Create/schedule social media posts (Facebook, Instagram, LinkedIn, etc.)</li>
+          <li>Perform keyword research &amp; support SEO optimization</li>
+          <li>Write blog posts, email newsletters, and social captions</li>
+          <li>Track &amp; report on campaign performance via Google Analytics &amp; other tools</li>
+          <li>Support running/optimizing Google Ads and Meta Ads</li>
+          <li>Conduct market and competitor research</li>
+          <li>Manage content calendars and campaign timelines</li>
+        </ul>
+      </div>
+
+      <div class="p-4 bg-light rounded mb-4">
+        <h6 class="fs-6 mb-3">Requirements</h6>
+        <ul class="fs-6 mb-0">
+          <li>Basic understanding of digital marketing concepts (SEO, SEM, social media, content)</li>
+          <li>Strong written and verbal communication skills</li>
+          <li>Familiarity with tools like Google Analytics, Canva, or WordPress (a plus)</li>
+          <li>Eagerness to learn, take initiative, and work independently</li>
+          <li>Currently pursuing or recently completed a degree in Marketing, Business, Communication, or related field</li>
+        </ul>
+      </div>
+
+      <div class="p-4 bg-light rounded mb-4">
+        <h6 class="fs-6 mb-3">Required Skills</h6>
+        <span class="badge bg-secondary fs-7">Graphic designing</span>
+      </div>
+
+      <div class="p-4 bg-light rounded mb-4">
+        <h6 class="fs-6 mb-3">Tags</h6>
+        <span class="badge bg-info text-dark fs-7 me-1">#InternshipProgram</span>
+        <span class="badge bg-info text-dark fs-7">#GraphicDesignIntern</span>
+      </div>
+
+      <div class="mt-5 p-4 bg-light rounded">
+        <h6 class="fs-6 mb-3">About Company</h6>
+        <p class="mb-1"><a href="#" class="text-decoration-none fs-6">Sara Worldwide Business Pvt. Ltd.</a></p>
+        <p class="small text-muted mb-1 fs-7">Kathmandu, Nepal</p>
+        <p class="fs-6">
+          Sara Worldwide Business Pvt. Ltd is an Import/Export Company providing Super Foods &amp; Organic Fresh and Dry vegetables worldwide.
+        </p>
+        <a href="#" class="stretched-link fs-7">View Company Profile &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-title fs-6">Are you interested in this Internship?</h6>
+          <p class="card-text small text-muted fs-7">Application ends:</p>
+          <p class="h6 fs-6">June 25, 2025</p>
+          <a href="#" class="btn btn-danger w-100 fs-7">Apply Now</a>
+        </div>
+      </div>
+
+      <div>
+        <h6 class="fs-6">More Internships by Sara Worldwide Business Pvt. Ltd.</h6>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item px-0 fs-6">
+            <a href="#" class="d-flex justify-content-between text-decoration-none">
+              <span>IT Management Intern</span>
+              <small class="text-muted">Kathmandu &middot; Full Time</small>
+            </a>
+          </li>
+          <li class="list-group-item px-0 fs-6">
+            <a href="#" class="d-flex justify-content-between text-decoration-none">
+              <span>Sales Officer Intern</span>
+              <small class="text-muted">Kathmandu &middot; Full Time</small>
+            </a>
+          </li>
+          <li class="list-group-item px-0 fs-6">
+            <a href="#" class="d-flex justify-content-between text-decoration-none">
+              <span>Graphic Designer Intern</span>
+              <small class="text-muted">Kathmandu &middot; Full Time</small>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
