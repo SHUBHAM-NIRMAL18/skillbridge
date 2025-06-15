@@ -68,6 +68,11 @@ ROOT_URLCONF = "skillbridge.urls"
 
 AUTH_USER_MODEL = "accounts.User"
 
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.EmailBackend",  # Custom backend for email authentication
+    "django.contrib.auth.backends.ModelBackend",  # Default backend
+]
+
 LOGIN_REDIRECT_URL = "index"  # Redirect to the index page after login
 LOGOUT_REDIRECT_URL = "index"  # Redirect to the index page after logout
 

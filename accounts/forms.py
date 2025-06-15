@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User
 
 class CompanyRegistrationForm(UserCreationForm):
@@ -29,3 +29,11 @@ class CandidateRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+    
+
+class EmailAuthenticationForm(AuthenticationForm):
+    username = forms.EmailField(
+        label="Email",
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autofocus": True})
+    )

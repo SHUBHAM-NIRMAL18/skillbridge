@@ -1,8 +1,75 @@
 {% extends "website/base.html" %}
+
+{% block title %}Sign in | Skill Bridge{% endblock %}
+
 {% block content %}
-  <h2>Log In</h2>
-  <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Log In</button>
-  </form>
+<div class="d-flex justify-content-center align-items-center vh-80">
+  <div class="card shadow-sm" style="width: 100%; max-width: 500px; border-radius: 0.75rem;">
+    <div class="card-body p-4">
+      <h3 class="card-title text-center mb-4">Welcome back to <span class="text-danger">Skill Bridge</span></h3>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="mb-3">
+          <label for="{{ form.username.id_for_label }}" class="form-label">Email</label>
+          <input 
+            type="email" 
+            name="{{ form.username.name }}" 
+            class="form-control{% if form.username.errors %} is-invalid{% endif %}" 
+            id="{{ form.username.id_for_label }}" 
+            value="{{ form.username.value|default:'' }}"
+            placeholder="you@example.com"
+            required>
+          {% for err in form.username.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+          <input 
+            type="password" 
+            name="{{ form.password.name }}" 
+            class="form-control{% if form.password.errors %} is-invalid{% endif %}" 
+            id="{{ form.password.id_for_label }}" 
+            placeholder="••••••••"
+            required>
+          {% for err in form.password.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Display non-field errors (like invalid login) with consistent styling -->
+        {% if form.non_field_errors %}
+          {% for error in form.non_field_errors %}
+            <div class="invalid-feedback d-block mb-3">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="remember_me" id="id_remember">
+            <label class="form-check-label" for="id_remember">Keep me signed in</label>
+          </div>
+          <a href="#" class="text-danger small">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-danger w-100 mb-3">Sign in</button>
+
+        <div class="text-center text-muted mb-3">or login with</div>
+
+        <a href="#" class="btn btn-outline-secondary w-100 mb-2">
+          <i class="bi bi-google me-2"></i> Login with Google (candidate)
+        </a>
+
+      </form>
+
+      <p class="text-center mt-4 text-muted small">
+        Don't have an account? 
+        <a href="#" class="text-danger">Candidate</a> / 
+        <a href="#" class="text-danger">Recruiter</a>
+      </p>
+    </div>
+  </div>
+</div>
 {% endblock %}
