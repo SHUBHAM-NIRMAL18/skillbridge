@@ -21,7 +21,7 @@ def register_company(request):
             if user is not None:
                 # 3) now login will work
                 login(request, user)
-                return redirect("account:login")
+                return redirect("accounts:login")
         # fall through to re-render form with errors
     else:
         form = CompanyRegistrationForm()
@@ -40,7 +40,7 @@ def register_candidate(request):
             )
             if user is not None:
                 login(request, user)
-                return redirect("account:login")
+                return redirect("accounts:login")
     else:
         form = CandidateRegistrationForm()
     return render(request, "accounts/candidate_register.html", {"form": form})
