@@ -5,7 +5,7 @@
 <div class="container-fluid px-4">
   <!-- Greeting -->
   <div class="mb-4">
-    <h2 class="fw-bold">Hey there, Shubham Nirmal!</h2>
+    <h2 class="fw-bold">Hey there, {{ user.get_full_name|default:user.username }}</h2>
   </div>
 
   <!-- Achievements prompt -->

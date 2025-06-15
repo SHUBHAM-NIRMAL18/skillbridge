@@ -10,19 +10,9 @@ def register_company(request):
     if request.method == "POST":
         form = CompanyRegistrationForm(request.POST)
         if form.is_valid():
-            # 1) create user
-            user = form.save()
-            # 2) authenticate so user.backend is set
-            user = authenticate(
-                request,
-                username=user.username,        # this holds the email
-                password=form.cleaned_data["password1"]
-            )
-            if user is not None:
-                # 3) now login will work
-                login(request, user)
-                return redirect("accounts:login")
-        # fall through to re-render form with errors
+            form.save()
+            messages.success(request, "Company registered successfully.")
+            return redirect("accounts:login")
     else:
         form = CompanyRegistrationForm()
     return render(request, "accounts/company_register.html", {"form": form})
@@ -32,15 +22,9 @@ def register_candidate(request):
     if request.method == "POST":
         form = CandidateRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            user = authenticate(
-                request,
-                username=user.username,
-                password=form.cleaned_data["password1"]
-            )
-            if user is not None:
-                login(request, user)
-                return redirect("accounts:login")
+            form.save()
+            messages.success(request, "Candidate registered successfully.")
+            return redirect("accounts:login")
     else:
         form = CandidateRegistrationForm()
     return render(request, "accounts/candidate_register.html", {"form": form})
