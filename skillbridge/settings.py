@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
     "company",
     "website",
     "candidate",
@@ -64,6 +65,11 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "skillbridge.urls"
+
+AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_REDIRECT_URL = "index"  # Redirect to the index page after login
+LOGOUT_REDIRECT_URL = "index"  # Redirect to the index page after logout
 
 TEMPLATES = [
     {

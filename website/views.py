@@ -7,11 +7,11 @@ def home_view(request):
     """
     return render(request, 'index.html')
 
-def login_view(request):
-    """
-    Render the login page.
-    """
-    return render(request, 'accounts/login.html')
+# def login_view(request):
+#     """
+#     Render the login page.
+#     """
+#     return render(request, 'accounts/login.html')
 
 def privacy_policy_view(request):
     """

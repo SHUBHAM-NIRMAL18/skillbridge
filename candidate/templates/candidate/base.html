@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <title>Candidate Dashboard</title>
+  <title>{% block title %}Candidate Dashboard{% endblock %}</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
@@ -17,7 +17,7 @@
   <nav class="sidebar">
     <!-- Logo / Brand -->
     <div class="logo-container">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="{% url 'index' %}">
         <img src="{% static 'candidate/icons/sb-logo.png' %}" alt="Logo" width="120" />
       </a>
     </div>
@@ -25,7 +25,7 @@
     <div class="nav-items flex-grow-1">
       <ul class="nav flex-column">
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'candidate_dashboard' %}">
+          <a class="nav-link" href="{% url 'candidate:dashboard' %}">
             <i class="bi bi-speedometer2"></i> Dashboard
           </a>
         </li>
@@ -87,7 +87,7 @@
           </div>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{#">
+          <a class="nav-link" href="#">
             <i class="bi bi-gear"></i> Settings
           </a>
         </li>
@@ -95,7 +95,7 @@
     </div>
 
     <div class="logout-container">
-      <a class="nav-link text-danger" href="#">
+      <a class="nav-link text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
         <i class="bi bi-box-arrow-right"></i> Logout
       </a>
     </div>
@@ -114,25 +114,25 @@
           <li class="nav-item me-3">
             <a class="nav-link position-relative" href="#">
               <i class="bi bi-bell"></i>
-              
-                <span class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle">
-                  
-                </span>
-              
+              <span class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle">
+                <!-- optional notification count -->
+              </span>
             </a>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
-               role="button" data-bs-toggle="dropdown">
+               role="button" data-bs-toggle="dropdown" aria-expanded="false">
               <img src="{% static 'candidate/icons/profile.jpg' %}"
                    class="rounded-circle" width="30" height="30" alt="Avatar" />
-              <span class="ms-2">Shubham Nirmal</span>
+              <span class="ms-2">
+                {{ user.get_full_name|default:user.username }}
+              </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" href="#">Profile</a></li>
               <li><a class="dropdown-item" href="#">Settings</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+              <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a></li>
             </ul>
           </li>
         </ul>
@@ -142,7 +142,34 @@
     {% block content %}{% endblock %}
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">
+            <i class="bi bi-question-circle text-warning me-2"></i>Confirm Logout
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Are you sure you want to logout? You will need to sign in again to access your dashboard.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+          <a href="{% url 'accounts:logout' %}" class="btn btn-danger">
+            <i class="bi bi-box-arrow-right me-1"></i>Yes, Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   {% bootstrap_javascript %}
+  
   {% block extra_js %}{% endblock %}
+  
 </body>
 </html>

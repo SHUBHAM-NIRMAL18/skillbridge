@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+@login_required
 def candidate_dashboard(request):
-    """
-    Render the candidate dashboard.
-    """
+    # (Optional) Enforce role-matching:
+    if request.user.role != request.user.ROLE_CANDIDATE:
+        return redirect('accounts:login')
+
     return render(request, 'candidate/dashboard.html')

@@ -21,8 +21,9 @@ from django.urls import include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("company/", include("company.urls")),
-    path("candidate/", include("candidate.urls")),
+    path("company/", include("company.urls", namespace="company")),
+    path("candidate/", include("candidate.urls", namespace="candidate")),
+    path("", include("accounts.urls")),
     path("", include("website.urls")),
     # Add other app URLs here as needed
 ]

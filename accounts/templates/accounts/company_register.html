@@ -1,0 +1,8 @@
+{% extends "website/base.html" %}
+{% block content %}
+  <h2>Company Sign-Up</h2>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register as Company</button>
+  </form>
+{% endblock %}

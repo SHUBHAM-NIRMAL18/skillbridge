@@ -1,39 +1,111 @@
 {% load static %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="#">
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
       <img src="{% static 'icons/sb-logo.png' %}" alt="SkillBridge" width="150" height="50" class="me-2">
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item"><a class="nav-link" href="{% url "index" %}">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url "internship" %}">Internships</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'internship' %}">Internships</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Jobs</a></li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="eventsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Events
-          </a>
+          <a class="nav-link dropdown-toggle" href="#" id="eventsDropdown" role="button" data-bs-toggle="dropdown"
+             aria-expanded="false">Events</a>
           <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="eventsDropdown">
             <li><a class="dropdown-item" href="#">All Events</a></li>
             <li><a class="dropdown-item" href="#">Upcoming</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="{% url "login" %}">Login</a></li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle btn btn-danger text-white ms-2" href="#" id="registerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Register
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="registerDropdown">
-            <li><a class="dropdown-item" href="#">Candidates</a></li>
-            <li><a class="dropdown-item" href="#">Company</a></li>
-            
-          </ul>
-        </li>
+
+        {% if user.is_authenticated %}
+          <!-- User Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" 
+               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user-circle me-2"></i>
+              {% if user.first_name %}
+                {{ user.first_name }} {{ user.last_name }}
+              {% else %}
+                {{ user.username }}
+              {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userDropdown">
+              
+              <li>
+                {% if user.role == 'company' %}
+                  <a class="dropdown-item" href="{% url 'company:dashboard' %}">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                  </a>
+                {% else %}
+                  <a class="dropdown-item" href="{% url 'candidate:dashboard' %}">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                  </a>
+                {% endif %}
+              </li>
+              <li>
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-cog me-2"></i>Settings
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                  <i class="fas fa-sign-out-alt me-2"></i>Log Out
+                </a>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Log In</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle btn btn-danger text-white ms-2" href="#" id="registerDropdown"
+               role="button" data-bs-toggle="dropdown" aria-expanded="false">Register</a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+                aria-labelledby="registerDropdown">
+              <li><a class="dropdown-item" href="{% url 'accounts:register_candidate' %}">Candidates</a></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:register_company' %}">Company</a></li>
+            </ul>
+          </li>
+        {% endif %}
+
       </ul>
     </div>
   </div>
 </nav>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="logoutModalLabel">
+          <i class="fas fa-sign-out-alt me-2 text-danger"></i>
+          Confirm Logout
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div class="mb-3">
+          <i class="fas fa-question-circle fa-3x text-warning"></i>
+        </div>
+        <h6>Are you sure you want to log out?</h6>
+        <p class="text-muted mb-0">You will need to log in again to access your account.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-danger">
+          <i class="fas fa-sign-out-alt me-1"></i>Yes, Log Out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
