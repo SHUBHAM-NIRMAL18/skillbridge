@@ -1,0 +1,85 @@
+{# templates/company/internship_wizard_review.html #}
+{% extends "company/base.html" %}
+{% block title %}3. Review &amp; Submit{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <ul class="nav justify-content-center mb-5">
+    <li class="nav-item"><span class="nav-link text-muted">1. Basic Details</span></li>
+    <li class="nav-item"><span class="nav-link text-muted">2. Skills &amp; Requirements</span></li>
+    <li class="nav-item"><span class="nav-link active">3. Review &amp; Submit</span></li>
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ wizard.management_form }}
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+
+        <h5>Basic Details</h5>
+        <dl class="row">
+          <dt class="col-sm-3">Title</dt>
+          <dd class="col-sm-9">{{ basic_data.title }}</dd>
+
+          <dt class="col-sm-3">City</dt>
+          <dd class="col-sm-9">{{ basic_data.city }}</dd>
+
+          <dt class="col-sm-3">Location</dt>
+          <dd class="col-sm-9">{{ basic_data.location }}</dd>
+
+          <dt class="col-sm-3">Sector</dt>
+          <dd class="col-sm-9">{{ basic_data.sector }}</dd>
+
+          <dt class="col-sm-3">Deadline</dt>
+          <dd class="col-sm-9">{{ basic_data.application_deadline }}</dd>
+
+          <dt class="col-sm-3">Type</dt>
+          <dd class="col-sm-9">{{ basic_data.type }}</dd>
+
+          <dt class="col-sm-3">Level</dt>
+          <dd class="col-sm-9">{{ basic_data.level }}</dd>
+
+          <dt class="col-sm-3">Openings</dt>
+          <dd class="col-sm-9">{{ basic_data.openings }}</dd>
+
+          <dt class="col-sm-3">Salary</dt>
+          <dd class="col-sm-9">
+            {{ basic_data.comp_min }} – {{ basic_data.comp_max }} {{ basic_data.comp_frequency }}
+          </dd>
+        </dl>
+
+        <h5 class="mt-4">Skills & Requirements</h5>
+        <dl class="row">
+          <dt class="col-sm-3">Skills</dt>
+          <dd class="col-sm-9">
+            {% if skills_data.skills %}
+                {% for skill in skills_data.skills %}
+                {{ skill }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            {% else %}
+                <em>None specified</em>
+            {% endif %}
+            </dd>
+
+          <dt class="col-sm-3">Responsibilities</dt>
+          <dd class="col-sm-9">{{ skills_data.responsibilities|safe }}</dd>
+
+          <dt class="col-sm-3">Qualifications</dt>
+          <dd class="col-sm-9">{{ skills_data.qualifications|safe }}</dd>
+
+          <dt class="col-sm-3">Benefits</dt>
+          <dd class="col-sm-9">{{ skills_data.benefits|safe }}</dd>
+        </dl>
+
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button name="wizard_goto_step" value="{{ wizard.steps.prev }}"
+              class="btn btn-secondary">Prev</button>
+      <button type="submit" class="btn btn-success">Post Internship</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import CompanyProfileForm
+from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm
 from django.contrib import messages
-from .models import CompanyProfile
+from .models import CompanyProfile, InternshipPost
+from django.shortcuts import redirect
+from formtools.wizard.views import SessionWizardView
 
 @login_required
 def company_dashboard(request):
@@ -44,3 +46,59 @@ def company_profile(request):
         'form': form,
         'profile': profile
     })
+
+
+FORMS = [
+    ('basic', BasicDetailsForm),
+    ('skills', SkillsRequirementsForm),
+    ('review', ReviewForm),
+]
+
+TEMPLATES = {
+    'basic':  'company/internship_wizard_basic.html',
+    'skills': 'company/internship_wizard_skills.html',
+    'review': 'company/internship_wizard_review.html',
+}
+
+class InternshipWizard(SessionWizardView):
+    form_list = FORMS
+    url_name = 'company:internship_step'   # ← move here
+    done_step_name = 'review' 
+    template_name = None
+
+    def get_template_names(self):
+        return [TEMPLATES[self.steps.current]]
+    
+    def get_context_data(self, form, **kwargs):
+        """
+        Inject the cleaned_data for steps 'basic' & 'skills' 
+        so templates can just use {{ basic_data }} & {{ skills_data }}.
+        """
+        context = super().get_context_data(form=form, **kwargs)
+        context['basic_data']  = self.get_cleaned_data_for_step('basic')  or {}
+        context['skills_data'] = self.get_cleaned_data_for_step('skills') or {}
+        return context
+
+
+    def done(self, form_list, **kwargs):
+        data = self.get_all_cleaned_data()
+        post = InternshipPost.objects.create(
+            company=self.request.user.company_profile,
+            title=data['title'],
+            city=data['city'],
+            location=data['location'],
+            sector=data['sector'],
+            application_deadline=data['application_deadline'],
+            type=data['type'],
+            level=data['level'],
+            openings=data['openings'],
+            comp_min=data['comp_min'],
+            comp_max=data['comp_max'],
+            comp_frequency=data['comp_frequency'],
+            responsibilities=data['responsibilities'],
+            qualifications=data['qualifications'],
+            benefits=data['benefits'],
+        )
+        post.skills.set(data.get('skills', []))
+        messages.success(self.request, "Internship posted successfully!")
+        return redirect('company:company_all_jobs')

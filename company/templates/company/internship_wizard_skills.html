@@ -1,0 +1,81 @@
+{# templates/company/internship_wizard_skills.html #}
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}2. Skills & Requirements{% endblock %}
+
+{% block extra_head %}
+  {# django-ckeditor will inject its JS/CSS here #}
+  {{ wizard.form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  {# Step indicator #}
+  <ul class="nav justify-content-center mb-5">
+    <li class="nav-item"><span class="nav-link text-muted">1. Basic Details</span></li>
+    <li class="nav-item"><span class="nav-link active">2. Skills &amp; Requirements</span></li>
+    <li class="nav-item"><span class="nav-link text-muted">3. Review &amp; Submit</span></li>
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ wizard.management_form }}
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <div class="row">
+          {# Skills multi‑select #}
+          <div class="col-md-6 mb-3">
+            {{ wizard.form.skills.label_tag }}
+            {{ wizard.form.skills }}
+            {% for e in wizard.form.skills.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          {# Responsibilities with rich editor #}
+          <div class="col-md-6 mb-3">
+            {{ wizard.form.responsibilities.label_tag }}
+            {{ wizard.form.responsibilities }}
+            {% for e in wizard.form.responsibilities.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row">
+          {# Qualifications with rich editor #}
+          <div class="col-md-6 mb-3">
+            {{ wizard.form.qualifications.label_tag }}
+            {{ wizard.form.qualifications }}
+            {% for e in wizard.form.qualifications.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          {# Benefits with rich editor #}
+          <div class="col-md-6 mb-3">
+            {{ wizard.form.benefits.label_tag }}
+            {{ wizard.form.benefits }}
+            {% for e in wizard.form.benefits.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button name="wizard_goto_step"
+              value="{{ wizard.steps.prev }}"
+              class="btn btn-secondary">
+        Prev
+      </button>
+      <button type="submit" class="btn btn-primary">
+        Continue
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

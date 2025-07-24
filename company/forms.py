@@ -1,5 +1,8 @@
 from django import forms
-from .models import CompanyProfile
+from .models import CompanyProfile, InternshipPost
+from django.utils import timezone
+from ckeditor.widgets import CKEditorWidget
+from taggit.forms import TagWidget
 
 class CompanyProfileForm(forms.ModelForm):
     class Meta:
@@ -34,3 +37,62 @@ class CompanyProfileForm(forms.ModelForm):
         if not phone.isdigit():
             raise forms.ValidationError("Phone number must contain only digits.")
         return phone
+    
+
+class BasicDetailsForm(forms.ModelForm):
+    class Meta:
+        model = InternshipPost
+        fields = [
+            'title', 'city', 'location', 'sector',
+            'application_deadline', 'type', 'level',
+            'openings', 'comp_min', 'comp_max', 'comp_frequency',
+        ]
+        widgets = {
+            # same widgets as before for two‑column layout…
+            'title':               forms.TextInput(attrs={'class':'form-control', 'placeholder':'Internship Title'}),
+            'city':                forms.TextInput(attrs={'class':'form-control', 'placeholder':'City'}),
+            'location':            forms.Select(attrs={'class':'form-select'}),
+            'sector':              forms.Select(attrs={'class':'form-select'}),
+            'application_deadline':forms.DateInput(attrs={'type':'date','class':'form-control'}),
+            'type':                forms.Select(attrs={'class':'form-select'}),
+            'level':               forms.Select(attrs={'class':'form-select'}),
+            'openings':            forms.NumberInput(attrs={'class':'form-control','min':1}),
+            'comp_min':            forms.NumberInput(attrs={'class':'form-control','placeholder':'Min Salary'}),
+            'comp_max':            forms.NumberInput(attrs={'class':'form-control','placeholder':'Max Salary'}),
+            'comp_frequency':      forms.Select(attrs={'class':'form-select'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        min_sal, max_sal = cleaned.get('comp_min'), cleaned.get('comp_max')
+        if min_sal and max_sal and min_sal > max_sal:
+            self.add_error('comp_min', "Min must not exceed max.")
+            self.add_error('comp_max', "Max must be ≥ min.")
+        dl = cleaned.get('application_deadline')
+        if dl and dl < timezone.now().date():
+            self.add_error('application_deadline', "Deadline cannot be in the past.")
+        if cleaned.get('openings', 0) < 1:
+            self.add_error('openings', "Must have at least one opening.")
+        return cleaned
+
+
+class SkillsRequirementsForm(forms.ModelForm):
+    class Meta:
+        model = InternshipPost
+        fields = ['skills','responsibilities','qualifications','benefits']
+        widgets = {
+          'skills': TagWidget(attrs={'class': 'form-control', 'placeholder': 'e.g. Python, Django'}),
+          'responsibilities': CKEditorWidget(),
+          'qualifications':   CKEditorWidget(),
+          'benefits':         CKEditorWidget(),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Change the label from “Tags” to “Skills”
+        self.fields['skills'].label = "Skills"
+
+
+class ReviewForm(forms.Form):
+    # empty form, just to render the final page
+    pass
+
