@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     "website",
     "candidate",
     'bootstrap5',
+    'formtools',
+    'ckeditor',
+    'taggit',
 ]
 
 MIDDLEWARE = [
