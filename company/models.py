@@ -69,9 +69,6 @@ class CompanyProfile(models.Model):
 
 
 
-
-
-
 class InternshipPost(models.Model):
     
     LOCATION_CHOICES = [
@@ -145,5 +142,87 @@ class InternshipPost(models.Model):
     @property
     def days_left(self):
         """How many days remain until the deadline."""
+        delta = self.application_deadline - timezone.localdate()
+        return max(delta.days, 0)
+    
+class JobPost(models.Model):
+    LOCATION_CHOICES = [
+        ("Onsite",  "Onsite"),
+        ("Remote",  "Remote"),
+        ("Hybrid",  "Hybrid"),
+    ]
+    TYPE_CHOICES = [
+        ("Full Time",  "Full Time"),
+        ("Part Time",  "Part Time"),
+        ("Internship", "Internship"),
+        ("Contract",   "Contract"),
+    ]
+    LEVEL_CHOICES = [
+        ("Entry",  "Entry"),
+        ("Mid",    "Mid"),
+        ("Senior", "Senior"),
+        ("Lead",   "Lead"),
+    ]
+    EXPERIENCE_UNIT_CHOICES = [
+        ("Years",  "Years"),
+        ("Months", "Months"),
+    ]
+    SALARY_PERIOD_CHOICES = [
+        ("Monthly", "Monthly"),
+        ("Yearly",  "Yearly"),
+    ]
+    SECTOR_CHOICES = [
+        ("IT",         "IT"),
+        ("Finance",    "Finance"),
+        ("Marketing",  "Marketing"),
+        ("Design",     "Design"),
+        ("Data",       "Data"),
+        ("Healthcare", "Healthcare"),
+        ("Education",  "Education"),
+
+    ]
+
+    company              = models.ForeignKey(
+        CompanyProfile,
+        on_delete=models.CASCADE,
+        related_name="job_posts"
+    )
+    title                = models.CharField(max_length=150)
+    province             = models.CharField(max_length=20, choices=PROVINCE_CHOICES)
+    city                 = models.CharField(max_length=100)
+    location_type        = models.CharField(max_length=10, choices=LOCATION_CHOICES)
+    sector               = models.CharField(max_length=50, choices=SECTOR_CHOICES)
+    application_deadline = models.DateField()
+
+    job_type             = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    job_level            = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    experience_required  = models.PositiveIntegerField()
+    experience_unit      = models.CharField(max_length=10, choices=EXPERIENCE_UNIT_CHOICES)
+    openings             = models.PositiveIntegerField()
+    salary_min           = models.DecimalField(max_digits=10, decimal_places=2)
+    salary_max           = models.DecimalField(max_digits=10, decimal_places=2)
+    salary_period        = models.CharField(max_length=10, choices=SALARY_PERIOD_CHOICES)
+
+
+    responsibilities     = models.TextField(blank=True)
+    skills               = TaggableManager(blank=True)
+    qualifications       = models.TextField(blank=True)
+    benefits             = models.TextField(blank=True)
+
+    is_active            = models.BooleanField(default=True)
+    created_at           = models.DateTimeField(auto_now_add=True)
+    updated_at           = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} at {self.company}"
+
+    @property
+    def status(self):
+        if not self.is_active:
+            return "Inactive"
+        return "Active" if self.application_deadline >= timezone.localdate() else "Closed"
+
+    @property
+    def days_left(self):
         delta = self.application_deadline - timezone.localdate()
         return max(delta.days, 0)

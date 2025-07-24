@@ -27,7 +27,7 @@ class InternshipPostListView(LoginRequiredMixin, ListView):
     context_object_name = 'posts'
 
     def get_queryset(self):
-        qs = self.request.user.company_profile.internships.filter(is_active=True)
+        qs = self.request.user.company_profile.internships.all()
         # 1) filter by category (internship vs job)
         t = self.request.GET.get('type_filter', '')
         if t == 'internship':
