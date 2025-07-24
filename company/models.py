@@ -26,6 +26,12 @@ COMPANY_SIZE_CHOICES = [
 ]
 
 class CompanyProfile(models.Model):
+    logo = models.ImageField(
+        upload_to='company_logos/',
+        blank=True,
+        null=True,
+        help_text="Upload a square PNG/JPG up to 2-MB"
+    )
     user            = models.OneToOneField(User, on_delete=models.CASCADE, related_name="company_profile")
     first_name      = models.CharField("First Name", max_length=150)
     last_name       = models.CharField("Last Name",  max_length=150)

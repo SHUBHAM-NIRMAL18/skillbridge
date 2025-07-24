@@ -1,0 +1,213 @@
+{# templates/company/company_profile.html #}
+{% extends "company/base.html" %}
+{% load static %}
+{% block title %}Company Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Company Profile</h5>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% if messages %}
+          {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {# — Read‑only Email — #}
+        <div class="row mb-3">
+          <label class="col-md-2 col-form-label">Email</label>
+          <div class="col-md-10">
+            <input type="email"
+                   class="form-control-plaintext"
+                   value="{{ request.user.email }}"
+                   readonly>
+          </div>
+        </div>
+
+        {# — Logo & First Name — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.logo.id_for_label }}" class="form-label">
+              {{ form.logo.label }}
+            </label>
+            {{ form.logo }}
+            {% for err in form.logo.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+            {% if profile.logo %}
+              <div class="mt-2">
+                <p class="mb-1"><strong>Current Logo:</strong></p>
+                <img src="{{ profile.logo.url }}"
+                     alt="Company Logo"
+                     class="img-thumbnail"
+                     style="max-width:150px;">
+              </div>
+            {% endif %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+              {{ form.first_name.label }}{% if form.first_name.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.first_name }}
+            {% for err in form.first_name.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — Last Name & Industry — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+              {{ form.last_name.label }}{% if form.last_name.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.last_name }}
+            {% for err in form.last_name.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.industry.id_for_label }}" class="form-label">
+              {{ form.industry.label }}{% if form.industry.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.industry }}
+            {% for err in form.industry.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — Founded Date & Company Size — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.founded_date.id_for_label }}" class="form-label">
+              {{ form.founded_date.label }}{% if form.founded_date.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.founded_date }}
+            {% for err in form.founded_date.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.company_size.id_for_label }}" class="form-label">
+              {{ form.company_size.label }}{% if form.company_size.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.company_size }}
+            {% for err in form.company_size.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — Phone & Website URL — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.phone.id_for_label }}" class="form-label">
+              {{ form.phone.label }}{% if form.phone.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.phone }}
+            {% for err in form.phone.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.website_url.id_for_label }}" class="form-label">
+              {{ form.website_url.label }}
+            </label>
+            {{ form.website_url }}
+            {% for err in form.website_url.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — Social Link & Province — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.social_link.id_for_label }}" class="form-label">
+              {{ form.social_link.label }}
+            </label>
+            {{ form.social_link }}
+            {% for err in form.social_link.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.province.id_for_label }}" class="form-label">
+              {{ form.province.label }}{% if form.province.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.province }}
+            {% for err in form.province.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — City & Postal Code — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.city.id_for_label }}" class="form-label">
+              {{ form.city.label }}{% if form.city.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.city }}
+            {% for err in form.city.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+              {{ form.postal_code.label }}
+            </label>
+            {{ form.postal_code }}
+            {% for err in form.postal_code.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# — Current Address & (leave blank or add future field) — #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="{{ form.current_address.id_for_label }}" class="form-label">
+              {{ form.current_address.label }}{% if form.current_address.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.current_address }}
+            {% for err in form.current_address.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {# Intentionally left empty for symmetry; or add another short field here #}
+          </div>
+        </div>
+
+        {# — About Company (full width) — #}
+        <div class="mb-3">
+          <label for="{{ form.about_company.id_for_label }}" class="form-label">
+            {{ form.about_company.label }}{% if form.about_company.field.required %} <span class="text-danger">*</span>{% endif %}
+          </label>
+          {{ form.about_company }}
+          {% for err in form.about_company.errors %}
+            <div class="text-danger small">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-danger px-4">
+            Save Profile
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
