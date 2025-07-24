@@ -111,73 +111,73 @@
     <!-- title + browse link -->
     <div class="d-flex justify-content-between align-items-baseline mb-2">
       <h3 class="mb-0">Get your dream Internship now</h3>
-      <a href="#" class="text-danger fw-bold">
+      <a href="{% url 'internship' %}" class="text-danger fw-bold">
         Browse all Internships <i class="bi bi-arrow-right"></i>
       </a>
     </div>
 
-    <!-- subtitle -->
     <p class="text-muted mb-4">
       Search your career opportunity through the available positions.
     </p>
 
-    <!-- pill-shaped tab buttons -->
-    <ul class="nav mb-4">
-      <li class="nav-item me-2">
-        <button class="btn btn-danger rounded-pill px-4">Featured Internship</button>
-      </li>
-      <li class="nav-item me-2">
-        <button class="btn btn-light rounded-pill px-4">Nearest</button>
-      </li>
-      <li class="nav-item me-2">
-        <button class="btn btn-light rounded-pill px-4">Newest</button>
-      </li>
-      <li class="nav-item">
-        <button class="btn btn-light rounded-pill px-4">Oldest</button>
-      </li>
-    </ul>
+    <!-- tabs (static for now) … -->
 
-    <!-- cards row -->
     <div class="row row-cols-1 row-cols-md-3 g-4">
-      <!-- example card -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 border-0 rounded-3 p-4">
-          <!-- logo -->
-          <div class="mb-3">
-            <img src="{% static 'icons/employee.svg' %}" alt="INFC logo" style="height:40px;">
-          </div>
-          <!-- job title + company -->
-          <h5 class="mb-1">Business Analyst</h5>
-          <p class="text-danger small text-uppercase mb-2">Dome Infosys</p>
-          <!-- description -->
-          <p class="mb-3">
-            As a <strong>Business Analyst Intern</strong>, you will support the…
-          </p>
+      {% for post in internships %}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 border-0 rounded-3 p-4">
+            <!-- logo or default icon -->
+            <div class="mb-3">
+              {% if post.company.logo %}
+                <img src="{{ post.company.logo.url }}"
+                     alt="Logo"
+                     style="height:40px;">
+              {% else %}
+                <img src="{% static 'icons/employee.svg' %}"
+                     alt="Logo"
+                     style="height:40px;">
+              {% endif %}
+            </div>
 
-          <!-- stats pills -->
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-              <i class="bi bi-clock me-1"></i><small>10 days left</small>
-            </div>
-            <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-              <i class="bi bi-geo-alt me-1"></i><small>Kathmandu</small>
-            </div>
-            <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-              <i class="bi bi-briefcase me-1"></i><small>Full Time</small>
-            </div>
-          </div>
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <p class="text-danger small text-uppercase mb-2">
+              {{ post.company.first_name }} {{ post.company.last_name }}
+            </p>
 
-          <!-- apply link -->
-          <a href="#" class="text-danger text-decoration-none fw-bold">
-            Apply Now <i class="bi bi-arrow-right"></i>
-          </a>
+            <p class="mb-3">
+              {{ post.responsibilities|striptags|truncatechars:100 }}
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
+                <i class="bi bi-clock me-1"></i>
+                <small>{{ post.days_left }} days left</small>
+              </div>
+              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
+                <i class="bi bi-geo-alt me-1"></i>
+                <small>{{ post.city }}</small>
+              </div>
+              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
+                <i class="bi bi-briefcase me-1"></i>
+                <small>{{ post.type }}</small>
+              </div>
+            </div>
+
+            <a href="#"
+               class="text-danger text-decoration-none fw-bold">
+              Apply Now <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
         </div>
-      </div>
-
-      <!-- repeat .col-md-3.mb-4 for additional internships … -->
+      {% empty %}
+        <div class="col-12 text-center text-muted py-5">
+          No internships found.
+        </div>
+      {% endfor %}
     </div>
   </div>
 </section>
+
 
 <section class="py-5">
   <div class="container px-4 px-md-5">

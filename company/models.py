@@ -141,3 +141,9 @@ class InternshipPost(models.Model):
         if not self.is_active:
            return "Inactive"
         return "Active" if self.application_deadline >= timezone.now().date() else "Closed"
+    
+    @property
+    def days_left(self):
+        """How many days remain until the deadline."""
+        delta = self.application_deadline - timezone.localdate()
+        return max(delta.days, 0)

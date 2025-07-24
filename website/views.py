@@ -1,11 +1,21 @@
 from django.shortcuts import render
+from django.utils import timezone
+from company.models import InternshipPost
 
 # Create your views here.
 def home_view(request):
     """
-    Render the home page.
+    Render the home page with the upcoming internships.
     """
-    return render(request, 'index.html')
+    today = timezone.localdate()
+    internships = (
+        InternshipPost.objects
+        .filter(is_active=True, application_deadline__gte=today)
+        .order_by('application_deadline')[:6]
+    )
+    return render(request, 'index.html', {
+        'internships': internships
+    })
 
 # def login_view(request):
 #     """

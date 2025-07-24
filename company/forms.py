@@ -1,6 +1,8 @@
 from django import forms
 from .models import CompanyProfile, InternshipPost
 from django.utils import timezone
+from datetime import timedelta
+import re
 from ckeditor.widgets import CKEditorWidget
 from taggit.forms import TagWidget
 
@@ -64,15 +66,49 @@ class BasicDetailsForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        min_sal, max_sal = cleaned.get('comp_min'), cleaned.get('comp_max')
-        if min_sal and max_sal and min_sal > max_sal:
-            self.add_error('comp_min', "Min must not exceed max.")
-            self.add_error('comp_max', "Max must be ≥ min.")
+
+        # — Strip and validate title —
+        title = cleaned.get('title', '')
+        if title:
+            title = title.strip()
+            cleaned['title'] = title
+            if len(title) < 5:
+                self.add_error('title', "Title must be at least 5 characters long.")
+
+        # — Strip and validate city (letters, spaces, hyphens only) —
+        city = cleaned.get('city', '')
+        if city:
+            city = city.strip()
+            cleaned['city'] = city
+            if not re.match(r'^[A-Za-z\s\-]+$', city):
+                self.add_error('city', "City may only contain letters, spaces, or hyphens.")
+
+        # — Salary bounds (min ≤ max) & minimum stipend threshold —
+        min_sal = cleaned.get('comp_min')
+        max_sal = cleaned.get('comp_max')
+        if min_sal is not None and max_sal is not None:
+            if min_sal > max_sal:
+                self.add_error('comp_min', "Min must not exceed max.")
+                self.add_error('comp_max', "Max must be ≥ min.")
+            # enforce a floor, e.g. at least 100
+            if min_sal < 100:
+                self.add_error('comp_min', "Minimum stipend must be at least 100.")
+
+        # — Deadline: not in past, not more than 1 year out —
         dl = cleaned.get('application_deadline')
-        if dl and dl < timezone.now().date():
-            self.add_error('application_deadline', "Deadline cannot be in the past.")
-        if cleaned.get('openings', 0) < 1:
-            self.add_error('openings', "Must have at least one opening.")
+        if dl:
+            today = timezone.now().date()
+            if dl < today:
+                self.add_error('application_deadline', "Deadline cannot be in the past.")
+            if dl > today + timedelta(days=365):
+                self.add_error('application_deadline', "Deadline cannot be more than one year from now.")
+
+        # — Openings: 1 ≤ openings ≤ 50 —
+        openings = cleaned.get('openings')
+        if openings is not None:
+            if openings < 1 or openings > 50:
+                self.add_error('openings', "Openings must be between 1 and 50.")
+
         return cleaned
 
 
