@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from taggit.managers import TaggableManager
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -72,6 +73,7 @@ class CompanyProfile(models.Model):
 
 
 class InternshipPost(models.Model):
+    
     LOCATION_CHOICES = [
         ("Onsite",  "Onsite"),
         ("Remote",  "Remote"),
@@ -127,10 +129,15 @@ class InternshipPost(models.Model):
     responsibilities      = models.TextField(blank=True)
     qualifications        = models.TextField(blank=True)
     benefits              = models.TextField(blank=True)
-
+    is_active = models.BooleanField(default=True)
     created_at            = models.DateTimeField(auto_now_add=True)
     updated_at            = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} at {self.company}"
-
+    
+    @property
+    def status(self):
+        if not self.is_active:
+           return "Inactive"
+        return "Active" if self.application_deadline >= timezone.now().date() else "Closed"

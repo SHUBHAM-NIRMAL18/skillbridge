@@ -2,12 +2,19 @@ from django.urls import path
 from . import views
 from .views import InternshipWizard
 from django.views.generic import TemplateView 
+from .views import (
+    InternshipPostListView,
+    InternshipPostUpdateView,
+    InternshipPostDeleteView,
+)
 
 app_name = 'company'
 
 urlpatterns = [
     path('dashboard/', views.company_dashboard, name='dashboard'),
-    path('alljobs/', views.alljobs_view, name='company_all_jobs'),
+    path('alljobs/', InternshipPostListView.as_view(), name='company_all_jobs'),
+    path('internship/<int:pk>/edit/', InternshipPostUpdateView.as_view(), name='internship_edit'),
+    path('internship/<int:pk>/delete/', InternshipPostDeleteView.as_view(), name='internship_delete'),
     path('postchoice/', views.post_choice_view, name='company_post_choice'),
     path('profile/', views.company_profile, name='profile'),
      path(

@@ -1,56 +1,104 @@
+{# templates/company/all_jobs.html #}
 {% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}My Internships/Jobs Listing{% endblock %}
 
 {% block content %}
 <div class="center-wrapper">
-  <!-- Internships/Jobs Listing Header -->
+
+  <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="m-0 small">My Internships/Jobs Listing</h5>
-    <a href="{% url "company:company_post_choice" %}" class="btn btn-danger btn-sm small">+ Post an Internship/Job</a>
+    <a href="{% url 'company:company_post_choice' %}"
+       class="btn btn-danger btn-sm small">
+      + Post an Internship/Job
+    </a>
   </div>
 
-  <!-- Filters & Search -->
-  <div class="row mb-3">
-    <div class="col-sm-4 col-md-2 mb-2">
-      <div class="dropdown">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 small" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
+  <!-- Filter / Search / Sort Form -->
+  <form method="get" class="row mb-3 g-2">
+    <!-- Type filter -->
+    <div class="col-sm-4 col-md-2">
+      <select
+        name="type_filter"
+        class="form-select form-select-sm small"
+        onchange="this.form.submit()"
+      >
+        <option value=""
+          {% if not request.GET.type_filter %}selected{% endif %}>
           All
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="statusFilter">
-          <li><a class="dropdown-item small" href="#">All</a></li>
-          <li><a class="dropdown-item small" href="#">Jobs</a></li>
-          <li><a class="dropdown-item small" href="#">Internships</a></li>
-        </ul>
-      </div>
+        </option>
+        <option value="internship"
+          {% if request.GET.type_filter == "internship" %}selected{% endif %}>
+          Internships
+        </option>
+        <option value="job"
+          {% if request.GET.type_filter == "job" %}selected{% endif %}>
+          Jobs
+        </option>
+      </select>
     </div>
-    <div class="col-sm-8 col-md-4 mb-2">
+
+    <!-- Search box -->
+    <div class="col-sm-8 col-md-4">
       <div class="input-group input-group-sm">
-        <input type="text" class="form-control small" placeholder="Search jobs" aria-label="Search jobs">
-        <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-search"></i></button>
-      </div>
-    </div>
-    <div class="col-sm-12 col-md-3 d-flex align-items-center mb-2">
-      <span class="me-2 small">Sort by:</span>
-      <div class="dropdown flex-grow-1">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 small" type="button" id="sortBy" data-bs-toggle="dropdown" aria-expanded="false">
-          Deadline
+        <input
+          name="search"
+          type="text"
+          class="form-control small"
+          placeholder="Search titles"
+          value="{{ request.GET.search|default:'' }}"
+        >
+        <button class="btn btn-outline-secondary btn-sm" type="submit">
+          <i class="bi bi-search"></i>
         </button>
-        <ul class="dropdown-menu" aria-labelledby="sortBy">
-          <li><a class="dropdown-item small" href="#">Nearest Deadline</a></li>
-          <li><a class="dropdown-item small" href="#">Newest</a></li>
-          <li><a class="dropdown-item small" href="#">Oldest</a></li>
-        </ul>
       </div>
     </div>
-  </div>
+
+    <!-- Sort selector -->
+    <div class="col-sm-12 col-md-3 d-flex align-items-center">
+      <select
+        name="sort"
+        class="form-select form-select-sm small"
+        onchange="this.form.submit()"
+      >
+        <option value="deadline"
+          {% if request.GET.sort == "deadline" %}selected{% endif %}>
+          Deadline
+        </option>
+        <option value="newest"
+          {% if request.GET.sort == "newest" %}selected{% endif %}>
+          Newest
+        </option>
+        <option value="oldest"
+          {% if request.GET.sort == "oldest" %}selected{% endif %}>
+          Oldest
+        </option>
+      </select>
+    </div>
+  </form>
 
   <!-- Navigation Tabs -->
   <ul class="nav nav-tabs nav-sm mb-3 small">
-    <li class="nav-item"><a class="nav-link active small" href="#">All Jobs</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Active</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Pending</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Closed</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Rejected</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Featured</a></li>
+    <li class="nav-item">
+      <a class="nav-link active small" href="#">All Jobs</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link small" href="#">Active</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link small" href="#">Pending</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link small" href="#">Closed</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link small" href="#">Rejected</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link small" href="#">Featured</a>
+    </li>
   </ul>
 
   <!-- Jobs Table -->
@@ -65,15 +113,47 @@
           <th>Deadline</th>
           <th>Created At</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td colspan="7" class="text-center text-muted py-4">
-            <i class="bi bi-file-earmark-excel" style="font-size: 1.5rem;"></i><br>
-            <span class="small">No Results</span>
-          </td>
-        </tr>
+        {% for post in posts %}
+          <tr>
+            <td>{{ post.title }}</td>
+            <td>0</td> {# replace with real application count when available #}
+            <td>{{ post.openings }}</td>
+            <td>{{ post.location }}</td>
+            <td>{{ post.application_deadline|date:"Y-m-d" }}</td>
+            <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ post.status }}</td>
+            <td>
+              <a href="{% url 'company:internship_edit' post.pk %}"
+                 class="btn btn-outline-primary btn-sm">Edit</a>
+              <form method="post"
+                    action="{% url 'company:internship_delete' post.pk %}"
+                    class="d-inline">
+                {% csrf_token %}
+                <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal"
+                data-href="{% url 'company:internship_delete' post.pk %}"
+                data-title="{{ post.title }}"
+              >
+                Delete
+              </button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              <i class="bi bi-file-earmark-excel" style="font-size:1.5rem;"></i><br>
+              <span class="small">No Results</span>
+            </td>
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>

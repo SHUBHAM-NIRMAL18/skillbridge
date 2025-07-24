@@ -1,0 +1,133 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}Edit Internship{% endblock %}
+
+{% block extra_head %}
+  {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Edit Internship</h2>
+
+  {# Display success/error messages #}
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        {# Title & City #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.title.label_tag }}{{ form.title }}
+            {% for e in form.title.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.city.label_tag }}{{ form.city }}
+            {% for e in form.city.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Location & Sector #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.location.label_tag }}{{ form.location }}
+            {% for e in form.location.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.sector.label_tag }}{{ form.sector }}
+            {% for e in form.sector.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Deadline & Type #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.application_deadline.label_tag }}{{ form.application_deadline }}
+            {% for e in form.application_deadline.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.type.label_tag }}{{ form.type }}
+            {% for e in form.type.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Level & Openings #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.level.label_tag }}{{ form.level }}
+            {% for e in form.level.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.openings.label_tag }}{{ form.openings }}
+            {% for e in form.openings.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Salary Min/Max & Frequency #}
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            {{ form.comp_min.label_tag }}{{ form.comp_min }}
+            {% for e in form.comp_min.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-4 mb-3">
+            {{ form.comp_max.label_tag }}{{ form.comp_max }}
+            {% for e in form.comp_max.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-4 mb-3">
+            {{ form.comp_frequency.label_tag }}{{ form.comp_frequency }}
+            {% for e in form.comp_frequency.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Skills & Is Active toggle #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.skills.label_tag }}{{ form.skills }}
+            {% for e in form.skills.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3 d-flex align-items-center">
+            <div class="form-check">
+              {{ form.is_active }} {{ form.is_active.label_tag }}
+            </div>
+            {% for e in form.is_active.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Responsibilities & Qualifications #}
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            {{ form.responsibilities.label_tag }}{{ form.responsibilities }}
+            {% for e in form.responsibilities.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.qualifications.label_tag }}{{ form.qualifications }}
+            {% for e in form.qualifications.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+
+        {# Benefits (full width) #}
+        <div class="mb-3">
+          {{ form.benefits.label_tag }}{{ form.benefits }}
+          {% for e in form.benefits.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-success">Save Changes</button>
+      <a href="{% url 'company:company_all_jobs' %}" class="btn btn-secondary ms-2">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

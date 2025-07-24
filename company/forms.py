@@ -96,3 +96,33 @@ class ReviewForm(forms.Form):
     # empty form, just to render the final page
     pass
 
+
+class InternshipPostForm(forms.ModelForm):
+    class Meta:
+        model = InternshipPost
+        # include everything you want editable
+        fields = [
+            'title', 'city', 'location', 'sector',
+            'application_deadline', 'type', 'level',
+            'openings', 'comp_min', 'comp_max', 'comp_frequency',
+            'skills', 'responsibilities', 'qualifications', 'benefits',
+            'is_active',   # allow toggling active/inactive
+        ]
+        widgets = {
+            'title':               forms.TextInput(attrs={'class':'form-control'}),
+            'city':                forms.TextInput(attrs={'class':'form-control'}),
+            'location':            forms.Select(attrs={'class':'form-select'}),
+            'sector':              forms.Select(attrs={'class':'form-select'}),
+            'application_deadline':forms.DateInput(attrs={'type':'date','class':'form-control'}),
+            'type':                forms.Select(attrs={'class':'form-select'}),
+            'level':               forms.Select(attrs={'class':'form-select'}),
+            'openings':            forms.NumberInput(attrs={'class':'form-control','min':1}),
+            'comp_min':            forms.NumberInput(attrs={'class':'form-control'}),
+            'comp_max':            forms.NumberInput(attrs={'class':'form-control'}),
+            'comp_frequency':      forms.Select(attrs={'class':'form-select'}),
+            'skills':              TagWidget(attrs={'class':'form-control','placeholder':'e.g. Python, Django'}),
+            'responsibilities':    CKEditorWidget(),
+            'qualifications':      CKEditorWidget(),
+            'benefits':            CKEditorWidget(),
+            'is_active':           forms.CheckboxInput(attrs={'class':'form-check-input'}),
+        }

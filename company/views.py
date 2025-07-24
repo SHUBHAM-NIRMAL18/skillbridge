@@ -1,10 +1,18 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.messages.views import SuccessMessageMixin
+
 from django.contrib import messages
-from .models import CompanyProfile, InternshipPost
+
 from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
+
+
+from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm
+from .models import CompanyProfile, InternshipPost
 
 @login_required
 def company_dashboard(request):
@@ -13,9 +21,56 @@ def company_dashboard(request):
         return redirect('accounts:login')
     return render(request, 'company/dashboard.html')
 
-@login_required
-def alljobs_view(request):
-    return render(request, 'company/all_jobs.html')
+class InternshipPostListView(LoginRequiredMixin, ListView):
+    model = InternshipPost
+    template_name = 'company/all_jobs.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        qs = self.request.user.company_profile.internships.filter(is_active=True)
+        # 1) filter by category (internship vs job)
+        t = self.request.GET.get('type_filter', '')
+        if t == 'internship':
+            qs = qs.filter(type='Internship')    # adjust if you have a field
+        elif t == 'job':
+            qs = qs.filter(type='Job')
+        # 2) search by title
+        q = self.request.GET.get('search', '').strip()
+        if q:
+            qs = qs.filter(title__icontains=q)
+        # 3) sort
+        s = self.request.GET.get('sort', 'deadline')
+        if s == 'newest':
+            qs = qs.order_by('-created_at')
+        elif s == 'oldest':
+            qs = qs.order_by('created_at')
+        else:  # deadline
+            qs = qs.order_by('application_deadline')
+        return qs
+
+
+class InternshipPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = InternshipPost
+    form_class = InternshipPostForm
+    template_name = 'company/internship_edit.html'
+    success_url = reverse_lazy('company:company_all_jobs')
+    success_message = "Internship updated successfully."
+
+    def get_queryset(self):
+        return self.request.user.company_profile.internships.all()
+
+
+class InternshipPostDeleteView(LoginRequiredMixin, DeleteView):
+    model = InternshipPost
+    template_name = 'company/internship_confirm_delete.html'
+    success_url = reverse_lazy('company:company_all_jobs')
+
+    def get_queryset(self):
+        return self.request.user.company_profile.internships.all()
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Internship deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
 @login_required
 def post_choice_view(request):

@@ -180,6 +180,7 @@
     </div>
   </div>
 
+  
   {% bootstrap_javascript %}
 <script>
   document.addEventListener("DOMContentLoaded", function() {
@@ -189,8 +190,50 @@
     });
   });
 </script>
+<script>
+  // When any delete button is clicked, pop the modal and set its form action + message
+  document.addEventListener('DOMContentLoaded', () => {
+    const deleteModal = document.getElementById('confirmDeleteModal');
+    deleteModal.addEventListener('show.bs.modal', event => {
+      const btn = event.relatedTarget;
+      const url = btn.getAttribute('data-href');
+      const title = btn.getAttribute('data-title') || 'this item';
+      // update form action
+      const form = deleteModal.querySelector('#confirmDeleteForm');
+      form.action = url;
+      // update message
+      const msg = deleteModal.querySelector('#confirmDeleteMessage');
+      msg.textContent = `Are you sure you want to delete "${title}"?`;
+    });
+  });
+</script>
   {% block extra_js %}{% endblock %}
 </body>
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="confirmDeleteForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeleteLabel">
+            <i class="bi bi-exclamation-circle text-danger me-2"></i>
+            Confirm Deletion
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small mb-0" id="confirmDeleteMessage">
+            Are you sure you want to delete this item?
+          </p>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- Toast Container -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 1200;">
@@ -220,4 +263,5 @@
     </div>
   {% endfor %}
 </div>
+
 </html>
