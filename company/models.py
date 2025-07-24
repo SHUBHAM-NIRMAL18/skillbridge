@@ -1,3 +1,60 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Create your models here.
+
+
+PROVINCE_CHOICES = [
+    ("Koshi",        "Koshi (Province No.1)"),
+    ("Madhesh",      "Madhesh (Province No.2)"),
+    ("Bagmati",      "Bagmati (Province No.3)"),
+    ("Gandaki",      "Gandaki (Province No.4)"),
+    ("Lumbini",      "Lumbini (Province No.5)"),
+    ("Karnali",      "Karnali (Province No.6)"),
+    ("Sudurpashchim","Sudurpashchim (Province No.7)"),
+]
+
+COMPANY_SIZE_CHOICES = [
+    ("1-10",   "1–10 employees"),
+    ("11-50",  "11–50 employees"),
+    ("51-200", "51–200 employees"),
+    ("201-500","201–500 employees"),
+    ("501-1000","501–1000 employees"),
+    ("1001+",  "1001+ employees"),
+]
+
+class CompanyProfile(models.Model):
+    user            = models.OneToOneField(User, on_delete=models.CASCADE, related_name="company_profile")
+    first_name      = models.CharField("First Name", max_length=150)
+    last_name       = models.CharField("Last Name",  max_length=150)
+    industry        = models.CharField(max_length=100)
+    founded_date    = models.DateField()
+    company_size    = models.CharField(max_length=20, choices=COMPANY_SIZE_CHOICES)
+    about_company   = models.TextField()
+    phone           = models.CharField("Phone Number", max_length=20)
+    website_url     = models.URLField("Website URL", blank=True, null=True)
+
+    # now a dropdown of 7 provinces:
+    province        = models.CharField(max_length=20, choices=PROVINCE_CHOICES)
+    # free‐text city:
+    city            = models.CharField("City", max_length=100)
+
+    postal_code     = models.CharField(max_length=20)
+    current_address = models.CharField(max_length=255)
+    social_link     = models.URLField("Social Link", blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company Profile"
+        verbose_name_plural = "Company Profiles"
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.industry})"
+
+    @property
+    def email(self):
+        return self.user.email
