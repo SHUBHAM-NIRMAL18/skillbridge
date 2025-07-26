@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, UpdateView, DeleteView
+from django.views.generic import ListView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy, reverse
 from django.contrib.messages.views import SuccessMessageMixin
 
@@ -122,6 +122,20 @@ class JobPostDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Job deleted successfully.")
         return super().delete(request, *args, **kwargs)
+    
+class InternshipPostDetailView(LoginRequiredMixin, DetailView):
+    model = InternshipPost
+    template_name = 'company/internship_detail.html'
+    context_object_name = 'post'
+    def get_queryset(self):
+        return self.request.user.company_profile.internships.all()
+
+class JobPostDetailView(LoginRequiredMixin, DetailView):
+    model = JobPost
+    template_name = 'company/job_detail.html'
+    context_object_name = 'post'
+    def get_queryset(self):
+        return self.request.user.company_profile.job_posts.all()
 
 @login_required
 def post_choice_view(request):

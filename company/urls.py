@@ -8,6 +8,8 @@ from .views import (
     InternshipPostDeleteView,
     JobPostUpdateView,
     JobPostDeleteView,
+    InternshipPostDetailView,
+    JobPostDetailView,
 )
 
 app_name = 'company'
@@ -19,6 +21,8 @@ urlpatterns = [
     path('internship/<int:pk>/delete/', InternshipPostDeleteView.as_view(), name='internship_delete'),
     path('jobs/<int:pk>/edit/',JobPostUpdateView.as_view(),name='job_edit'),
     path('jobs/<int:pk>/delete/', JobPostDeleteView.as_view(), name='job_delete'),
+    path('internships/<int:pk>/', InternshipPostDetailView.as_view(), name='internship_detail'),
+    path('jobs/<int:pk>/',          JobPostDetailView.as_view(),        name='job_detail'),
     path('postchoice/', views.post_choice_view, name='company_post_choice'),
     path('profile/', views.company_profile, name='profile'),
      path(

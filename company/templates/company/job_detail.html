@@ -1,0 +1,35 @@
+{# templates/company/job_detail.html #}
+<h5 class="mb-3">{{ post.title }}</h5>
+<ul class="list-group mb-3">
+  <li class="list-group-item"><strong>Location:</strong> {{ post.province }}, {{ post.city }}</li>
+  <li class="list-group-item"><strong>Sector:</strong> {{ post.sector }}</li>
+  <li class="list-group-item"><strong>Type / Level:</strong> {{ post.job_type }} / {{ post.job_level }}</li>
+  <li class="list-group-item"><strong>Deadline:</strong> {{ post.application_deadline|date:"Y-m-d" }}</li>
+  <li class="list-group-item"><strong>Experience:</strong> {{ post.experience_required }} {{ post.experience_unit }}</li>
+  <li class="list-group-item"><strong>Openings:</strong> {{ post.openings }}</li>
+  <li class="list-group-item"><strong>Salary:</strong> {{ post.salary_min }}–{{ post.salary_max }} {{ post.salary_period }}</li>
+</ul>
+
+<h6>Skills</h6>
+<div class="mb-3">
+  {% for tag in post.skills.all %}
+    <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+  {% empty %}
+    <span class="text-muted">None listed</span>
+  {% endfor %}
+</div>
+
+<h6>Responsibilities</h6>
+<div class="mb-3">
+  {{ post.responsibilities|safe|linebreaks }}
+</div>
+
+<h6>Qualifications</h6>
+<div class="mb-3">
+  {{ post.qualifications|safe|linebreaks }}
+</div>
+
+<h6>Benefits</h6>
+<div class="mb-3">
+  {{ post.benefits|safe|linebreaks }}
+</div>
