@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth import logout
 
 from .forms import (
     CompanyRegistrationForm,
@@ -63,8 +64,7 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(LogoutView):
-    next_page = "index"
-
-    def dispatch(self, request, *args, **kwargs):
+    def get(self, request):
+        logout(request)
         messages.success(request, "You have successfully logged out.")
-        return super().dispatch(request, *args, **kwargs)
+        return redirect("accounts:login")
