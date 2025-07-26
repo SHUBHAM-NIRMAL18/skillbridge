@@ -1,0 +1,74 @@
+{% extends "company/base.html" %}
+{% load static %}
+{% block title %}3. Review & Submit{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4 text-center">Create Job – Step 3 of 3</h2>
+
+  <ul class="nav justify-content-center mb-5">
+    <li class="nav-item"><span class="nav-link text-muted">1. Basic Details</span></li>
+    <li class="nav-item"><span class="nav-link text-muted">2. Skills &amp; Requirements</span></li>
+    <li class="nav-item"><span class="nav-link active">3. Review &amp; Submit</span></li>
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ wizard.management_form }}
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-3">Basic Details</h5>
+        <ul class="list-group mb-4">
+          <li class="list-group-item"><strong>Title:</strong> {{ basic_data.title }}</li>
+          <li class="list-group-item"><strong>Location:</strong> {{ basic_data.province }}, {{ basic_data.city }}</li>
+          <li class="list-group-item"><strong>Type / Level:</strong> {{ basic_data.job_type }} / {{ basic_data.job_level }}</li>
+          <li class="list-group-item"><strong>Deadline:</strong> {{ basic_data.application_deadline }}</li>
+          <li class="list-group-item"><strong>Experience:</strong> {{ basic_data.experience_required }} {{ basic_data.experience_unit }}</li>
+          <li class="list-group-item"><strong>Openings:</strong> {{ basic_data.openings }}</li>
+          <li class="list-group-item"><strong>Salary:</strong> {{ basic_data.salary_min }}–{{ basic_data.salary_max }} {{ basic_data.salary_period }}</li>
+        </ul>
+
+        <h5 class="mb-3">Skills & Requirements</h5>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">
+            <strong>Skills:</strong>
+            {% for tag in details_data.skills %}
+              <span class="badge bg-secondary me-1">{{ tag }}</span>
+            {% endfor %}
+          </li>
+          <li class="list-group-item">
+            <strong>Responsibilities:</strong><br>{{ details_data.responsibilities|safe }}
+          </li>
+          <li class="list-group-item">
+            <strong>Qualifications:</strong><br>{{ details_data.qualifications|safe }}
+          </li>
+          <li class="list-group-item">
+            <strong>Benefits:</strong><br>{{ details_data.benefits|safe }}
+          </li>
+        </ul>
+
+        <div class="form-check mb-3">
+          {{ wizard.form.confirm }}
+          {{ wizard.form.confirm.label_tag }}
+          {% for e in wizard.form.confirm.errors %}
+            <div class="text-danger small">{{ e }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button
+       type="submit"
+       name="wizard_goto_step"
+       value="{{ wizard.steps.prev }}"
+       class="btn btn-secondary"
+     >
+       Prev
+     </button>
+      <button type="submit" class="btn btn-danger">Submit Job</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{# templates/company/job_edit.html #}
+{% extends "company/base.html" %}
+{% load static %}
+
+{# Include CKEditor & TagWidget media #}
+{% block extra_head %}
+  {{ form.media }}
+{% endblock %}
+
+{% block title %}Edit Job{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4 text-center">Edit Job</h2>
+
+  {# Flash messages #}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        {# Row 1: Title & Province #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.title.label_tag }}
+            {{ form.title }}
+            {% for err in form.title.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.province.label_tag }}
+            {{ form.province }}
+            {% for err in form.province.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 2: City & Location Type #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.city.label_tag }}
+            {{ form.city }}
+            {% for err in form.city.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.location_type.label_tag }}
+            {{ form.location_type }}
+            {% for err in form.location_type.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 3: Sector & Deadline #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.sector.label_tag }}
+            {{ form.sector }}
+            {% for err in form.sector.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.application_deadline.label_tag }}
+            {{ form.application_deadline }}
+            {% for err in form.application_deadline.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 4: Job Type & Level #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.job_type.label_tag }}
+            {{ form.job_type }}
+            {% for err in form.job_type.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.job_level.label_tag }}
+            {{ form.job_level }}
+            {% for err in form.job_level.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 5: Experience & Unit #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.experience_required.label_tag }}
+            {{ form.experience_required }}
+            {% for err in form.experience_required.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.experience_unit.label_tag }}
+            {{ form.experience_unit }}
+            {% for err in form.experience_unit.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 6: Openings & Salary Min #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.openings.label_tag }}
+            {{ form.openings }}
+            {% for err in form.openings.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.salary_min.label_tag }}
+            {{ form.salary_min }}
+            {% for err in form.salary_min.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 7: Salary Max & Period #}
+        <div class="row gx-3">
+          <div class="col-md-6 mb-3">
+            {{ form.salary_max.label_tag }}
+            {{ form.salary_max }}
+            {% for err in form.salary_max.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6 mb-3">
+            {{ form.salary_period.label_tag }}
+            {{ form.salary_period }}
+            {% for err in form.salary_period.errors %}
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Row 8: Skills #}
+        <div class="mb-3">
+          {{ form.skills.label_tag }}
+          {{ form.skills }}
+          {% for err in form.skills.errors %}
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# Row 9: Responsibilities #}
+        <div class="mb-3">
+          {{ form.responsibilities.label_tag }}
+          {{ form.responsibilities }}
+          {% for err in form.responsibilities.errors %}
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# Row 10: Qualifications #}
+        <div class="mb-3">
+          {{ form.qualifications.label_tag }}
+          {{ form.qualifications }}
+          {% for err in form.qualifications.errors %}
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# Row 11: Benefits #}
+        <div class="mb-3">
+          {{ form.benefits.label_tag }}
+          {{ form.benefits }}
+          {% for err in form.benefits.errors %}
+            <div class="invalid-feedback d-block">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# Active toggle #}
+        <div class="form-check mb-4">
+          {{ form.is_active }}
+          {{ form.is_active.label_tag }}
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'company:company_all_jobs' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-success">Save Changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

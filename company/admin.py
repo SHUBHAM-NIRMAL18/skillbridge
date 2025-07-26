@@ -52,3 +52,47 @@ class InternshipPostAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ("created_at", "updated_at")
+
+
+from django.contrib import admin
+from .models import JobPost
+
+@admin.register(JobPost)
+class JobPostAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "company",
+        "province",
+        "city",
+        "job_type",
+        "job_level",
+        "is_active",
+        "application_deadline",
+        "status",
+    )
+    list_filter = (
+        "company",
+        "province",
+        "city",
+        "job_type",
+        "job_level",
+        "is_active",
+    )
+    search_fields = (
+        "title",
+        "company__user__email",
+        "company__first_name",
+        "company__last_name",
+    )
+    date_hierarchy = "application_deadline"
+    ordering = ("-created_at",)
+    raw_id_fields = ("company",)
+    filter_horizontal = ("skills",)
+
+    def get_skills(self, obj):
+        return ", ".join(tag.name for tag in obj.skills.all())
+    get_skills.short_description = "Skills"
+
+    # Add the skills column to the display
+    list_display = list_display + ("get_skills",)
+

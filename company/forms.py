@@ -1,5 +1,5 @@
 from django import forms
-from .models import CompanyProfile, InternshipPost
+from .models import CompanyProfile, InternshipPost, JobPost, PROVINCE_CHOICES
 from django.utils import timezone
 from datetime import timedelta
 import re
@@ -161,4 +161,161 @@ class InternshipPostForm(forms.ModelForm):
             'qualifications':      CKEditorWidget(),
             'benefits':            CKEditorWidget(),
             'is_active':           forms.CheckboxInput(attrs={'class':'form-check-input'}),
+        }
+
+class JobBasicDetailsForm(forms.ModelForm):
+    class Meta:
+        model = JobPost
+        fields = [
+            'title', 'province', 'city',
+            'location_type', 'sector', 'application_deadline',
+            'job_type', 'job_level',
+            'experience_required', 'experience_unit',
+            'openings', 'salary_min', 'salary_max', 'salary_period',
+        ]
+        widgets = {
+            'title':               forms.TextInput(attrs={
+                                       'class': 'form-control',
+                                       'placeholder': 'Job title (min 5 chars)'
+                                   }),
+            'province':            forms.Select(attrs={'class': 'form-select'}),
+            'city':                forms.TextInput(attrs={
+                                       'class': 'form-control',
+                                       'placeholder': 'City'
+                                   }),
+            'location_type':       forms.Select(attrs={'class': 'form-select'}),
+            'sector':              forms.Select(attrs={'class': 'form-select'}),
+            'application_deadline':forms.DateInput(attrs={
+                                       'type': 'date',
+                                       'class': 'form-control'
+                                   }),
+            'job_type':            forms.Select(attrs={'class': 'form-select'}),
+            'job_level':           forms.Select(attrs={'class': 'form-select'}),
+            'experience_required': forms.NumberInput(attrs={
+                                       'class': 'form-control',
+                                       'min': 0
+                                   }),
+            'experience_unit':     forms.Select(attrs={'class': 'form-select'}),
+            'openings':            forms.NumberInput(attrs={
+                                       'class': 'form-control',
+                                       'min': 1
+                                   }),
+            'salary_min':          forms.NumberInput(attrs={
+                                       'class': 'form-control',
+                                       'placeholder': 'Min salary'
+                                   }),
+            'salary_max':          forms.NumberInput(attrs={
+                                       'class': 'form-control',
+                                       'placeholder': 'Max salary'
+                                   }),
+            'salary_period':       forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+
+        # Title length
+        title = cleaned.get('title', '').strip()
+        if title:
+            cleaned['title'] = title
+            if len(title) < 5:
+                self.add_error('title', 'Title must be at least 5 characters.')
+
+        # City format
+        city = cleaned.get('city', '').strip()
+        if city:
+            cleaned['city'] = city
+            if not re.match(r'^[A-Za-z\s\-]+$', city):
+                self.add_error('city', 'City may only contain letters, spaces, or hyphens.')
+
+        # Deadline: future & ≤ 1 year out
+        dl = cleaned.get('application_deadline')
+        if dl:
+            today = timezone.localdate()
+            if dl < today:
+                self.add_error('application_deadline', 'Deadline cannot be in the past.')
+            if dl > today + timedelta(days=365):
+                self.add_error('application_deadline', 'Deadline cannot exceed one year from today.')
+
+        # Salary bounds
+        min_sal = cleaned.get('salary_min')
+        max_sal = cleaned.get('salary_max')
+        if min_sal is not None and max_sal is not None:
+            if min_sal > max_sal:
+                self.add_error('salary_min', 'Min salary must not exceed max salary.')
+                self.add_error('salary_max', 'Max salary must be at least min salary.')
+            if min_sal < 0:
+                self.add_error('salary_min', 'Salary must be non-negative.')
+
+        # Openings
+        opens = cleaned.get('openings')
+        if opens is not None and opens < 1:
+            self.add_error('openings', 'You must have at least one opening.')
+
+        # Experience
+        exp = cleaned.get('experience_required')
+        if exp is not None and exp < 0:
+            self.add_error('experience_required', 'Experience cannot be negative.')
+
+        return cleaned
+
+
+class JobSkillsRequirementsForm(forms.ModelForm):
+    class Meta:
+        model = JobPost
+        fields = ['skills', 'responsibilities', 'qualifications', 'benefits']
+        widgets = {
+            'skills':          TagWidget(attrs={
+                                    'class': 'form-control',
+                                    'placeholder': 'e.g. Python, Django'
+                                }),
+            'responsibilities':CKEditorWidget(),
+            'qualifications':  CKEditorWidget(),
+            'benefits':        CKEditorWidget(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['skills'].label = "Skills"
+
+
+class JobReviewForm(forms.Form):
+    confirm = forms.BooleanField(
+        label="I confirm that all information above is correct.",
+        required=True
+    )
+
+
+class JobPostForm(forms.ModelForm):
+    class Meta:
+        model = JobPost
+        fields = [
+            'title', 'province', 'city',
+            'location_type', 'sector', 'application_deadline',
+            'job_type', 'job_level',
+            'experience_required', 'experience_unit',
+            'openings', 'salary_min', 'salary_max', 'salary_period',
+            'skills', 'responsibilities', 'qualifications', 'benefits',
+            'is_active',
+        ]
+        widgets = {
+            'title':               forms.TextInput(attrs={'class': 'form-control'}),
+            'province':            forms.Select(attrs={'class': 'form-select'}),
+            'city':                forms.TextInput(attrs={'class': 'form-control'}),
+            'location_type':       forms.Select(attrs={'class': 'form-select'}),
+            'sector':              forms.Select(attrs={'class': 'form-select'}),
+            'application_deadline':forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'job_type':            forms.Select(attrs={'class': 'form-select'}),
+            'job_level':           forms.Select(attrs={'class': 'form-select'}),
+            'experience_required': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'experience_unit':     forms.Select(attrs={'class': 'form-select'}),
+            'openings':            forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'salary_min':          forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Min salary'}),
+            'salary_max':          forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Max salary'}),
+            'salary_period':       forms.Select(attrs={'class': 'form-select'}),
+            'skills':              TagWidget(attrs={'class': 'form-control', 'placeholder': 'e.g. Python, Django'}),
+            'responsibilities':    CKEditorWidget(),
+            'qualifications':      CKEditorWidget(),
+            'benefits':            CKEditorWidget(),
+            'is_active':           forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

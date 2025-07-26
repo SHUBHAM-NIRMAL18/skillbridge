@@ -1,14 +1,14 @@
 {% extends "company/base.html" %}
 {% load static %}
 
-{% block title %}My Internships/Jobs Listing{% endblock %}
+{% block title %}My Internships &amp; Jobs Listing{% endblock %}
 
 {% block content %}
 <div class="center-wrapper">
 
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="m-0 small">My Internships/Jobs Listing</h5>
+    <h5 class="m-0 small">My Internships &amp; Jobs Listing</h5>
     <a href="{% url 'company:company_post_choice' %}"
        class="btn btn-danger btn-sm small">
       + Post an Internship/Job
@@ -80,27 +80,13 @@
 
   <!-- Navigation Tabs -->
   <ul class="nav nav-tabs nav-sm mb-3 small">
-    <li class="nav-item">
-      <a class="nav-link active small" href="#">All Jobs</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link small" href="#">Active</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link small" href="#">Pending</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link small" href="#">Closed</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link small" href="#">Rejected</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link small" href="#">Featured</a>
-    </li>
+    <li class="nav-item"><a class="nav-link active small" href="#">All Posts</a></li>
+    <li class="nav-item"><a class="nav-link small" href="#">Active</a></li>
+    <li class="nav-item"><a class="nav-link small" href="#">Closed</a></li>
+    <!-- add more as needed -->
   </ul>
 
-  <!-- Jobs Table -->
+  <!-- Posts Table -->
   <div class="table-responsive">
     <table class="table table-hover table-sm align-middle small">
       <thead>
@@ -116,44 +102,67 @@
         </tr>
       </thead>
       <tbody>
-        {% for post in posts %}
-          <tr>
-            <td>{{ post.title }}</td>
-            <td>0</td> {# replace with real application count when available #}
-            <td>{{ post.openings }}</td>
-            <td>{{ post.location }}</td>
-            <td>{{ post.application_deadline|date:"Y-m-d" }}</td>
-            <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
-            <td>{{ post.status }}</td>
-            <td>
-              <a href="{% url 'company:internship_edit' post.pk %}"
-                 class="btn btn-outline-primary btn-sm">Edit</a>
-              <form method="post"
-                    action="{% url 'company:internship_delete' post.pk %}"
-                    class="d-inline">
-                {% csrf_token %}
-                <button
-                type="button"
-                class="btn btn-outline-danger btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#confirmDeleteModal"
-                data-href="{% url 'company:internship_delete' post.pk %}"
-                data-title="{{ post.title }}"
-              >
-                Delete
-              </button>
-              </form>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="8" class="text-center text-muted py-4">
-              <i class="bi bi-file-earmark-excel" style="font-size:1.5rem;"></i><br>
-              <span class="small">No Results</span>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
+          {% for post in posts %}
+            <tr>
+              <td>{{ post.title }}</td>
+              <td>0</td> {# TODO: replace with real application count #}
+              <td>{{ post.openings }}</td>
+              <td>
+                {% if post.post_type == "internship" %}
+                  {{ post.city }}
+                {% else %}
+                  {{ post.province }}, {{ post.city }}
+                {% endif %}
+              </td>
+              <td>{{ post.application_deadline|date:"Y-m-d" }}</td>
+              <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ post.status }}</td>
+              <td>
+                {% if post.post_type == "internship" %}
+                  <a href="{% url 'company:internship_edit' post.pk %}"
+                    class="btn btn-outline-primary btn-sm">Edit</a>
+                  <form method="post"
+                        action="{% url 'company:internship_delete' post.pk %}"
+                        class="d-inline">
+                    {% csrf_token %}
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-href="{% url 'company:internship_delete' post.pk %}"
+                            data-title="{{ post.title }}">
+                      Delete
+                    </button>
+                  </form>
+                {% else %}
+                  <a href="{% url 'company:job_edit' post.pk %}"
+                    class="btn btn-outline-primary btn-sm">Edit</a>
+                  <form method="post"
+                        action="{% url 'company:job_delete' post.pk %}"
+                        class="d-inline">
+                    {% csrf_token %}
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-href="{% url 'company:job_delete' post.pk %}"
+                            data-title="{{ post.title }}">
+                      Delete
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">
+                <i class="bi bi-file-earmark-excel" style="font-size:1.5rem;"></i><br>
+                <span class="small">No Results</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
     </table>
   </div>
 </div>
