@@ -8,6 +8,8 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
+from django.views.generic import TemplateView
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm
@@ -22,6 +24,7 @@ def company_dashboard(request):
 
 class CompanyPostListView(LoginRequiredMixin, TemplateView):
     template_name = "company/all_jobs.html"
+    paginate_by = 10  # Number of posts per page
     
     def get_context_data(self, **kwargs):
         ctx     = super().get_context_data(**kwargs)
@@ -63,9 +66,25 @@ class CompanyPostListView(LoginRequiredMixin, TemplateView):
         else:  # deadline
             posts.sort(key=lambda p: p.application_deadline)
 
-        ctx["posts"] = posts
-        return ctx
+        # 6) Pagination
+        paginator = Paginator(posts, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        
+        try:
+            page_obj = paginator.page(page_number)
+        except PageNotAnInteger:
+            # If page is not an integer, deliver first page
+            page_obj = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range, deliver last page
+            page_obj = paginator.page(paginator.num_pages)
 
+        ctx["posts"] = page_obj.object_list
+        ctx["page_obj"] = page_obj
+        ctx["paginator"] = paginator
+        ctx["is_paginated"] = page_obj.has_other_pages()
+        
+        return ctx
 
 class InternshipPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = InternshipPost

@@ -109,6 +109,31 @@
     border-color: #667eea;
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
   }
+  
+  /* Pagination Styling */
+  .pagination-sm .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination-sm .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+  }
+  
+  .pagination-sm .page-link:hover {
+    background-color: #f8f9fa;
+    border-color: #667eea;
+    color: #667eea;
+  }
+  
+  .pagination-sm .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+  }
 </style>
 {% endblock %}
 
@@ -300,6 +325,62 @@
       </table>
     </div>
   </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <nav aria-label="Posts pagination" class="mt-4">
+      <ul class="pagination pagination-sm justify-content-center">
+        
+        <!-- Previous Page -->
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if request.GET.type_filter %}type_filter={{ request.GET.type_filter }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&laquo;</span>
+          </li>
+        {% endif %}
+
+        <!-- Page Numbers -->
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.type_filter %}type_filter={{ request.GET.type_filter }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ num }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        <!-- Next Page -->
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if request.GET.type_filter %}type_filter={{ request.GET.type_filter }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&raquo;</span>
+          </li>
+        {% endif %}
+
+      </ul>
+      
+      <!-- Pagination Info -->
+      <div class="text-center mt-2">
+        <small class="text-muted">
+          Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ paginator.count }} posts
+        </small>
+      </div>
+    </nav>
+  {% endif %}
+
 </div>
 
 <!-- Detail Modal -->
