@@ -4,156 +4,301 @@
 
 {% block title %}My Internships &amp; Jobs Listing{% endblock %}
 
+{% block extra_head %}
+<style>
+  .filter-section {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  
+  /* Ensure Post Job button is red */
+  .btn-post-job {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+  }
+  
+  .btn-post-job:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: white !important;
+  }
+  
+  .table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    color: #495057;
+    border: none;
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    border-color: #f1f3f4;
+    font-size: 0.85rem;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+  }
+  
+  /* Action Buttons */
+  .btn-action {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+  
+  .btn-view {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    border: none;
+  }
+  
+  .btn-view:hover {
+    background: linear-gradient(135deg, #138496, #117a8b);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(23, 162, 184, 0.3);
+  }
+  
+  .btn-edit {
+    background: linear-gradient(135deg, #28a745, #218838);
+    color: white;
+    border: none;
+  }
+  
+  .btn-edit:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+  }
+  
+  .btn-delete {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+  }
+  
+  .btn-delete:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="center-wrapper">
 
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5 class="m-0 small">My Internships &amp; Jobs Listing</h5>
+  <div class="header-section d-flex justify-content-between align-items-center">
+    <h5>My Internships &amp; Jobs Listing</h5>
     <a href="{% url 'company:company_post_choice' %}"
-       class="btn btn-danger btn-sm small">
-      + Post an Internship/Job
+       class="btn btn-post-job btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Post an Internship/Job
     </a>
   </div>
 
   <!-- Filter / Search / Sort Form -->
-  <form method="get" class="row mb-3 g-2">
-    <div class="col-sm-4 col-md-2">
-      <select name="type_filter"
-              class="form-select form-select-sm small"
-              onchange="this.form.submit()">
-        <option value="" {% if not request.GET.type_filter %}selected{% endif %}>All</option>
-        <option value="internship" {% if request.GET.type_filter == "internship" %}selected{% endif %}>
-          Internships
-        </option>
-        <option value="job" {% if request.GET.type_filter == "job" %}selected{% endif %}>
-          Jobs
-        </option>
-      </select>
-    </div>
-    <div class="col-sm-8 col-md-4">
-      <div class="input-group input-group-sm">
-        <input name="search" type="text"
-               class="form-control small"
-               placeholder="Search titles"
-               value="{{ request.GET.search|default:'' }}">
-        <button class="btn btn-outline-secondary btn-sm" type="submit">
-          <i class="bi bi-search"></i>
-        </button>
+  <div class="filter-section">
+    <form method="get" class="row g-3">
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small text-muted">Filter by Type</label>
+        <select name="type_filter"
+                class="form-select form-select-sm"
+                onchange="this.form.submit()">
+          <option value="" {% if not request.GET.type_filter %}selected{% endif %}>All Types</option>
+          <option value="internship" {% if request.GET.type_filter == "internship" %}selected{% endif %}>
+            Internships
+          </option>
+          <option value="job" {% if request.GET.type_filter == "job" %}selected{% endif %}>
+            Jobs
+          </option>
+        </select>
       </div>
-    </div>
-    <div class="col-sm-12 col-md-3 d-flex align-items-center">
-      <select name="sort"
-              class="form-select form-select-sm small"
-              onchange="this.form.submit()">
-        <option value="deadline" {% if request.GET.sort == "deadline" %}selected{% endif %}>
-          Deadline
-        </option>
-        <option value="newest" {% if request.GET.sort == "newest" %}selected{% endif %}>
-          Newest
-        </option>
-        <option value="oldest" {% if request.GET.sort == "oldest" %}selected{% endif %}>
-          Oldest
-        </option>
-      </select>
-    </div>
-  </form>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label small text-muted">Search</label>
+        <div class="input-group input-group-sm">
+          <input name="search" type="text"
+                 class="form-control"
+                 placeholder="Search by title..."
+                 value="{{ request.GET.search|default:'' }}">
+          <button class="btn btn-outline-secondary" type="submit">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label small text-muted">Sort by</label>
+        <select name="sort"
+                class="form-select form-select-sm"
+                onchange="this.form.submit()">
+          <option value="deadline" {% if request.GET.sort == "deadline" %}selected{% endif %}>
+            Deadline
+          </option>
+          <option value="newest" {% if request.GET.sort == "newest" %}selected{% endif %}>
+            Newest First
+          </option>
+          <option value="oldest" {% if request.GET.sort == "oldest" %}selected{% endif %}>
+            Oldest First
+          </option>
+        </select>
+      </div>
+    </form>
+  </div>
 
   <!-- Navigation Tabs -->
-  <ul class="nav nav-tabs nav-sm mb-3 small">
-    <li class="nav-item"><a class="nav-link active small" href="#">All Posts</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Active</a></li>
-    <li class="nav-item"><a class="nav-link small" href="#">Closed</a></li>
-    <!-- add more as needed -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link active" href="#">
+        <i class="bi bi-list-ul me-1"></i>All Posts
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        <i class="bi bi-check-circle me-1"></i>Active
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        <i class="bi bi-x-circle me-1"></i>Closed
+      </a>
+    </li>
   </ul>
 
   <!-- Posts Table -->
-  <div class="table-responsive">
-    <table class="table table-hover table-sm align-middle small">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Applications</th>
-          <th>Openings</th>
-          <th>Location</th>
-          <th>Deadline</th>
-          <th>Created At</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for post in posts %}
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
           <tr>
-            <td>{{ post.title }}</td>
-            <td>0</td> {# TODO: replace with real application count #}
-            <td>{{ post.openings }}</td>
-            <td>
-              {% if post.post_type == "internship" %}
-                {{ post.city }}
-              {% else %}
-                {{ post.province }}, {{ post.city }}
-              {% endif %}
-            </td>
-            <td>{{ post.application_deadline|date:"Y-m-d" }}</td>
-            <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
-            <td>{{ post.status }}</td>
-            <td>
-              <!-- View button -->
-              <button
-                type="button"
-                class="btn btn-outline-info btn-sm me-1 btn-view"
-                data-bs-toggle="modal"
-                data-bs-target="#postDetailModal"
-                data-type="{{ post.post_type }}"
-                data-id="{{ post.pk }}"
-              >View</button>
+            <th>Title</th>
+            <th>Applications</th>
+            <th>Openings</th>
+            <th>Location</th>
+            <th>Deadline</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in posts %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ post.title }}</div>
+                <small class="text-muted">{{ post.post_type|title }}</small>
+              </td>
+              <td>
+                <span class="badge bg-primary">0</span>
+              </td>
+              <td>
+                <span class="badge bg-info">{{ post.openings }}</span>
+              </td>
+              <td>
+                <i class="bi bi-geo-alt text-muted me-1"></i>
+                {% if post.post_type == "internship" %}
+                  {{ post.city }}
+                {% else %}
+                  {{ post.province }}, {{ post.city }}
+                {% endif %}
+              </td>
+              <td>
+                <i class="bi bi-calendar-event text-muted me-1"></i>
+                {{ post.application_deadline|date:"M d, Y" }}
+              </td>
+              <td>
+                <small class="text-muted">{{ post.created_at|date:"M d, Y" }}</small>
+              </td>
+              <td>
+                <span class="status-badge status-active">{{ post.status|title }}</span>
+              </td>
+              <td>
+                <div class="btn-group" role="group">
+                  <!-- View button -->
+                  <button
+                    type="button"
+                    class="btn btn-action btn-view"
+                    data-bs-toggle="modal"
+                    data-bs-target="#postDetailModal"
+                    data-type="{{ post.post_type }}"
+                    data-id="{{ post.pk }}"
+                    title="View Details"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </button>
 
-              {% if post.post_type == "internship" %}
-                <a href="{% url 'company:internship_edit' post.pk %}"
-                   class="btn btn-outline-primary btn-sm me-1">Edit</a>
-                <form method="post"
-                      action="{% url 'company:internship_delete' post.pk %}"
-                      class="d-inline">
-                  {% csrf_token %}
-                  <button type="button"
-                          class="btn btn-outline-danger btn-sm"
-                          data-bs-toggle="modal"
-                          data-bs-target="#confirmDeleteModal"
-                          data-href="{% url 'company:internship_delete' post.pk %}"
-                          data-title="{{ post.title }}">
-                    Delete
-                  </button>
-                </form>
-              {% else %}
-                <a href="{% url 'company:job_edit' post.pk %}"
-                   class="btn btn-outline-primary btn-sm me-1">Edit</a>
-                <form method="post"
-                      action="{% url 'company:job_delete' post.pk %}"
-                      class="d-inline">
-                  {% csrf_token %}
-                  <button type="button"
-                          class="btn btn-outline-danger btn-sm"
-                          data-bs-toggle="modal"
-                          data-bs-target="#confirmDeleteModal"
-                          data-href="{% url 'company:job_delete' post.pk %}"
-                          data-title="{{ post.title }}">
-                    Delete
-                  </button>
-                </form>
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="8" class="text-center text-muted py-4">
-              <i class="bi bi-file-earmark-excel" style="font-size:1.5rem;"></i><br>
-              <span class="small">No Results</span>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+                  {% if post.post_type == "internship" %}
+                    <a href="{% url 'company:internship_edit' post.pk %}"
+                       class="btn btn-action btn-edit"
+                       title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button"
+                            class="btn btn-action btn-delete"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-href="{% url 'company:internship_delete' post.pk %}"
+                            data-title="{{ post.title }}"
+                            title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  {% else %}
+                    <a href="{% url 'company:job_edit' post.pk %}"
+                       class="btn btn-action btn-edit"
+                       title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button"
+                            class="btn btn-action btn-delete"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-href="{% url 'company:job_delete' post.pk %}"
+                            data-title="{{ post.title }}"
+                            title="Delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <div class="h6">No posts found</div>
+                <p class="mb-0">Create your first internship or job posting to get started!</p>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
