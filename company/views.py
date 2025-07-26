@@ -2,12 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, UpdateView, DeleteView, DetailView
+from django.views.generic import ListView, UpdateView, DeleteView, DetailView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.contrib.messages.views import SuccessMessageMixin
-
 from django.contrib import messages
-
 from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
 
@@ -21,13 +19,6 @@ def company_dashboard(request):
     if request.user.role != request.user.ROLE_COMPANY:
         return redirect('accounts:login')
     return render(request, 'company/dashboard.html')
-
-# company/views.py
-
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from .models import InternshipPost, JobPost
 
 class CompanyPostListView(LoginRequiredMixin, TemplateView):
     template_name = "company/all_jobs.html"
@@ -87,6 +78,7 @@ class InternshipPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateVi
         return self.request.user.company_profile.internships.all()
 
 
+
 class InternshipPostDeleteView(LoginRequiredMixin, DeleteView):
     model = InternshipPost
     success_url = reverse_lazy('company:company_all_jobs')
@@ -97,7 +89,9 @@ class InternshipPostDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Internship deleted successfully.")
         return super().delete(request, *args, **kwargs)
-    
+
+
+
 class JobPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model         = JobPost
     form_class    = JobPostForm
@@ -108,6 +102,7 @@ class JobPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_queryset(self):
         # only allow editing your own posts
         return self.request.user.company_profile.job_posts.all()
+
 
 
 class JobPostDeleteView(LoginRequiredMixin, DeleteView):
@@ -122,13 +117,17 @@ class JobPostDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Job deleted successfully.")
         return super().delete(request, *args, **kwargs)
-    
+
+
+
 class InternshipPostDetailView(LoginRequiredMixin, DetailView):
     model = InternshipPost
     template_name = 'company/internship_detail.html'
     context_object_name = 'post'
     def get_queryset(self):
         return self.request.user.company_profile.internships.all()
+
+
 
 class JobPostDetailView(LoginRequiredMixin, DetailView):
     model = JobPost
@@ -137,9 +136,13 @@ class JobPostDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return self.request.user.company_profile.job_posts.all()
 
+
+
 @login_required
 def post_choice_view(request):
     return render(request, 'company/post_choice.html')
+
+
 
 
 @login_required
@@ -168,6 +171,8 @@ def company_profile(request):
     })
 
 
+
+
 FORMS = [
     ('basic', BasicDetailsForm),
     ('skills', SkillsRequirementsForm),
@@ -182,7 +187,7 @@ INTERNSHIP_TEMPLATES = {
 
 class InternshipWizard(SessionWizardView):
     form_list = FORMS
-    url_name = 'company:internship_step'   # ← move here
+    url_name = 'company:internship_step'
     done_step_name = 'review' 
     template_name = None
 
