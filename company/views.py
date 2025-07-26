@@ -305,3 +305,51 @@ class JobWizard(SessionWizardView):
         job.skills.set(data.get('skills', []))
         messages.success(self.request, "Job posted successfully!")
         return redirect(reverse('company:company_all_jobs'))
+    
+
+from django.contrib.auth import update_session_auth_hash, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.contrib.auth.forms import PasswordChangeForm
+from .forms import CustomPasswordChangeForm, NotificationSettingsForm
+
+from .forms import NotificationSettingsForm
+
+@login_required
+def company_settings(request):
+    pw_form    = CustomPasswordChangeForm(request.user, data=request.POST or None)
+    notif_form = NotificationSettingsForm(
+        request.POST or None,
+        instance=request.user.company_profile
+    )
+
+    if request.method == 'POST':
+        if 'password_submit' in request.POST and pw_form.is_valid():
+            user = pw_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your password has been updated.")
+            return redirect('company:company_settings')
+
+        if 'notify_submit' in request.POST and notif_form.is_valid():
+            notif_form.save()
+            messages.success(request, "Notification settings updated.")
+            return redirect('company:company_settings')
+
+    return render(request, 'company/settings.html', {
+        'pw_form':    pw_form,
+        'notif_form': notif_form,
+    })
+
+
+@require_POST
+@login_required
+def deactivate_account(request):
+    user = request.user
+    user.is_active = False
+    user.save()
+    logout(request)
+    messages.success(request, "Your account has been deactivated.")
+    return redirect('index')

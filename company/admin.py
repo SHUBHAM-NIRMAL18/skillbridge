@@ -4,13 +4,20 @@ from .models import CompanyProfile, InternshipPost
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(admin.ModelAdmin):
-    list_display  = ("first_name", "last_name", "industry", "company_size", "province", "city", "user_email")
-    list_filter   = ("industry", "company_size", "province")
+    list_display  = ("first_name", "last_name", "industry", "company_size", "province", "city", "user_email","is_active")
+    list_filter   = ("industry", "company_size", "province",)
     search_fields = ("first_name", "last_name", "user__email", "city")
+    list_editable = ("is_active",)
+    
 
     def user_email(self, obj):
         return obj.user.email
     user_email.short_description = "Email"
+
+    def is_active(self, obj):
+        return obj.user.is_active
+    is_active.boolean = True
+    is_active.short_description = 'Active?'
 
 
 

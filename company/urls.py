@@ -10,6 +10,8 @@ from .views import (
     JobPostDeleteView,
     InternshipPostDetailView,
     JobPostDetailView,
+    company_settings,
+    deactivate_account,
 )
 
 app_name = 'company'
@@ -49,4 +51,6 @@ urlpatterns = [
         ),
         name='job_step'
     ),
+    path('settings/', company_settings, name='company_settings'),
+    path('settings/deactivate/', deactivate_account, name='company_deactivate'),
 ]

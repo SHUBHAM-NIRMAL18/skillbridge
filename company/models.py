@@ -53,6 +53,11 @@ class CompanyProfile(models.Model):
     current_address = models.CharField(max_length=255)
     social_link     = models.URLField("Social Link", blank=True, null=True)
 
+    notify_all          = models.BooleanField(default=True)
+    notify_on_message   = models.BooleanField(default=True)
+    notify_on_application = models.BooleanField(default=False)
+    is_active       = models.BooleanField("Active?", default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -66,6 +71,13 @@ class CompanyProfile(models.Model):
     @property
     def email(self):
         return self.user.email
+    
+    def save(self, *args, **kwargs):
+        # keep the real user.is_active in sync
+        if self.user and self.user.is_active != self.is_active:
+            self.user.is_active = self.is_active
+            self.user.save()
+        super().save(*args, **kwargs)
 
 
 

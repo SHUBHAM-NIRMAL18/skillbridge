@@ -1,0 +1,120 @@
+{# templates/company/settings.html #}
+{% extends "company/base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Settings</h2>
+  <div class="row g-4">
+    <!-- Password Change -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Change Your Password</h5>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {{ pw_form.non_field_errors }}
+            <div class="mb-3">
+              {{ pw_form.old_password.label_tag }}
+              {{ pw_form.old_password }}
+              {% for e in pw_form.old_password.errors %}
+                <div class="invalid-feedback d-block">{{ e }}</div>
+              {% endfor %}
+            </div>
+            <div class="mb-3">
+              {{ pw_form.new_password1.label_tag }}
+              {{ pw_form.new_password1 }}
+              {% for e in pw_form.new_password1.errors %}
+                <div class="invalid-feedback d-block">{{ e }}</div>
+              {% endfor %}
+            </div>
+            <div class="mb-3">
+              {{ pw_form.new_password2.label_tag }}
+              {{ pw_form.new_password2 }}
+              {% for e in pw_form.new_password2.errors %}
+                <div class="invalid-feedback d-block">{{ e }}</div>
+              {% endfor %}
+            </div>
+            <button name="password_submit" type="submit" class="btn btn-danger">
+              Save Changes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Notification Settings</h5>
+          <form method="post">
+            {% csrf_token %}
+            {{ notif_form.non_field_errors }}
+            <div class="form-check mb-2">
+              {{ notif_form.notify_all }}
+              {{ notif_form.notify_all.label_tag }}
+            </div>
+            <div class="form-check mb-2">
+              {{ notif_form.notify_on_message }}
+              {{ notif_form.notify_on_message.label_tag }}
+            </div>
+            <div class="form-check mb-2">
+              {{ notif_form.notify_on_application }}
+              {{ notif_form.notify_on_application.label_tag }}
+            </div>
+            <button name="notify_submit" type="submit" class="btn btn-primary">
+              Save Changes
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="mt-5">
+    <h4 class="text-danger">Danger Zone</h4>
+    <div class="card border-danger shadow-sm">
+      <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+          <p class="mb-1"><strong>Deactivate Account</strong></p>
+          <small class="text-muted">
+            Once you deactivate this account, there is no going back.
+          </small>
+        </div>
+        <!-- launch modal instead of direct POST -->
+        <button
+          type="button"
+          class="btn btn-danger"
+          data-bs-toggle="modal"
+          data-bs-target="#confirmDeactivateModal"
+        >
+          Deactivate Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deactivate Confirmation Modal -->
+  <div class="modal fade" id="confirmDeactivateModal" tabindex="-1" aria-labelledby="confirmDeactivateLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content border-danger">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="confirmDeactivateLabel">Confirm Deactivation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to deactivate your account? You will be logged out immediately, and you'll need a superuser to reactivate it.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form method="post" action="{% url 'company:company_deactivate' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Deactivate</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -5,6 +5,7 @@ from datetime import timedelta
 import re
 from ckeditor.widgets import CKEditorWidget
 from taggit.forms import TagWidget
+from django.contrib.auth.forms import PasswordChangeForm
 
 class CompanyProfileForm(forms.ModelForm):
     class Meta:
@@ -319,3 +320,28 @@ class JobPostForm(forms.ModelForm):
             'benefits':            CKEditorWidget(),
             'is_active':           forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+class NotificationSettingsForm(forms.ModelForm):
+    class Meta:
+        model = CompanyProfile
+        fields = ['notify_all', 'notify_on_message', 'notify_on_application']
+        widgets = {
+            'notify_all':            forms.CheckboxInput(attrs={'class':'form-check-input'}),
+            'notify_on_message':     forms.CheckboxInput(attrs={'class':'form-check-input'}),
+            'notify_on_application': forms.CheckboxInput(attrs={'class':'form-check-input'}),
+        }
+        labels = {
+            'notify_all':            "All notifications",
+            'notify_on_message':     "Notify me when someone messages",
+            'notify_on_application': "Notify me when someone applies",
+        }
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to each field
+        for name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'form-control',
+                'placeholder': field.label,
+            })
