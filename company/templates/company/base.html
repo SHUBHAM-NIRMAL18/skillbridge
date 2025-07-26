@@ -15,12 +15,19 @@
     /* Active sidebar link styling */
     .sidebar .nav-link.active {
       color: #dc3545 !important; /* Bootstrap danger red */
-      background-color: rgba(220, 53, 69, 0.1);
-      border-radius: 5px;
+      background-color: rgba(220, 53, 69, 0.1) !important;
+      border-radius: 5px !important;
+      font-weight: 600 !important;
     }
     
     .sidebar .nav-link.active i {
       color: #dc3545 !important;
+    }
+
+    /* Force green toast messages */
+    .toast.text-bg-success {
+      background-color: #198754 !important;
+      color: white !important;
     }
   </style>
   {% block extra_head %}{% endblock %}
@@ -252,7 +259,7 @@
   {% for msg in messages %}
     <div
       id="toast-{{ forloop.counter }}"
-      class="toast align-items-center text-bg-{{ msg.tags|default:'info' }} border-0"
+      class="toast align-items-center text-bg-success border-0"
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
@@ -260,9 +267,7 @@
     >
       <div class="d-flex">
         <div class="toast-body">
-          {% if msg.tags == 'success' %}
-            <i class="bi bi-check-circle-fill me-2"></i>
-          {% endif %}
+          <i class="bi bi-check-circle-fill me-2"></i>
           {{ msg }}
         </div>
         <button
