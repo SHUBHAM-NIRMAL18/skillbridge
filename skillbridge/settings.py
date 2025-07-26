@@ -76,6 +76,11 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",  # Default backend
 ]
 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE   = True  
+CSRF_COOKIE_SECURE      = True
+SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
+
 LOGIN_REDIRECT_URL = "index"  # Redirect to the index page after login
 LOGOUT_REDIRECT_URL = "index"  # Redirect to the index page after logout
 
