@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash, logout
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import PasswordChangeForm
 from django.views.generic import ListView, UpdateView, DeleteView, DetailView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.contrib.messages.views import SuccessMessageMixin
@@ -12,8 +15,10 @@ from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
-from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm
+from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
 from .models import CompanyProfile, InternshipPost, JobPost
+
+
 
 @login_required
 def company_dashboard(request):
@@ -307,16 +312,6 @@ class JobWizard(SessionWizardView):
         return redirect(reverse('company:company_all_jobs'))
     
 
-from django.contrib.auth import update_session_auth_hash, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.views.decorators.http import require_POST
-from django.contrib.auth.forms import PasswordChangeForm
-from .forms import CustomPasswordChangeForm, NotificationSettingsForm
-
-from .forms import NotificationSettingsForm
 
 @login_required
 def company_settings(request):
