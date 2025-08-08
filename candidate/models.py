@@ -67,7 +67,7 @@ class Profile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.user.username
 
 
 class SocialLink(models.Model):

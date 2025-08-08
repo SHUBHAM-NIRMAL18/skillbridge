@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "accounts",
     "company",
     "website",
-    "candidate",
+    "candidate.apps.CandidateConfig",
     'bootstrap5',
     'formtools',
     'ckeditor',
