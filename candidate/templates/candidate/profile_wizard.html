@@ -1,0 +1,118 @@
+{% extends "candidate/base.html" %}
+{% load bootstrap5 %}
+{% load static %}
+
+{% block title %}Complete Your Profile{% endblock %}
+
+{% block extra_head %}
+{# Optional: make chips for sectors/skills/technologies #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+{# <link href="{% static 'candidate/css/profile_wizard.css' %}" rel="stylesheet"> #}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0">Complete Your Profile</h5>
+          <p class="text-muted mb-0">Step {{ current_step|title }} - {{ progress }}% Complete</p>
+        </div>
+
+        <div class="card-body">
+          <div class="progress mb-4">
+            <div class="progress-bar bg-danger" role="progressbar"
+                 style="width: {{ progress }}%"
+                 aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" class="form">
+            {% csrf_token %}
+
+            {# ✅ Load widget JS/CSS (CKEditor, etc.) #}
+            {% if current_step in formset_steps %}
+              {{ formset.media }}
+              {{ formset.non_form_errors }}
+              {{ formset.management_form }}
+              {% for f in formset %}
+                <div class="card mb-3 formset-item">
+                  <div class="card-body">
+                    {{ f.non_field_errors }}
+                    {% bootstrap_form f layout='horizontal' %}
+                  </div>
+                </div>
+              {% empty %}
+                <p class="text-muted">No items yet. Use “Add Another”.</p>
+              {% endfor %}
+            {% else %}
+              {{ form.media }}
+              {{ form.non_field_errors }}
+              {# Example of slightly fancier layout using Bootstrap grid #}
+              <div class="row g-3">
+                {% if form.first_name %}<div class="col-md-6">{% bootstrap_field form.first_name %}</div>{% endif %}
+                {% if form.last_name %}<div class="col-md-6">{% bootstrap_field form.last_name %}</div>{% endif %}
+                {% if form.gender %}<div class="col-md-4">{% bootstrap_field form.gender %}</div>{% endif %}
+                {% if form.date_of_birth %}<div class="col-md-4">{% bootstrap_field form.date_of_birth %}</div>{% endif %}
+                {% if form.designation %}<div class="col-md-4">{% bootstrap_field form.designation %}</div>{% endif %}
+                {# fall back to full auto-render for any fields not covered above #}
+                {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+                {% for field in form.visible_fields %}
+                  {% if field.name not in 'first_name,last_name,gender,date_of_birth,designation' %}
+                    <div class="col-12">{% bootstrap_field field %}</div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between mt-4">
+              {% if prev_step %}
+                <a href="{% url 'candidate:profile' prev_step %}" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left"></i> Previous
+                </a>
+              {% else %}
+                <span></span>
+              {% endif %}
+
+              <button type="submit" class="btn btn-danger">
+                {% if current_step == 'documents' %}Complete Profile{% else %}Save & Continue{% endif %}
+                <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+          </form>
+        </div> {# /.card-body #}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# Tagify (for inputs with data-role="tagsinput") #}
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+<script>
+  document.querySelectorAll('input[data-role="tagsinput"]').forEach(el => {
+    try { new Tagify(el); } catch (e) {}
+  });
+</script>
+
+{# Only load and init formset JS when we actually have a formset #}
+{% if current_step in formset_steps and formset %}
+<script src="{% static 'candidate/js/jquery.formset.js' %}"></script>
+<script>
+  (function() {
+    if (!window.jQuery) return;
+    const $ = window.jQuery;
+    if ($('.formset-item').length === 0) return;
+
+    $('.formset-item').formset({
+      prefix: '{{ formset.prefix|default:"items" }}',
+      addText: '<i class="bi bi-plus-circle"></i> Add Another',
+      deleteText: '<i class="bi bi-trash"></i> Remove',
+      addCssClass: 'btn btn-outline-primary btn-sm',
+      deleteCssClass: 'btn btn-outline-danger btn-sm'
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}
