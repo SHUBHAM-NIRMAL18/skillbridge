@@ -2,26 +2,156 @@
 {% load bootstrap5 %}
 {% load static %}
 
-{% block title %}Complete Your Profile{% endblock %}
+{% block title %}My Profile{% endblock %}
 
 {% block extra_head %}
-{# Optional: make chips for sectors/skills/technologies #}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
-{# <link href="{% static 'candidate/css/profile_wizard.css' %}" rel="stylesheet"> #}
+<style>
+  /* Sidebar look similar to your screenshot */
+  .profile-layout { --sidebar-w: 280px; }
+  .profile-sidebar {
+    background: #fafafb;
+    border-right: 1px solid #eee;
+    min-height: calc(100vh - 120px);
+  }
+  .step-link {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-radius: .5rem; text-decoration: none;
+    color: #6c757d;
+  }
+  .step-link .bi { font-size: 1.1rem; width: 1.5rem; text-align: center; }
+  .step-link:hover { background: #fff; color: #dc3545; }
+  .step-link.active { background: #fff; color: #dc3545; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .step-link.complete { color: #198754; }
+  .step-muted { opacity: .6; }
+  .step-label { flex: 1; }
+  .step-status { width: 1.25rem; text-align: right; }
+  .sticky-col { position: sticky; top: 80px; }
+  /* Card polish */
+  .profile-card .card-header { background: #fff; }
+  .subtitle { color:#6b7280; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card shadow-sm mb-4">
+<div class="container-fluid profile-layout">
+  <div class="row g-3">
+    <!-- Sidebar -->
+    <aside class="col-lg-3">
+      <div class="profile-sidebar rounded-3 p-3 sticky-col">
+        <div class="d-flex align-items-center mb-3">
+          <h4 class="mb-0">My Profile</h4>
+        </div>
+
+        {# overall progress #}
+        <div class="mb-3">
+          <div class="small text-muted mb-1">{{ progress }}% complete</div>
+          <div class="progress" style="height:8px;">
+            <div class="progress-bar bg-danger" style="width:{{ progress }}%"></div>
+          </div>
+        </div>
+
+        {# steps list (icons chosen to match screenshot vibe) #}
+        {% with cs=current_step comp=completion %}
+          <nav class="d-flex flex-column gap-1" aria-label="Profile steps">
+            <a class="step-link {% if cs == 'personal' %}active{% elif comp.personal %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'personal' %}">
+              <i class="bi bi-person"></i>
+              <span class="step-label">About</span>
+              <span class="step-status">
+                {% if comp.personal %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'education' %}active{% elif comp.education %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'education' %}">
+              <i class="bi bi-mortarboard"></i>
+              <span class="step-label">Education</span>
+              <span class="step-status">
+                {% if comp.education %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'projects' %}active{% elif comp.projects %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'projects' %}">
+              <i class="bi bi-rocket"></i>
+              <span class="step-label">Projects</span>
+              <span class="step-status">
+                {% if comp.projects %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'experience' %}active{% elif comp.experience %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'experience' %}">
+              <i class="bi bi-briefcase"></i>
+              <span class="step-label">Experience</span>
+              <span class="step-status">
+                {% if comp.experience %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'professional' %}active{% elif comp.professional %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'professional' %}">
+              <i class="bi bi-stars"></i>
+              <span class="step-label">Skills</span>
+              <span class="step-status">
+                {% if comp.professional %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'social' %}active{% elif comp.social %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'social' %}">
+              <i class="bi bi-people"></i>
+              <span class="step-label">Social</span>
+              <span class="step-status">
+                {% if comp.social %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'address' %}active{% elif comp.address %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'address' %}">
+              <i class="bi bi-envelope"></i>
+              <span class="step-label">Email &amp; Phone</span>
+              <span class="step-status">
+                {% if comp.address %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'certificates' %}active{% elif comp.certificates %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'certificates' %}">
+              <i class="bi bi-trophy"></i>
+              <span class="step-label">Certificates</span>
+              <span class="step-status">
+                {% if comp.certificates %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+
+            <a class="step-link {% if cs == 'documents' %}active{% elif comp.documents %}complete{% endif %}"
+               href="{% url 'candidate:profile' 'documents' %}">
+              <i class="bi bi-file-earmark-arrow-up"></i>
+              <span class="step-label">Documents</span>
+              <span class="step-status">
+                {% if comp.documents %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              </span>
+            </a>
+          </nav>
+        {% endwith %}
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <section class="col-lg-9">
+      <div class="card shadow-sm profile-card">
         <div class="card-header bg-white py-3">
-          <h5 class="mb-0">Complete Your Profile</h5>
-          <p class="text-muted mb-0">Step {{ current_step|title }} - {{ progress }}% Complete</p>
+          <h3 class="mb-1">
+            {% if current_step == 'personal' %}About yourself{% elif current_step == 'professional' %}Your skills & role{% elif current_step == 'address' %}Contact details{% elif current_step == 'education' %}Education{% elif current_step == 'experience' %}Experience{% elif current_step == 'projects' %}Projects{% elif current_step == 'certificates' %}Certificates{% elif current_step == 'social' %}Social links{% elif current_step == 'documents' %}Documents{% else %}Profile{% endif %}
+          </h3>
+          <div class="subtitle">Fill out your {{ current_step|title }} information.</div>
         </div>
 
         <div class="card-body">
-          <div class="progress mb-4">
+          {# keep your progress bar visible on top of each step #}
+          <div class="progress mb-4" style="height: 8px;">
             <div class="progress-bar bg-danger" role="progressbar"
                  style="width: {{ progress }}%"
                  aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -30,39 +160,186 @@
           <form method="post" enctype="multipart/form-data" class="form">
             {% csrf_token %}
 
-            {# ✅ Load widget JS/CSS (CKEditor, etc.) #}
+            {# ===================== FORMSET STEPS (HTMX) ===================== #}
             {% if current_step in formset_steps %}
               {{ formset.media }}
-              {{ formset.non_form_errors }}
+
+              {% if formset.non_form_errors %}
+                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+              {% endif %}
+
               {{ formset.management_form }}
-              {% for f in formset %}
-                <div class="card mb-3 formset-item">
-                  <div class="card-body">
-                    {{ f.non_field_errors }}
-                    {% bootstrap_form f layout='horizontal' %}
-                  </div>
-                </div>
-              {% empty %}
-                <p class="text-muted">No items yet. Use “Add Another”.</p>
-              {% endfor %}
+
+              <div id="{{ formset_prefix }}-rows">
+                {% if current_step == 'education' %}
+                  {% for f in formset %}
+                    <div class="card mb-3 formset-item" data-prefix="{{ formset_prefix }}">
+                      <div class="card-body">
+                        {{ f.non_field_errors }}
+                        <div class="row g-3">
+                          <div class="col-md-6">{% bootstrap_field f.institution %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.degree %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.field_of_study %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.start_date %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.end_date %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.grade %}</div>
+                        </div>
+                        <span class="visually-hidden">{% if f.DELETE %}{{ f.DELETE }}{% endif %}</span>
+                        <div class="d-flex justify-content-end mt-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm js-remove-existing" data-prefix="{{ formset_prefix }}">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {% empty %}
+                    <p class="text-muted">No education items yet. Use “Add Another”.</p>
+                  {% endfor %}
+
+                {% elif current_step == 'experience' %}
+                  {% for f in formset %}
+                    <div class="card mb-3 formset-item" data-prefix="{{ formset_prefix }}">
+                      <div class="card-body">
+                        {{ f.non_field_errors }}
+                        <div class="row g-3">
+                          <div class="col-md-6">{% bootstrap_field f.company_name %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.role %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.location %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.start_date %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.end_date %}</div>
+                          <div class="col-md-3">{% bootstrap_field f.is_current %}</div>
+                          <div class="col-12">{% bootstrap_field f.description %}</div>
+                        </div>
+                        <span class="visually-hidden">{% if f.DELETE %}{{ f.DELETE }}{% endif %}</span>
+                        <div class="d-flex justify-content-end mt-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm js-remove-existing" data-prefix="{{ formset_prefix }}">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {% empty %}
+                    <p class="text-muted">No experience yet. Use “Add Another”.</p>
+                  {% endfor %}
+
+                {% elif current_step == 'projects' %}
+                  {% for f in formset %}
+                    <div class="card mb-3 formset-item" data-prefix="{{ formset_prefix }}">
+                      <div class="card-body">
+                        {{ f.non_field_errors }}
+                        <div class="row g-3">
+                          <div class="col-md-6">{% bootstrap_field f.title %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.project_url %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.start_date %}</div>
+                          <div class="col-md-6">{% bootstrap_field f.end_date %}</div>
+                          <div class="col-12">{% bootstrap_field f.technologies %}</div>
+                          <div class="col-12">{% bootstrap_field f.description %}</div>
+                        </div>
+                        <span class="visually-hidden">{% if f.DELETE %}{{ f.DELETE }}{% endif %}</span>
+                        <div class="d-flex justify-content-end mt-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm js-remove-existing" data-prefix="{{ formset_prefix }}">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {% empty %}
+                    <p class="text-muted">No projects yet. Use “Add Another”.</p>
+                  {% endfor %}
+
+                {% elif current_step == 'certificates' %}
+                  {% for f in formset %}
+                    <div class="card mb-3 formset-item" data-prefix="{{ formset_prefix }}">
+                      <div class="card-body">
+                        {{ f.non_field_errors }}
+                        <div class="row g-3">
+                          <div class="col-md-4">{% bootstrap_field f.certificate_type %}</div>
+                          <div class="col-md-4">{% bootstrap_field f.title %}</div>
+                          <div class="col-md-4">{% bootstrap_field f.issuer %}</div>
+                          <div class="col-md-4">{% bootstrap_field f.date %}</div>
+                          <div class="col-md-8">{% bootstrap_field f.certificate_url %}</div>
+                        </div>
+                        <span class="visually-hidden">{% if f.DELETE %}{{ f.DELETE }}{% endif %}</span>
+                        <div class="d-flex justify-content-end mt-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm js-remove-existing" data-prefix="{{ formset_prefix }}">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {% empty %}
+                    <p class="text-muted">No certificates yet. Use “Add Another”.</p>
+                  {% endfor %}
+
+                {% elif current_step == 'social' %}
+                  {% for f in formset %}
+                    <div class="card mb-3 formset-item" data-prefix="{{ formset_prefix }}">
+                      <div class="card-body">
+                        {{ f.non_field_errors }}
+                        <div class="row g-3">
+                          <div class="col-md-4">{% bootstrap_field f.platform %}</div>
+                          <div class="col-md-8">{% bootstrap_field f.url %}</div>
+                        </div>
+                        <span class="visually-hidden">{% if f.DELETE %}{{ f.DELETE }}{% endif %}</span>
+                        <div class="d-flex justify-content-end mt-3">
+                          <button type="button" class="btn btn-outline-danger btn-sm js-remove-existing" data-prefix="{{ formset_prefix }}">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  {% empty %}
+                    <p class="text-muted">No social links yet. Use “Add Another”.</p>
+                  {% endfor %}
+                {% endif %}
+              </div>
+
+            {# ===================== NON-FORMSET STEPS ===================== #}
             {% else %}
               {{ form.media }}
-              {{ form.non_field_errors }}
-              {# Example of slightly fancier layout using Bootstrap grid #}
-              <div class="row g-3">
-                {% if form.first_name %}<div class="col-md-6">{% bootstrap_field form.first_name %}</div>{% endif %}
-                {% if form.last_name %}<div class="col-md-6">{% bootstrap_field form.last_name %}</div>{% endif %}
-                {% if form.gender %}<div class="col-md-4">{% bootstrap_field form.gender %}</div>{% endif %}
-                {% if form.date_of_birth %}<div class="col-md-4">{% bootstrap_field form.date_of_birth %}</div>{% endif %}
-                {% if form.designation %}<div class="col-md-4">{% bootstrap_field form.designation %}</div>{% endif %}
-                {# fall back to full auto-render for any fields not covered above #}
-                {% for field in form.hidden_fields %}{{ field }}{% endfor %}
-                {% for field in form.visible_fields %}
-                  {% if field.name not in 'first_name,last_name,gender,date_of_birth,designation' %}
-                    <div class="col-12">{% bootstrap_field field %}</div>
-                  {% endif %}
-                {% endfor %}
-              </div>
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              {% endif %}
+
+              {% if current_step == 'personal' %}
+                <div class="row g-3">
+                  <div class="col-md-6">{% bootstrap_field form.first_name %}</div>
+                  <div class="col-md-6">{% bootstrap_field form.last_name %}</div>
+                  <div class="col-md-4">{% bootstrap_field form.gender %}</div>
+                  <div class="col-md-4">{% bootstrap_field form.date_of_birth %}</div>
+                  <div class="col-12">{% bootstrap_field form.about_me %}</div>
+                </div>
+
+              {% elif current_step == 'professional' %}
+                <div class="row g-3">
+                  <div class="col-md-6">{% bootstrap_field form.designation %}</div>
+                  <div class="col-md-6">{% bootstrap_field form.experience_level %}</div>
+                  <div class="col-12">{% bootstrap_field form.sectors %}</div>
+                  <div class="col-12">{% bootstrap_field form.skills %}</div>
+                </div>
+
+              {% elif current_step == 'address' %}
+                <div class="row g-3">
+                  <div class="col-md-6">{% bootstrap_field form.phone_number %}</div>
+                  <div class="col-md-3">{% bootstrap_field form.province %}</div>
+                  <div class="col-md-3">{% bootstrap_field form.city %}</div>
+                  <div class="col-md-4">{% bootstrap_field form.postal_code %}</div>
+                  <div class="col-12">{% bootstrap_field form.current_address %}</div>
+                </div>
+
+              {% elif current_step == 'documents' %}
+                <div class="row g-3">
+                  <div class="col-md-6">{% bootstrap_field form.profile_picture %}</div>
+                  <div class="col-md-6">{% bootstrap_field form.resume %}</div>
+                </div>
+
+              {% else %}
+                <div class="row g-3">
+                  {% for field in form.visible_fields %}
+                    <div class="col-md-6">{% bootstrap_field field %}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
             {% endif %}
 
             <div class="d-flex justify-content-between mt-4">
@@ -74,45 +351,94 @@
                 <span></span>
               {% endif %}
 
-              <button type="submit" class="btn btn-danger">
-                {% if current_step == 'documents' %}Complete Profile{% else %}Save & Continue{% endif %}
-                <i class="bi bi-arrow-right ms-2"></i>
-              </button>
+              <div class="d-flex gap-2">
+                {% if current_step in formset_steps %}
+                  <button type="button"
+                          class="btn btn-outline-primary js-add-row"
+                          data-prefix="{{ formset_prefix }}"
+                          data-url="{% url 'candidate:profile_add_row' current_step %}">
+                    <i class="bi bi-plus-circle"></i> Add Another
+                  </button>
+                {% endif %}
+
+                <button type="submit" class="btn btn-danger">
+                  {% if current_step == 'documents' %}Complete Profile{% else %}Save & Continue{% endif %}
+                  <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+              </div>
             </div>
           </form>
-        </div> {# /.card-body #}
+        </div> <!-- /.card-body -->
       </div>
-    </div>
+    </section>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-{# Tagify (for inputs with data-role="tagsinput") #}
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <script>
-  document.querySelectorAll('input[data-role="tagsinput"]').forEach(el => {
-    try { new Tagify(el); } catch (e) {}
+  function initTagify(scope) {
+    (scope || document).querySelectorAll('input[data-role="tagsinput"]').forEach(el => {
+      if (!el._tagified) {
+        try { el._tagified = new Tagify(el); } catch (e) {}
+      }
+    });
+  }
+  function initEditors(scope) {
+    if (window.CKEDITOR) {
+      (scope || document).querySelectorAll('textarea.django-ckeditor-widget:not([data-ck-initialized])').forEach(el => {
+        try { CKEDITOR.replace(el.id); el.dataset.ckInitialized = '1'; } catch (e) {}
+      });
+    }
+  }
+  initTagify(document);
+  initEditors(document);
+
+  // Add row (HTMX)
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-add-row');
+    if (!btn) return;
+    const prefix = btn.dataset.prefix;
+    const urlBase = btn.dataset.url;
+    const totalInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+    const container = document.getElementById(`${prefix}-rows`);
+    if (!totalInput || !container) return;
+
+    const index = parseInt(totalInput.value || '0', 10);
+    const url = `${urlBase}?index=${index}`;
+    totalInput.value = index + 1; // reserve the index
+    htmx.ajax('GET', url, { target: `#${prefix}-rows`, swap: 'beforeend' });
+  });
+
+  // Initialize Tagify/Editors after new row is injected
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    if (evt.target && evt.target.id && evt.target.id.endsWith('-rows')) {
+      initTagify(evt.target);
+      initEditors(evt.target);
+    }
+  });
+
+  // Remove newly added row (no DELETE checkbox)
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-remove-row');
+    if (!btn) return;
+    const card = btn.closest('.formset-item');
+    const prefix = btn.dataset.removePrefix;
+    const totalInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+    if (card) card.remove();
+    if (totalInput) totalInput.value = Math.max(0, (parseInt(totalInput.value || '0', 10) - 1));
+  });
+
+  // Hide existing row and tick its DELETE box
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-remove-existing');
+    if (!btn) return;
+    const card = btn.closest('.formset-item');
+    const prefix = btn.dataset.prefix;
+    const del = card ? card.querySelector(`input[name^="${prefix}-"][name$="-DELETE"]`) : null;
+    if (del) { del.checked = true; card.style.display = 'none'; }
   });
 </script>
-
-{# Only load and init formset JS when we actually have a formset #}
-{% if current_step in formset_steps and formset %}
-<script src="{% static 'candidate/js/jquery.formset.js' %}"></script>
-<script>
-  (function() {
-    if (!window.jQuery) return;
-    const $ = window.jQuery;
-    if ($('.formset-item').length === 0) return;
-
-    $('.formset-item').formset({
-      prefix: '{{ formset.prefix|default:"items" }}',
-      addText: '<i class="bi bi-plus-circle"></i> Add Another',
-      deleteText: '<i class="bi bi-trash"></i> Remove',
-      addCssClass: 'btn btn-outline-primary btn-sm',
-      deleteCssClass: 'btn btn-outline-danger btn-sm'
-    });
-  })();
-</script>
-{% endif %}
 {% endblock %}

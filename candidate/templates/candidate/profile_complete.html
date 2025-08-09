@@ -11,8 +11,45 @@
           <div class="mb-4">
             <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
           </div>
-          <h2 class="mb-3">Profile Completed Successfully!</h2>
-          <p class="lead mb-4">Your profile is now 100% complete and visible to employers.</p>
+
+          <h2 class="mb-2">Profile Completed Successfully!</h2>
+          <p class="lead text-muted mb-4">
+            Your profile is now saved and ready for employers.
+          </p>
+
+          {# Optional quick overview — safe even if some sections are empty #}
+          {% if profile %}
+            <div class="row g-3 justify-content-center mb-4 text-start">
+              <div class="col-md-10">
+                <div class="row g-3">
+                  <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                      <div class="fw-semibold">Education</div>
+                      <div class="text-muted small">{{ profile.educations.count }} item{{ profile.educations.count|pluralize }}</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                      <div class="fw-semibold">Experience</div>
+                      <div class="text-muted small">{{ profile.experiences.count }} item{{ profile.experiences.count|pluralize }}</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                      <div class="fw-semibold">Projects</div>
+                      <div class="text-muted small">{{ profile.projects.count }} item{{ profile.projects.count|pluralize }}</div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="p-3 bg-light rounded-3 border">
+                      <div class="fw-semibold">Social Links</div>
+                      <div class="text-muted small">{{ profile.social_links.count }} link{{ profile.social_links.count|pluralize }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
 
           <div class="d-flex justify-content-center gap-3">
             <a href="{% url 'candidate:dashboard' %}" class="btn btn-danger">
@@ -21,10 +58,16 @@
             <a href="{% url 'candidate:profile' 'personal' %}" class="btn btn-outline-secondary">
               <i class="bi bi-pencil"></i> Edit Profile
             </a>
-          
           </div>
         </div>
       </div>
+
+      {# Optional: gentle nudge for missing “nice-to-have” items #}
+      {% if profile and not profile.projects.exists %}
+        <div class="alert alert-info mt-3 mb-0" role="alert">
+          Tip: add at least one <strong>Project</strong> to showcase your work. It really helps!
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

@@ -1,0 +1,23 @@
+{% load bootstrap5 %}
+
+{# One Certificate row. #}
+<div class="card mb-3 formset-item" data-index="{{ index }}" data-prefix="{{ prefix }}">
+  <div class="card-body">
+    {{ f.non_field_errors }}
+    <div class="row g-3">
+      <div class="col-md-4">{% bootstrap_field f.certificate_type %}</div>
+      <div class="col-md-4">{% bootstrap_field f.title %}</div>
+      <div class="col-md-4">{% bootstrap_field f.issuer %}</div>
+      <div class="col-md-4">{% bootstrap_field f.date %}</div>
+      <div class="col-md-8">{% bootstrap_field f.certificate_url %}</div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button type="button"
+              class="btn btn-outline-danger btn-sm js-remove-row"
+              data-remove-prefix="{{ prefix }}">
+        <i class="bi bi-trash"></i> Remove
+      </button>
+    </div>
+  </div>
+</div>

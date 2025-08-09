@@ -1,0 +1,24 @@
+{% load bootstrap5 %}
+
+{# One Education row (server provides correct prefix+index). #}
+<div class="card mb-3 formset-item" data-index="{{ index }}" data-prefix="{{ prefix }}">
+  <div class="card-body">
+    {{ f.non_field_errors }}
+    <div class="row g-3">
+      <div class="col-md-6">{% bootstrap_field f.institution %}</div>
+      <div class="col-md-6">{% bootstrap_field f.degree %}</div>
+      <div class="col-md-6">{% bootstrap_field f.field_of_study %}</div>
+      <div class="col-md-3">{% bootstrap_field f.start_date %}</div>
+      <div class="col-md-3">{% bootstrap_field f.end_date %}</div>
+      <div class="col-md-3">{% bootstrap_field f.grade %}</div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button type="button"
+              class="btn btn-outline-danger btn-sm js-remove-row"
+              data-remove-prefix="{{ prefix }}">
+        <i class="bi bi-trash"></i> Remove
+      </button>
+    </div>
+  </div>
+</div>
