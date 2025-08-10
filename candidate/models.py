@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from ckeditor.fields import RichTextField
+import json
 
 User = get_user_model()
 
@@ -68,6 +69,42 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+
+    def _tokenize(self, raw):
+        """
+        Accepts either a comma string "a, b" or a Tagify-style JSON
+        like '["a","b"]' or '[{"value":"a"},{"value":"b"}]'.
+        Returns a clean list of strings.
+        """
+        if not raw:
+            return []
+        s = str(raw).strip()
+        # Try JSON
+        try:
+            data = json.loads(s)
+            if isinstance(data, list):
+                out = []
+                for item in data:
+                    if isinstance(item, dict) and "value" in item:
+                        v = str(item["value"]).strip()
+                    else:
+                        v = str(item).strip()
+                    if v:
+                        out.append(v)
+                return out
+        except Exception:
+            pass
+        # Fallback: comma-separated
+        return [t.strip() for t in s.split(',') if t.strip()]
+
+    @property
+    def sectors_list(self):
+        return self._tokenize(self.sectors)
+
+    @property
+    def skills_list(self):
+        return self._tokenize(self.skills)
 
 
 class SocialLink(models.Model):
@@ -120,6 +157,12 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+    
+    @property
+    def tech_list(self):
+        if not self.technologies:
+            return []
+        return [t.strip() for t in str(self.technologies).split(',') if t.strip()]
 
 
 class Certificate(models.Model):  # Renamed from Credential

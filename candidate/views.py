@@ -1,11 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views import View
 from django.views.generic import FormView, TemplateView
 
 from .forms import (
@@ -18,7 +16,6 @@ from .models import Profile
 
 @login_required
 def candidate_dashboard(request):
-    # (Optional) Enforce role-matching:
     if getattr(request.user, "role", None) != getattr(request.user, "ROLE_CANDIDATE", None):
         return redirect('accounts:login')
     return render(request, 'candidate/dashboard.html')
@@ -50,7 +47,7 @@ class ProfileWizardView(FormView):
         'documents': DocumentUploadForm,
     }
 
-    # Explicit prefixes for formsets so POST names match EXACTLY
+    # Stable prefixes for formsets
     FORMSET_PREFIX = {
         'education': 'education',
         'experience': 'experience',
@@ -61,15 +58,13 @@ class ProfileWizardView(FormView):
 
     success_url = reverse_lazy('candidate:profile_complete')
 
-    # ————— helpers —————
+    # ---------- helpers ----------
     def _get_current_step(self):
         return self.kwargs.get('step', 'personal')
 
     def _user_profile(self):
-        # Returns Profile instance or None
         return getattr(self.request.user, "profile", None)
 
-    # ---- completion + progress ------------------------------------------------
     def _has_tokens(self, value):
         if not value:
             return False
@@ -77,50 +72,44 @@ class ProfileWizardView(FormView):
         tokens = [t for t in tokens if t]
         return len(tokens) > 0
 
+    def _split_tokens(self, value):
+        if not value:
+            return []
+        parts = [p.strip().strip('"').strip("'") for p in str(value).strip().strip('[]').split(',')]
+        return [p for p in parts if p]
+
     def _completion_map(self, profile: Profile):
         done = {k: False for k in self.STEPS_ORDER}
         if not profile:
             return done
 
-        # personal: required fields present
-        personal_ok = all([
+        done['personal'] = all([
             bool(profile.first_name),
             bool(profile.last_name),
             bool(profile.gender),
             bool(profile.date_of_birth),
         ])
-        done['personal'] = personal_ok
 
-        # professional: designation, experience_level, and at least one sector & skill
-        professional_ok = all([
+        done['professional'] = all([
             bool(profile.designation),
             bool(profile.experience_level),
             self._has_tokens(profile.sectors),
             self._has_tokens(profile.skills),
         ])
-        done['professional'] = professional_ok
 
-        # address: phone, province & city required
-        address_ok = all([
+        done['address'] = all([
             bool(profile.phone_number),
             bool(profile.province),
             bool(profile.city),
         ])
-        done['address'] = address_ok
 
-        # education: at least one row
         done['education'] = profile.educations.exists()
-
-        # experience: conditionally required
         is_entry = (profile.experience_level == 'entry')
         done['experience'] = True if is_entry else profile.experiences.exists()
-
-        # optional sections
         done['projects'] = profile.projects.exists()
         done['certificates'] = profile.certificates.exists()
         done['social'] = profile.social_links.exists()
         done['documents'] = bool(profile.resume)
-
         return done
 
     def _required_steps(self, profile: Profile):
@@ -135,8 +124,7 @@ class ProfileWizardView(FormView):
         if not required:
             return 0
         completed = sum(1 for step in required if completion.get(step))
-        pct = int(round((completed / len(required)) * 100))
-        return pct
+        return int(round((completed / len(required)) * 100))
 
     def _get_next_step(self, current_step):
         try:
@@ -156,15 +144,41 @@ class ProfileWizardView(FormView):
             pass
         return None
 
-    # ————— FormView overrides —————
+    # ---------- strong server validation per step ----------
+    def _enforce_step_rules_or_error(self, step, form):
+        """Return None if OK, otherwise a user-friendly error string."""
+        if step == 'personal':
+            cd = form.cleaned_data
+            needed = ['first_name', 'last_name', 'gender', 'date_of_birth']
+            if not all(cd.get(k) for k in needed):
+                return "Please fill all required fields: First name, Last name, Gender, Date of birth."
+
+        elif step == 'professional':
+            cd = form.cleaned_data
+            if not cd.get('designation') or not cd.get('experience_level'):
+                return "Please provide your designation and experience level."
+            if not cd.get('sectors') or not cd.get('skills'):
+                return "Please add at least one sector and one skill."
+
+        elif step == 'address':
+            cd = form.cleaned_data
+            if not cd.get('phone_number') or not cd.get('province') or not cd.get('city'):
+                return "Phone number, Province and City are required."
+
+        elif step == 'documents':
+            cd = form.cleaned_data
+            if not cd.get('resume'):
+                return "Please upload your resume (PDF/DOC/DOCX)."
+
+        return None
+
+    # ---------- FormView overrides ----------
     def dispatch(self, request, *args, **kwargs):
         step = self._get_current_step()
         if step not in self.form_classes:
             raise Http404("Unknown profile step")
 
         profile = self._user_profile()
-
-        # If no profile exists yet, force users to start at 'personal' step.
         if profile is None and step != 'personal':
             return redirect('candidate:profile', step='personal')
 
@@ -175,53 +189,37 @@ class ProfileWizardView(FormView):
         return self.form_classes[step]
 
     def get_form_kwargs(self):
-        """
-        Ensure both ModelForms and InlineFormSets get the profile instance (if exists).
-        Also set a STABLE prefix for formsets so names match management form.
-        """
         kwargs = super().get_form_kwargs()
         profile = self._user_profile()
         if profile is not None:
-            kwargs['instance'] = profile  # works for inline formsets too
-
+            kwargs['instance'] = profile
         step = self._get_current_step()
         if step in self.FORMSET_STEPS:
             kwargs['prefix'] = self.FORMSET_PREFIX.get(step, step)
-
         return kwargs
 
     def get_form(self, form_class=None):
-        """
-        Build the form/formset. For formset steps on GET with zero existing rows,
-        temporarily set `extra = 1` so exactly one blank row is shown by default.
-        """
         form = super().get_form(form_class)
         step = self._get_current_step()
-
+        # Show exactly one blank row on GET if there are zero existing rows.
         if self.request.method == 'GET' and step in self.FORMSET_STEPS:
-            # If there are no existing child objects, show one blank form (and only one).
             try:
                 initial_count = form.initial_form_count()
             except Exception:
                 initial_count = 0
             if initial_count == 0:
-                # IMPORTANT: set extra BEFORE the template accesses form.forms/management_form
                 form.extra = 1
-
         return form
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
         step = self._get_current_step()
         profile = self._user_profile()
 
-        completion = self._completion_map(profile)
-        progress = self._calculate_progress(profile)
-
-        context['current_step'] = step
-        context['progress'] = progress
-        context['completion'] = completion
-        context['steps'] = [
+        ctx['current_step'] = step
+        ctx['progress'] = self._calculate_progress(profile)
+        ctx['completion'] = self._completion_map(profile)
+        ctx['steps'] = [
             ('personal', 'Personal Info'),
             ('professional', 'Professional Info'),
             ('address', 'Address'),
@@ -232,42 +230,104 @@ class ProfileWizardView(FormView):
             ('social', 'Social Links'),
             ('documents', 'Documents'),
         ]
-        context['formset_steps'] = self.FORMSET_STEPS
-        context['prev_step'] = self._get_prev_step(step)
-        context['next_step'] = self._get_next_step(step)
+        ctx['formset_steps'] = self.FORMSET_STEPS
+        ctx['prev_step'] = self._get_prev_step(step)
+        ctx['next_step'] = self._get_next_step(step)
 
-        # If this is a formset step, expose the bound form as "formset" for the template.
+        # Sidebar preview needs the profile
+        ctx['profile'] = profile
+        if profile:
+            ctx['sectors_list'] = self._split_tokens(profile.sectors)
+            ctx['skills_list'] = self._split_tokens(profile.skills)
+            ctx['counts'] = {
+                'education': profile.educations.count(),
+                'experience': profile.experiences.count(),
+                'projects': profile.projects.count(),
+                'certificates': profile.certificates.count(),
+                'social': profile.social_links.count(),
+            }
+        else:
+            ctx['sectors_list'] = []
+            ctx['skills_list'] = []
+            ctx['counts'] = {'education':0,'experience':0,'projects':0,'certificates':0,'social':0}
+
         if step in self.FORMSET_STEPS:
-            context['formset'] = context.get('form')
-            context['formset_prefix'] = self.FORMSET_PREFIX.get(step, step)
+            ctx['formset'] = ctx.get('form')
+            ctx['formset_prefix'] = self.FORMSET_PREFIX.get(step, step)
 
-        return context
+        return ctx
+
+    # explicitly gate in POST so we never advance on incomplete steps
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        step = self._get_current_step()
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        if step not in self.FORMSET_STEPS:
+            rule_err = self._enforce_step_rules_or_error(step, form)
+            if rule_err:
+                form.add_error(None, rule_err)
+                return self.form_invalid(form)
+
+        if step in self.FORMSET_STEPS:
+            def nonempty(form_row):
+                cd = getattr(form_row, 'cleaned_data', {}) or {}
+                if cd.get('DELETE'):
+                    return False
+                if step == 'education':
+                    return bool(cd.get('institution') and cd.get('degree') and cd.get('start_date'))
+                if step == 'experience':
+                    return bool(cd.get('company_name') and cd.get('role') and cd.get('start_date'))
+                if step == 'projects':
+                    return bool(cd.get('title') and cd.get('description'))
+                if step == 'social':
+                    return bool(cd.get('platform') and cd.get('url'))
+                if step == 'certificates':
+                    return bool(cd.get('title'))
+                return False
+
+            rows = [f for f in form.forms if nonempty(f)]
+            count = len(rows)
+
+            if step == 'education' and count < 1:
+                form.add_error(None, "Please add at least one education entry.")
+                return self.form_invalid(form)
+
+            if step == 'experience':
+                profile = self._user_profile()
+                is_entry = profile and profile.experience_level == 'entry'
+                if not is_entry and count < 1:
+                    form.add_error(None, "Please add at least one experience or change your level to Entry.")
+                    return self.form_invalid(form)
+
+            if step == 'projects' and count < 1:
+                form.add_error(None, "Please add at least one project (title and description).")
+                return self.form_invalid(form)
+
+            if step == 'social':
+                has_li_or_gh = any(
+                    (getattr(f, 'cleaned_data', {}).get('platform') in ('linkedin', 'github')) and
+                    getattr(f, 'cleaned_data', {}).get('url') and not
+                    getattr(f, 'cleaned_data', {}).get('DELETE')
+                    for f in form.forms
+                )
+                if not has_li_or_gh:
+                    form.add_error(None, "Please add at least one LinkedIn or GitHub link.")
+                    return self.form_invalid(form)
+
+        return self.form_valid(form)
 
     def form_valid(self, form):
         step = self._get_current_step()
         profile = self._user_profile()
 
         if step in self.FORMSET_STEPS:
-            # Must have a profile instance (dispatch enforces personal first)
             form.instance = profile
-
-            # Experience is conditionally required
-            if step == 'experience':
-                is_entry = (profile and profile.experience_level == 'entry')
-                valid_rows = 0
-                for f in form.forms:
-                    if getattr(f, 'cleaned_data', None) and not f.cleaned_data.get('DELETE', False):
-                        if f.cleaned_data.get('company_name') and f.cleaned_data.get('role'):
-                            valid_rows += 1
-                if not is_entry and valid_rows == 0:
-                    form.add_error(None, "Please add at least one experience or mark your level as Entry.")
-                    return self.form_invalid(form)
-
             form.save()
             messages.success(self.request, f"{step.capitalize()} information saved successfully!")
-
         else:
-            # ModelForm: safe create/update
             obj = form.save(commit=False)
             if profile is None:
                 obj.user = self.request.user
@@ -279,6 +339,10 @@ class ProfileWizardView(FormView):
             return redirect('candidate:profile', step=next_step)
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        messages.error(self.request, "Please fix the errors below to continue.")
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 class ProfileCompleteView(TemplateView):
     template_name = 'candidate/profile_complete.html'
@@ -289,74 +353,36 @@ class ProfileCompleteView(TemplateView):
         return ctx
 
 
-# =========================
-# HTMX: add a new inline formset row
-# =========================
-class ProfileFormsetAddRowView(LoginRequiredMixin, View):
+class ProfilePreviewView(LoginRequiredMixin, TemplateView):
     """
-    Returns one new, correctly-indexed formset row HTML for a given step.
-    Expects query params:
-      - index: current TOTAL_FORMS before adding (we render the next index)
+    Read-only summary with edit buttons for each section.
     """
-    FORMSET_STEPS = ['education', 'experience', 'projects', 'certificates', 'social']
+    template_name = 'candidate/profile_preview.html'
 
-    FORMSET_PREFIX = {
-        'education': 'education',
-        'experience': 'experience',
-        'projects': 'projects',
-        'certificates': 'certificates',
-        'social': 'social',
-    }
-
-    # map step -> partial template path
-    PARTIAL_TEMPLATES = {
-        'education': 'candidate/partials/education_form_row.html',
-        'experience': 'candidate/partials/experience_form_row.html',
-        'projects': 'candidate/partials/projects_form_row.html',
-        'certificates': 'candidate/partials/certificates_form_row.html',
-        'social': 'candidate/partials/social_form_row.html',
-    }
-
-    # which formset class to use
-    FORMSET_CLASS = {
-        'education': EducationFormSet,
-        'experience': ExperienceFormSet,
-        'projects': ProjectFormSet,
-        'certificates': CertificateFormSet,
-        'social': SocialLinkFormSet,
-    }
-
-    def get(self, request, *args, **kwargs):
-        step = kwargs.get('step')
-        if step not in self.FORMSET_STEPS:
-            raise Http404("Unknown formset step")
-
-        # must have a profile
-        try:
-            profile = request.user.profile
-        except Profile.DoesNotExist:
-            return HttpResponseBadRequest("Profile not initialized")
-
-        # read the current count from the client (TOTAL_FORMS before adding)
-        try:
-            current_count = int(request.GET.get('index', '0'))
-            if current_count < 0:
-                current_count = 0
-        except ValueError:
-            current_count = 0
-
-        prefix = self.FORMSET_PREFIX[step]
-        formset_cls = self.FORMSET_CLASS[step]
-        base_form_class = formset_cls.form
-        per_form_prefix = f"{prefix}-{current_count}"
-
-        # Create a blank child form for the new row
-        form = base_form_class(prefix=per_form_prefix)
-
-        # Render partial
-        html = render_to_string(
-            self.PARTIAL_TEMPLATES[step],
-            {'f': form, 'prefix': prefix, 'index': current_count},
-            request=request
-        )
-        return render(request, self.PARTIAL_TEMPLATES[step], {'f': form, 'prefix': prefix, 'index': current_count})
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        profile = getattr(self.request.user, "profile", None)
+        ctx['profile'] = profile
+        if profile:
+            ctx['educations'] = profile.educations.order_by('-start_date', '-end_date', '-id')
+            ctx['experiences'] = profile.experiences.order_by('-start_date', '-end_date', '-id')
+            ctx['projects'] = profile.projects.order_by('-start_date', '-end_date', '-id')
+            ctx['certificates'] = profile.certificates.order_by('-date', '-id')
+            ctx['social_links'] = profile.social_links.all()
+            # tokenized
+            def split_tokens(value):
+                if not value:
+                    return []
+                parts = [p.strip().strip('"').strip("'") for p in str(value).strip().strip('[]').split(',')]
+                return [p for p in parts if p]
+            ctx['sectors_list'] = split_tokens(profile.sectors)
+            ctx['skills_list'] = split_tokens(profile.skills)
+        else:
+            ctx['educations'] = []
+            ctx['experiences'] = []
+            ctx['projects'] = []
+            ctx['certificates'] = []
+            ctx['social_links'] = []
+            ctx['sectors_list'] = []
+            ctx['skills_list'] = []
+        return ctx

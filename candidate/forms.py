@@ -19,6 +19,7 @@ def parse_tokens(value):
     s = str(value).strip()
     if not s:
         return []
+    # try JSON (Tagify can submit arrays)
     try:
         data = json.loads(s)
         if isinstance(data, list):
@@ -31,6 +32,7 @@ def parse_tokens(value):
             return [t for t in tokens if t]
     except Exception:
         pass
+    # plain text “a, b, c”
     tokens = [t.strip() for t in TOKEN_SPLIT_RE.split(s)]
     return [t for t in tokens if t]
 
@@ -69,6 +71,18 @@ class PersonalInfoForm(BaseModelForm):
         self.fields['last_name'].required = True
         self.fields['gender'].required = True
         self.fields['date_of_birth'].required = True
+
+    def clean_first_name(self):
+        first_name = (self.cleaned_data.get('first_name') or '').strip()
+        if any(ch.isdigit() for ch in first_name):
+            raise ValidationError("First name cannot contain numbers.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = (self.cleaned_data.get('last_name') or '').strip()
+        if any(ch.isdigit() for ch in last_name):
+            raise ValidationError("Last name cannot contain numbers.")
+        return last_name
 
     def clean_date_of_birth(self):
         dob = self.cleaned_data.get('date_of_birth')

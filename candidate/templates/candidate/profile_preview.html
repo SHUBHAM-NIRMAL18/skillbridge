@@ -1,0 +1,417 @@
+{% extends "candidate/base.html" %}
+{% load static %}
+
+{% block title %}Profile Preview{% endblock %}
+
+{% block extra_head %}
+<style>
+  .preview-layout { --sidebar-w: 300px; }
+  .preview-sidebar {
+    background:#fafafb; border-right:1px solid #eee;
+    min-height: calc(100vh - 120px);
+  }
+  .sticky-col { position: sticky; top: 80px; }
+
+  .step-link {
+    display:flex; align-items:center; gap:.5rem;
+    padding:.6rem .75rem; border-radius:.5rem;
+    text-decoration:none; color:#6c757d;
+  }
+  .step-link .bi { width:1.25rem; text-align:center; }
+  .step-link:hover { background:#fff; color:#dc3545; }
+  .step-link.active { background:#fff; color:#dc3545; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .chip { display:inline-block; border:1px solid #e9ecef; background:#fff;
+          padding:.1rem .5rem; border-radius:999px; font-size:.8rem; margin:.125rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid preview-layout">
+  <div class="row g-3">
+    <!-- Sidebar -->
+    <aside class="col-lg-3">
+      <div class="preview-sidebar rounded-3 p-3 sticky-col">
+        <a class="d-block mb-3 text-decoration-none" href="{% url 'candidate:profile' 'personal' %}">
+          <i class="bi bi-arrow-left"></i> Back to Wizard
+        </a>
+
+        <div class="card shadow-sm mb-3">
+          <div class="card-body text-center">
+            {% if profile and profile.profile_picture %}
+              <img src="{{ profile.profile_picture.url }}" alt="Avatar" class="rounded-circle"
+                   style="width:96px;height:96px;object-fit:cover;">
+            {% else %}
+              <i class="bi bi-person-circle" style="font-size:4rem;color:#adb5bd;"></i>
+            {% endif %}
+
+            <h6 class="mt-2 mb-0">
+              {% if profile %}{{ profile.first_name }} {{ profile.last_name }}{% else %}—{% endif %}
+            </h6>
+            <div class="small text-muted">
+              {% if profile and profile.designation %}{{ profile.designation }}{% else %}—{% endif %}
+            </div>
+            <div class="small">
+              {% if profile and profile.city %}{{ profile.city }}{% endif %}
+              {% if profile and profile.province %}{% if profile.city %}, {% endif %}{{ profile.get_province_display }}{% endif %}
+            </div>
+
+            {% if profile and profile.resume %}
+              <div class="mt-2">
+                <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-light btn-sm">
+                  <i class="bi bi-file-earmark-text"></i> View CV
+                </a>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if profile %}
+            {% if profile.sectors_list or profile.skills_list %}
+              <div class="card-footer bg-white">
+                {% if profile.sectors_list %}
+                  <div class="mb-2">
+                    <div class="small fw-semibold">Sectors</div>
+                    <div class="mt-1">
+                      {% for s in profile.sectors_list %}
+                        <span class="chip">{{ s }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+                {% if profile.skills_list %}
+                  <div>
+                    <div class="small fw-semibold">Skills</div>
+                    <div class="mt-1">
+                      {% for s in profile.skills_list %}
+                        <span class="chip">{{ s }}</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endif %}
+
+        <nav class="d-flex flex-column gap-1" aria-label="Profile navigation">
+          <a class="step-link active" href="{% url 'candidate:profile_preview' %}">
+            <i class="bi bi-eye"></i> <span>Preview</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'personal' %}">
+            <i class="bi bi-person"></i> <span>About (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'education' %}">
+            <i class="bi bi-mortarboard"></i> <span>Education (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'projects' %}">
+            <i class="bi bi-rocket"></i> <span>Projects (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'experience' %}">
+            <i class="bi bi-briefcase"></i> <span>Experience (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'professional' %}">
+            <i class="bi bi-stars"></i> <span>Skills (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'social' %}">
+            <i class="bi bi-people"></i> <span>Social (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'address' %}">
+            <i class="bi bi-envelope"></i> <span>Contact (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'certificates' %}">
+            <i class="bi bi-trophy"></i> <span>Certificates (Edit)</span>
+          </a>
+          <a class="step-link" href="{% url 'candidate:profile' 'documents' %}">
+            <i class="bi bi-file-earmark-arrow-up"></i> <span>Documents (Edit)</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main preview content -->
+    <section class="col-lg-9">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body d-flex align-items-center gap-3">
+          {% if profile and profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;" alt="Avatar">
+          {% else %}
+            <i class="bi bi-person-circle" style="font-size:4rem;color:#adb5bd;"></i>
+          {% endif %}
+          <div class="flex-fill">
+            <h4 class="mb-0">
+              {% if profile %}{{ profile.first_name }} {{ profile.last_name }}{% else %}-{% endif %}
+            </h4>
+            <div class="text-muted">
+              {% if profile and profile.designation %}{{ profile.designation }}{% else %}—{% endif %}
+              {% if profile and profile.city %} · {{ profile.city }}{% endif %}
+              {% if profile and profile.province %}, {{ profile.get_province_display }}{% endif %}
+            </div>
+
+            {% if profile %}
+              {% if profile.sectors_list or profile.skills_list %}
+                <div class="mt-2">
+                  {% for s in profile.sectors_list %}
+                    <span class="chip">{{ s }}</span>
+                  {% endfor %}
+                  {% for s in profile.skills_list %}
+                    <span class="chip">{{ s }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endif %}
+          </div>
+          <a href="{% url 'candidate:profile' 'personal' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pencil"></i> Edit
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- About -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">About</h5>
+              <a href="{% url 'candidate:profile' 'personal' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6"><strong>First Name:</strong> {{ profile.first_name|default:"—" }}</div>
+                <div class="col-md-6"><strong>Last Name:</strong> {{ profile.last_name|default:"—" }}</div>
+                <div class="col-md-6"><strong>Gender:</strong> {{ profile.get_gender_display|default:"—" }}</div>
+                <div class="col-md-6"><strong>DOB:</strong> {{ profile.date_of_birth|date:"M d, Y"|default:"—" }}</div>
+                <div class="col-12">
+                  <strong>About Me:</strong>
+                  <div class="mt-1">{{ profile.about_me|safe }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Professional</h5>
+              <a href="{% url 'candidate:profile' 'professional' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6"><strong>Designation:</strong> {{ profile.designation|default:"—" }}</div>
+                <div class="col-md-6"><strong>Experience Level:</strong> {{ profile.get_experience_level_display|default:"—" }}</div>
+                <div class="col-12">
+                  <strong>Sectors:</strong>
+                  <div class="mt-1">
+                    {% if profile.sectors_list %}
+                      {% for s in profile.sectors_list %}<span class="chip">{{ s }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                  </div>
+                </div>
+                <div class="col-12">
+                  <strong>Skills:</strong>
+                  <div class="mt-1">
+                    {% if profile.skills_list %}
+                      {% for s in profile.skills_list %}<span class="chip">{{ s }}</span>{% endfor %}
+                    {% else %}—{% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Contact</h5>
+              <a href="{% url 'candidate:profile' 'address' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6"><strong>Phone:</strong> {{ profile.phone_number|default:"—" }}</div>
+                <div class="col-md-6"><strong>Province:</strong> {{ profile.get_province_display|default:"—" }}</div>
+                <div class="col-md-6"><strong>City:</strong> {{ profile.city|default:"—" }}</div>
+                <div class="col-md-6"><strong>Postal Code:</strong> {{ profile.postal_code|default:"—" }}</div>
+                <div class="col-12"><strong>Address:</strong> {{ profile.current_address|default:"—" }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Education -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Education</h5>
+              <a href="{% url 'candidate:profile' 'education' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              {% if educations %}
+                {% for e in educations %}
+                  <div class="mb-3">
+                    <div class="fw-semibold">{{ e.degree }}{% if e.field_of_study %}, {{ e.field_of_study }}{% endif %}</div>
+                    <div class="text-muted">{{ e.institution }}</div>
+                    <div class="small">{{ e.start_date|date:"Y-m" }} – {% if e.end_date %}{{ e.end_date|date:"Y-m" }}{% else %}Present{% endif %}</div>
+                    {% if e.grade %}<div class="small">Grade: {{ e.grade }}</div>{% endif %}
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-muted">No education added yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Experience</h5>
+              <a href="{% url 'candidate:profile' 'experience' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              {% if experiences %}
+                {% for x in experiences %}
+                  <div class="mb-3">
+                    <div class="fw-semibold">{{ x.role }} <span class="text-muted">@ {{ x.company_name }}</span></div>
+                    <div class="small text-muted">
+                      {{ x.start_date|date:"Y-m" }} – {% if x.is_current %}Present{% elif x.end_date %}{{ x.end_date|date:"Y-m" }}{% else %}—{% endif %}
+                      {% if x.location %} · {{ x.location }}{% endif %}
+                    </div>
+                    {% if x.description %}<div class="mt-1">{{ x.description|safe }}</div>{% endif %}
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-muted">No experience added yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Projects</h5>
+              <a href="{% url 'candidate:profile' 'projects' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              {% if projects %}
+                {% for p in projects %}
+                  <div class="mb-3">
+                    <div class="fw-semibold">
+                      {{ p.title }}
+                      {% if p.project_url %}
+                        <a href="{{ p.project_url }}" target="_blank" class="small ms-2"><i class="bi bi-box-arrow-up-right"></i></a>
+                      {% endif %}
+                    </div>
+                    <div class="small text-muted">
+                      {% if p.start_date %}{{ p.start_date|date:"Y-m" }}{% endif %}
+                      {% if p.end_date %} – {{ p.end_date|date:"Y-m" }}{% endif %}
+                    </div>
+                    {% if p.tech_list %}
+                      <div class="mt-1">
+                        {% for t in p.tech_list %}
+                          <span class="chip">{{ t }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <div class="mt-1">{{ p.description|safe }}</div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-muted">No projects added yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Certificates -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Certificates</h5>
+              <a href="{% url 'candidate:profile' 'certificates' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              {% if certificates %}
+                {% for c in certificates %}
+                  <div class="mb-3">
+                    <div class="fw-semibold">{{ c.title }} <span class="text-muted">({{ c.get_certificate_type_display }})</span></div>
+                    <div class="small text-muted">
+                      {{ c.issuer }}
+                      {% if c.date %} · {{ c.date|date:"Y-m-d" }}{% endif %}
+                      {% if c.certificate_url %} · <a href="{{ c.certificate_url }}" target="_blank">View</a>{% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="text-muted">No certificates added yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Social links -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Social Links</h5>
+              <a href="{% url 'candidate:profile' 'social' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              {% if social_links %}
+                <ul class="list-unstyled mb-0">
+                  {% for s in social_links %}
+                    <li class="mb-2">
+                      <strong class="text-capitalize">{{ s.platform }}</strong> —
+                      <a href="{{ s.url }}" target="_blank">{{ s.url }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="text-muted">No social links yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Documents</h5>
+              <a href="{% url 'candidate:profile' 'documents' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            </div>
+            <div class="card-body">
+              <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                  <strong>Profile Picture:</strong>
+                  <div class="mt-2">
+                    {% if profile and profile.profile_picture %}
+                      <img src="{{ profile.profile_picture.url }}" style="max-width:140px;max-height:140px;object-fit:cover;" class="rounded" alt="Profile Picture">
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <strong>Resume:</strong>
+                  <div class="mt-2">
+                    {% if profile and profile.resume %}
+                      <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-light btn-sm"><i class="bi bi-file-earmark-text"></i> View CV</a>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /row -->
+    </section>
+  </div>
+</div>
+{% endblock %}
