@@ -1,29 +1,26 @@
 {% extends "website/base.html" %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Internship{% endblock %}
+{% block title %}Internships{% endblock %}
 
 {% block content %}
 <div class="container py-5">
   <div class="row">
 
-    {# ─────────────────────────────────────────────── #}
-    {# LEFT COLUMN: controls + cards (col-md-4)       #}
-    {# ─────────────────────────────────────────────── #}
+    <!-- LEFT: controls + dynamic cards -->
     <aside class="col-md-4">
-
-      {# --- dropdown bar above cards --- #}
+      <!-- Top controls -->
       <div class="d-flex mb-4 align-items-center">
         <!-- Internship dropdown -->
         <div class="me-3">
           <div class="dropdown">
-            <button class="btn btn-danger dropdown-toggle fs-6" 
-                    type="button" data-bs-toggle="dropdown">
+            <button class="btn btn-danger dropdown-toggle fs-6" type="button" data-bs-toggle="dropdown">
               Internship
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item text-decoration-none fs-6" href="#">All Internships</a></li>
-              <li><a class="dropdown-item text-decoration-none fs-6" href="#">My Applications</a></li>
+              <li><a class="dropdown-item fs-6" href="{% url 'website:internship' %}">All Internships</a></li>
+              <li><a class="dropdown-item fs-6" href="#">My Applications</a></li>
             </ul>
           </div>
         </div>
@@ -31,215 +28,83 @@
         <!-- Sort dropdown -->
         <div>
           <div class="dropdown">
-            <button class="btn btn-outline-secondary dropdown-toggle fs-6" 
-                    type="button" data-bs-toggle="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle fs-6" type="button" data-bs-toggle="dropdown">
               Sort
             </button>
             <div class="dropdown-menu p-3" style="min-width: 240px;">
-              
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="mb-0 fs-6">Sort</h6>
-                <a href="#" class="small text-danger text-decoration-none">Reset</a>
+                <a href="{% url 'website:internship' %}" class="small text-danger text-decoration-none">Reset</a>
               </div>
-
               <div class="d-flex gap-2 flex-wrap mb-2">
-                <a href="#" class="btn btn-outline-secondary btn-sm text-decoration-none small">Newest</a>
-                <a href="#" class="btn btn-outline-secondary btn-sm text-decoration-none small">Oldest</a>
-                <a href="#" class="btn btn-outline-secondary btn-sm text-decoration-none small">Nearest Deadline</a>
+                <a href="{% url 'website:internship' %}?sort=newest" class="btn btn-outline-secondary btn-sm">Newest</a>
+                <a href="{% url 'website:internship' %}?sort=oldest" class="btn btn-outline-secondary btn-sm">Oldest</a>
+                <a href="{% url 'website:internship' %}?sort=deadline" class="btn btn-outline-secondary btn-sm">Nearest Deadline</a>
               </div>
-
               <div class="dropdown-divider"></div>
-              <button class="btn btn-danger btn-sm w-100">Show Results</button>
+              <a class="btn btn-danger btn-sm w-100" href="#">Show Results</a>
             </div>
           </div>
         </div>
       </div>
 
-      {# --- Sidebar cards --- #}
+      <!-- Dynamic internship cards -->
       <div class="mb-4">
-        <!-- Selected card -->
-        <div class="card border-danger mb-4 h-100">
-          <div class="card-body p-4">
-            <div class="d-flex">
-              <img src="{% static 'icons/sb-logo.png' %}"
-                   alt="Sara Worldwide logo"
-                   class="rounded me-3"
-                   style="width:64px; height:64px;">
-              <div>
-                <h6 class="card-title mb-1 fs-6">Digital Marketing Intern</h6>
-                <p class="text-danger mb-2 small">Sara Worldwide Business Pvt. Ltd.</p>
-                <div>
-                  <span class="badge bg-light text-dark border small">#InternshipProgram</span>
-                  <span class="badge bg-light text-dark border small">#GraphicDesignIntern</span>
+        {% if internships %}
+          {% for intern in internships %}
+            <div class="card {% if forloop.first %}border-danger{% endif %} mb-4 h-100 shadow-sm">
+              <div class="card-body p-4">
+                <div class="d-flex">
+                  {% if intern.company.logo %}
+                    <img src="{{ intern.company.logo.url }}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px; object-fit:cover;">
+                  {% else %}
+                    <img src="{% static 'icons/sb-logo.png' %}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px;">
+                  {% endif %}
+                  <div>
+                    <h6 class="card-title mb-1 fs-6">{{ intern.title }}</h6>
+                    <p class="text-danger mb-2 small">
+                      {{ intern.company.first_name }} {{ intern.company.last_name }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-1">
+                      {% for tag in intern.skills.all|slice:":3" %}
+                        <span class="badge bg-light text-dark border small">#{{ tag.name }}</span>
+                      {% empty %}
+                        <span class="text-muted small">No tags</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
+                  <div>
+                    <i class="bi-clock me-1"></i>
+                    {% if intern.days_left > 0 %}{{ intern.days_left }} days left{% else %}Closed{% endif %}
+                  </div>
+                  <a href="{% url 'website:internship_detail' intern.id %}" class="text-danger text-decoration-none small">View Details →</a>
                 </div>
               </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
-              <div><i class="bi-clock me-1"></i>12 days left</div>
-              <a href="#" class="text-danger text-decoration-none small">View Details →</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="card mb-4 h-100">
-          <div class="card-body p-4">
-            <div class="d-flex">
-              <img src="{% static 'icons/sb-logo.png' %}"
-                   alt="Sara Worldwide logo"
-                   class="rounded me-3"
-                   style="width:64px; height:64px;">
-              <div>
-                <h6 class="card-title mb-1 fs-6">IT Management Intern</h6>
-                <p class="text-danger mb-2 small">Sara Worldwide Business Pvt. Ltd.</p>
-                <div>
-                  <span class="badge bg-light text-dark border small">#RecruitmentIntern</span>
-                </div>
-              </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
-              <div><i class="bi-clock me-1"></i>12 days left</div>
-              <a href="#" class="text-danger text-decoration-none small">View Details →</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="card mb-4 h-100">
-          <div class="card-body p-4">
-            <div class="d-flex">
-              <img src="{% static 'icons/sb-logo.png' %}"
-                   alt="Sara Worldwide logo"
-                   class="rounded me-3"
-                   style="width:64px; height:64px;">
-              <div>
-                <h6 class="card-title mb-1 fs-6">Sales Officer Intern</h6>
-                <p class="text-danger mb-2 small">Sara Worldwide Business Pvt. Ltd.</p>
-                <div>
-                  <span class="badge bg-light text-dark border small">#SalesInternship</span>
-                  <span class="badge bg-light text-dark border small">#SalesAndMarketingIntern</span>
-                </div>
-              </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
-              <div><i class="bi-clock me-1"></i>12 days left</div>
-              <a href="#" class="text-danger text-decoration-none small">View Details →</a>
-            </div>
-          </div>
-        </div>
+          {% endfor %}
+        {% else %}
+          <div class="alert alert-light border">No internships available right now.</div>
+        {% endif %}
       </div>
-
     </aside>
 
-
-    {# ─────────────────────────────────────────────── #}
-    {# RIGHT COLUMN: detail pane (col-md-8)            #}
-    {# ─────────────────────────────────────────────── #}
+    <!-- RIGHT: simple placeholder -->
     <div class="col-md-8">
-      <div class="card h-100">
-        <div class="card-body p-4">
-
-          <!-- Header -->
-          <div class="d-flex justify-content-between">
-            <div class="d-flex">
-              <img src="{% static 'icons/sb-logo.png' %}"
-                   alt="Sara Worldwide logo"
-                   class="rounded me-4"
-                   style="width:80px; height:80px;">
-              <div>
-                <h5 class="mb-1 fs-5">Digital Marketing Intern</h5>
-                <p class="text-danger text-uppercase mb-2 small">Sara Worldwide Business Pvt. Ltd.</p>
-                <div class="small text-muted d-flex gap-4">
-                  <div><i class="bi-geo-alt me-1"></i>Kathmandu</div>
-                  <div><i class="bi-briefcase me-1"></i>Full Time</div>
-                </div>
-              </div>
-            </div>
-            <div class="text-end">
-              <a href="#" class="btn btn-danger btn-sm mb-2 text-decoration-none">Apply Now</a><br>
-              <a href="{% url "full_internship" %}" class="text-danger small text-decoration-none">View on full page →</a>
-            </div>
-          </div>
-
-          <!-- Stats Row -->
-          <div class="row text-center text-muted mt-4 small">
-            <div class="col-6 col-sm-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="bi-currency-dollar fs-4 text-danger"></i>
-                <p class="mb-0 fw-semibold fs-6">Rs 10000 – 15000</p>
-            
-              </div>
-            </div>
-            <div class="col-6 col-sm-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="bi-geo-alt fs-4 text-danger"></i>
-                <p class="mb-0 fs-6">Onsite</p>
-              </div>
-            </div>
-            <div class="col-6 col-sm-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="bi-bar-chart fs-4 text-danger"></i>
-                <p class="mb-0 fs-6">Entry</p>
-              </div>
-            </div>
-            <div class="col-6 col-sm-3 mb-3">
-              <div class="p-3 bg-light rounded">
-                <i class="bi-people fs-4 text-danger"></i>
-                <p class="mb-0 fs-6">5 Openings</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Description & sections -->
-          <p class="mt-4">As a Digital Marketing Intern, you will assist the marketing team in executing campaigns across various digital channels. You’ll gain hands-on experience in SEO, social media, content creation, and analytics, learning how to grow a brand online.</p>
-
-          <h6 class="mt-4 fs-6">Responsibilities of the Candidate:</h6>
-          <ul class="small">
-            <li>Assist in the planning and execution of digital marketing campaigns</li>
-            <li>Create and schedule social media posts (Facebook, Instagram, LinkedIn, etc.)</li>
-            <li>Perform keyword research and support SEO optimization</li>
-            <li>Write blog posts, email newsletters, and social media captions</li>
-            <li>Track and report on campaign performance using Google Analytics & other tools</li>
-            <li>Support in running and optimizing Google Ads and Meta Ads</li>
-            <li>Conduct market and competitor research</li>
-            <li>Help manage content calendars and campaign timelines</li>
-          </ul>
-
-          <h6 class="mt-4 fs-6">Requirements:</h6>
-          <ul class="small">
-            <li>Basic understanding of digital marketing concepts (SEO, SEM, social media, content)</li>
-            <li>Strong written and verbal communication skills</li>
-            <li>Familiarity with tools like Google Analytics, Canva, or WordPress (a plus)</li>
-            <li>Eagerness to learn, take initiative, and work independently</li>
-            <li>Currently pursuing or recently completed a degree in Marketing, Business, Communication, or a related field</li>
-          </ul>
-
-          <h6 class="mt-4 fs-6">Required Skills:</h6>
-          <span class="badge bg-light text-dark border small">Graphic designing</span>
-
-          <h6 class="mt-4 fs-6">Tags:</h6>
-          <span class="badge bg-light text-dark border small">#InternshipProgram</span>
-          <span class="badge bg-light text-dark border small">#GraphicDesignIntern</span>
-
-          <h6 class="mt-4 fs-6">About Company:</h6>
-          <p class="small mb-1"><strong class="text-danger">Sara Worldwide Business Pvt. Ltd.</strong></p>
-          <p class="small text-muted mb-3">Kathmandu, Nepal · Kalanki 14, Kathmandu</p>
-          <p class="small">Sara Worldwide Business Pvt Ltd is an Import/Export Company providing Super Foods &amp; Organic Fresh and Dry vegetables worldwide.</p>
-          <a href="#" class="text-danger small text-decoration-none">View Company Profile →</a>
-
-          <!-- Application CTA -->
-          <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mt-4 small">
-            <div>
-              <span class="text-muted">Application ends:</span><br>
-              <strong>June 25, 2025</strong>
-            </div>
-            <a href="#" class="btn btn-danger btn-sm text-decoration-none">Apply Now</a>
-          </div>
-
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-5 text-center text-muted">
+          <i class="bi bi-search fs-1 d-block mb-3"></i>
+          <div class="fs-6">Click “View Details →” on any internship to open the full page.</div>
         </div>
       </div>
     </div>
 
   </div>
 </div>
+
+<style>
+.card.shadow-sm { border-radius: 14px; }
+.badge.text-bg-light { background: #f8f9fa; }
+</style>
 {% endblock %}

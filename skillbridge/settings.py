@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "accounts",
     "company",
     "website",
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     'formtools',
     'ckeditor',
     'taggit',
+    
 ]
 
 MIDDLEWARE = [

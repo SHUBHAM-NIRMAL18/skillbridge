@@ -1,0 +1,95 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ company.first_name }} {{ company.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row g-4">
+    <!-- Left -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center">
+            {% if company.logo %}
+              <img src="{{ company.logo.url }}" alt="Logo" class="rounded me-3" style="width:64px;height:64px;object-fit:cover;">
+            {% else %}
+              <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="rounded me-3" style="width:64px;height:64px;">
+            {% endif %}
+            <div>
+              <h1 class="h5 mb-1">{{ company.first_name }} {{ company.last_name }}</h1>
+              <div class="small text-muted">
+                {{ company.city }}, {{ company.province }}
+              </div>
+            </div>
+            <div class="ms-auto">
+              <a class="btn btn-outline-danger btn-sm" href="#">Follow</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-2">About Company</h5>
+          <div>{{ company.about_company|linebreaks }}</div>
+        </div>
+      </div>
+
+      {% if active_jobs %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Active Jobs</h5>
+          {% for job in active_jobs %}
+          <a href="#" class="text-decoration-none d-block p-3 rounded border mb-2">
+            <div class="fw-semibold">{{ job.title }}</div>
+            <div class="small text-muted">
+              {{ job.city }}, {{ job.province }} · {{ job.job_type }} ·
+              {% if job.days_left > 0 %}{{ job.days_left }} days left{% else %}Closed{% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_internships %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Active Internships</h5>
+          {% for intern in active_internships %}
+          <a href="{% url 'website:internship_detail' intern.id %}" class="text-decoration-none d-block p-3 rounded border mb-2">
+            <div class="fw-semibold">{{ intern.title }}</div>
+            <div class="small text-muted">
+              {{ intern.city }} · {{ intern.type }} ·
+              {% if intern.days_left > 0 %}{{ intern.days_left }} days left{% else %}Closed{% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 88px;">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h6 class="h6 mb-3">Company Overview</h6>
+            <div class="small mb-2"><span class="text-muted">Industry:</span> {{ company.industry }}</div>
+            <div class="small mb-2"><span class="text-muted">Company Size:</span> {{ company.company_size }}</div>
+            <div class="small mb-2"><span class="text-muted">Founded:</span> {{ company.founded_date|date:"F j, Y" }}</div>
+            <div class="small mb-2"><span class="text-muted">Location:</span> {{ company.city }}, {{ company.province }}</div>
+            <div class="small mb-2"><span class="text-muted">Address:</span> {{ company.current_address }}</div>
+            {% if company.website_url %}
+              <div class="small"><span class="text-muted">Website:</span> <a href="{{ company.website_url }}" target="_blank" rel="noopener">Visit</a></div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

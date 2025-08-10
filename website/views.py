@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
-from company.models import InternshipPost, JobPost
+from company.models import InternshipPost, JobPost, CompanyProfile
 
 # Create your views here.
 def home_view(request):
@@ -45,14 +45,86 @@ def termcondition_view(request):
     """
     return render(request, 'termcondition.html')
 
-def internship_view(request):
+def internships_list_view(request):
     """
-    Render the internship page.
+    Show ALL active, non-expired internships (soonest deadline first by default).
+    Supports ?sort=newest|oldest|deadline
     """
-    return render(request, 'internship.html')
+    today = timezone.localdate()
+    sort = request.GET.get("sort", "deadline")
+    order_map = {
+        "newest": "-created_at",
+        "oldest": "created_at",
+        "deadline": "application_deadline",
+    }
+    ordering = order_map.get(sort, "application_deadline")
 
-def fullinternship_view(request):
+    internships = (
+        InternshipPost.objects
+        .filter(is_active=True, application_deadline__gte=today)
+        .select_related("company")
+        .prefetch_related("skills")
+        .order_by(ordering)
+    )
+
+    return render(request, "internship.html", {
+        "internships": internships,
+        "sort": sort,
+    })
+
+
+def internship_detail_view(request, pk: int):
     """
-    Render the view internship page.
+    Full-page dynamic internship detail.
     """
-    return render(request, 'view-intern.html')
+    internship = get_object_or_404(
+        InternshipPost.objects.select_related("company").prefetch_related("skills"),
+        pk=pk
+    )
+
+    # <- NEW: make a plain list of names so the template can't trip over Taggit's manager
+    skills_names = list(
+        internship.skills.order_by("name").values_list("name", flat=True)
+    )
+
+    today = timezone.localdate()
+    more_internships = (
+        InternshipPost.objects
+        .filter(
+            company=internship.company,
+            is_active=True,
+            application_deadline__gte=today
+        )
+        .exclude(pk=internship.pk)
+        .select_related("company")
+        .order_by("application_deadline")[:3]
+    )
+
+    return render(request, "view-intern.html", {
+        "internship": internship,
+        "more_internships": more_internships,
+        "skills_names": skills_names,   # <- pass to template
+    })
+
+def company_detail_view(request, pk: int):
+    company = get_object_or_404(CompanyProfile, pk=pk)
+    today = timezone.localdate()
+
+    active_internships = (
+        InternshipPost.objects
+        .filter(company=company, is_active=True, application_deadline__gte=today)
+        .order_by("application_deadline")
+        .prefetch_related("skills")
+    )
+    active_jobs = (
+        JobPost.objects
+        .filter(company=company, is_active=True, application_deadline__gte=today)
+        .order_by("application_deadline")
+        .prefetch_related("skills")
+    )
+
+    return render(request, "company_detail.html", {
+        "company": company,
+        "active_internships": active_internships,
+        "active_jobs": active_jobs,
+    })

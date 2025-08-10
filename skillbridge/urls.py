@@ -26,7 +26,7 @@ urlpatterns = [
     path("company/", include("company.urls", namespace="company")),
     path("candidate/", include("candidate.urls", namespace="candidate")),
     path("", include("accounts.urls")),
-    path("", include("website.urls")),
+    path("", include(("website.urls", "website"), namespace="website")),
     # Add other app URLs here as needed
 ]
 
