@@ -31,11 +31,30 @@
               </div>
             </div>
             <div class="text-end">
-              {% if job.status == "Active" %}
-                <a href="#" class="btn btn-danger btn-sm">Apply Now</a>
-              {% else %}
-                <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
-              {% endif %}
+                {% if not request.user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-danger btn-sm">Login to apply</a>
+                {% else %}
+                {% with has_applied=has_applied_job %}
+                    {% if job.status != "Active" %}
+                    <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+                    {% elif has_applied %}
+                    <button class="btn btn-outline-success btn-sm" disabled>Applied ✓</button>
+                    <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm">My Applications</a>
+                    {% else %}
+                    <a href="#"
+                        class="btn btn-danger btn-sm js-apply-btn"
+                        data-type="job"
+                        data-id="{{ job.id }}"
+                        data-auth="1"
+                        data-login="{% url 'accounts:login' %}"
+                        data-next="{{ request.get_full_path }}">
+                        Apply Now
+                    </a>
+                    {% endif %}
+                {% endwith %}
+                {% endif %}
+                <div id="applyModalContainer"></div>
+
             </div>
           </div>
 

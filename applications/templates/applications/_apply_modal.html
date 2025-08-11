@@ -1,0 +1,367 @@
+{% load static humanize %}
+
+<style>
+:root {
+  --primary-color: #dc3545;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-bg: #f8f9fa;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --border-radius: 12px;
+}
+
+.modal-content {
+  border: none;
+  box-shadow: var(--card-shadow);
+  background: white;
+  border-radius: var(--border-radius) !important;
+  overflow: hidden;
+}
+
+.modal-header {
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.5rem;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #212529;
+  margin: 0;
+}
+
+.btn-close {
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  background: white;
+  color: #212529;
+  padding: 1.5rem;
+}
+
+.alert {
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.875rem 1rem;
+  font-weight: 500;
+  border-left: 4px solid;
+  background: #fff3cd;
+  color: #856404;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.alert-warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left-color: var(--warning-color);
+}
+
+.alert-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border-left-color: var(--info-color);
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border-left-color: var(--success-color);
+}
+
+.profile-section {
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border-radius: var(--border-radius);
+}
+
+.profile-image {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-info h5 {
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.designation {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.location {
+  color: #6c757d;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.about-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.about-section h6 {
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.about-section p {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.skills-section {
+  padding: 1rem 1.25rem;
+}
+
+.skills-section h6 {
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.skill-badge {
+  background: var(--light-bg) !important;
+  color: #495057 !important;
+  border: 1px solid #dee2e6 !important;
+  padding: 0.25rem 0.6rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.resume-sidebar {
+  background: var(--light-bg) !important;
+  border-radius: var(--border-radius);
+  padding: 1.25rem !important;
+  height: fit-content;
+}
+
+.resume-sidebar h6 {
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.resume-link {
+  color: var(--primary-color) !important;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.resume-link:hover {
+  text-decoration: underline !important;
+}
+
+.form-control {
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.modal-footer {
+  background: white;
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+</style>
+
+<div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title">Your Resume</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        {% if closed %}
+          <div class="alert alert-warning mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Applications are closed for <strong>{{ post.title }}</strong>.
+          </div>
+        {% elif need_profile %}
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            Please create your candidate profile before applying.
+          </div>
+          <a href="/candidate/" class="btn btn-danger">
+            Go to Candidate Dashboard
+          </a>
+        {% elif already %}
+          <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            You already applied to <strong>{{ post.title }}</strong>. We'll keep you posted.
+          </div>
+        {% else %}
+          <div class="alert alert-warning">
+            <i class="bi bi-lightbulb-fill me-2"></i>
+            Whenever you apply, this resume and details will be sent to the employer. Keep them up to date.
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-8">
+              <!-- Profile Section -->
+              <div class="profile-section">
+                {% if profile.profile_picture %}
+                  <img src="{{ profile.profile_picture.url }}" class="profile-image">
+                {% else %}
+                  <img src="{% static 'icons/employee.svg' %}" class="profile-image">
+                {% endif %}
+                <div class="profile-info">
+                  <h5>{{ profile.first_name }} {{ profile.last_name }}</h5>
+                  <div class="designation">{{ profile.designation|default:"" }}</div>
+                  <div class="location">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {% if profile.city %}{{ profile.city }}, {% endif %}
+                    {% if profile.get_province_display %}{{ profile.get_province_display }}{% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- About Section -->
+              <div class="about-section">
+                <h6>About</h6>
+                {% if profile.about_me %}
+                  <p class="mb-0">{{ profile.about_me|striptags|truncatechars:240 }}</p>
+                {% else %}
+                  <p class="text-muted mb-0">No about section yet.</p>
+                {% endif %}
+              </div>
+
+              <!-- Skills Section -->
+              <div class="skills-section">
+                <h6>Skills</h6>
+                {% if profile.skills_list %}
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for s in profile.skills_list|slice:":10" %}
+                      <span class="badge skill-badge">#{{ s }}</span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted mb-0">Not specified</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="resume-sidebar">
+                <h6>
+                  <i class="bi bi-file-earmark-text me-2"></i>Resume
+                </h6>
+                {% if profile.resume %}
+                  <a class="resume-link" href="{{ profile.resume.url }}" target="_blank" rel="noopener">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>View current resume
+                  </a>
+                {% else %}
+                  <p class="text-muted">No resume uploaded.</p>
+                {% endif %}
+                
+                <hr class="my-3">
+                
+                <form id="applyForm" action="{% url 'applications:apply_submit' %}" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <input type="hidden" name="kind" value="{{ kind }}">
+                  <input type="hidden" name="post_id" value="{{ post.id }}">
+                  <input type="hidden" name="next" value="{{ next_url }}">
+                  
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Attach different resume (optional)
+                    </label>
+                    <input class="form-control" type="file" name="resume" accept=".pdf,.doc,.docx">
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label">
+                      Cover letter (optional)
+                    </label>
+                    <textarea class="form-control" name="cover_letter" rows="4" placeholder="Write a short note..."></textarea>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="modal-footer">
+        {% if not closed and not need_profile and not already %}
+          <button form="applyForm" type="submit" class="btn btn-danger">
+            Apply
+          </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

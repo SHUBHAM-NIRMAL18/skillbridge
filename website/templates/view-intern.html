@@ -31,17 +31,32 @@
                 <span><i class="bi-building me-1"></i>{{ internship.location }}</span>
               </div>
             </div>
-            <div class="text-end">
-              {% if internship.status == "Active" %}
-                <a href="#" class="btn btn-danger btn-sm">Apply Now</a>
+            {% comment %} Apply actions for internship {% endcomment %}
+              {% if not request.user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+                  class="btn btn-danger btn-sm">Login to apply</a>
               {% else %}
-                <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+                {% if internship.status != "Active" %}
+                  <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+                {% elif has_applied_intern %}
+                  <button class="btn btn-outline-success btn-sm" disabled>Applied ✓</button>
+                  <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm">My Applications</a>
+                {% else %}
+                  <a href="#"
+                    class="btn btn-danger btn-sm js-apply-btn"
+                    data-type="intern"
+                    data-id="{{ internship.id }}"
+                    data-auth="1"
+                    data-login="{% url 'accounts:login' %}"
+                    data-next="{{ request.get_full_path }}">
+                    Apply Now
+                  </a>
+                {% endif %}
               {% endif %}
-              <div class="small mt-2">
-                <a href="#" class="text-muted me-3"><i class="bi-bookmark"></i></a>
-                <a href="#" class="text-muted"><i class="bi-share"></i></a>
-              </div>
-            </div>
+
+              {# The modal gets injected here by JS #}
+              <div id="applyModalContainer"></div>
+
           </div>
 
           <!-- Meta chips -->
@@ -181,11 +196,32 @@
             </div>
             <div class="small text-muted">Application ends</div>
             <div class="fw-semibold mb-3">{{ internship.application_deadline|date:"F j, Y" }}</div>
-            {% if internship.status == "Active" %}
-              <a href="#" class="btn btn-danger w-100">Apply Now</a>
-            {% else %}
-              <button class="btn btn-secondary w-100" disabled>Applications Closed</button>
-            {% endif %}
+                          {% comment %} Apply actions for internship {% endcomment %}
+              {% if not request.user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+                  class="btn btn-danger btn-sm">Login to apply</a>
+              {% else %}
+                {% if internship.status != "Active" %}
+                  <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+                {% elif has_applied_intern %}
+                  <button class="btn btn-outline-success btn-sm" disabled>Applied ✓</button>
+                  <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm">My Applications</a>
+                {% else %}
+                  <a href="#"
+                    class="btn btn-danger btn-sm js-apply-btn"
+                    data-type="intern"
+                    data-id="{{ internship.id }}"
+                    data-auth="1"
+                    data-login="{% url 'accounts:login' %}"
+                    data-next="{{ request.get_full_path }}">
+                    Apply Now
+                  </a>
+                {% endif %}
+              {% endif %}
+
+              {# The modal gets injected here by JS #}
+              <div id="applyModalContainer"></div>
+
           </div>
         </div>
 

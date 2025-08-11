@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "company",
     "website",
     "candidate.apps.CandidateConfig",
+    'applications',
     'bootstrap5',
     'formtools',
     'ckeditor',

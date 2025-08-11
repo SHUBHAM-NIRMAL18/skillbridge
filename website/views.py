@@ -1,6 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from company.models import InternshipPost, JobPost, CompanyProfile
+from applications.models import Application
+from candidate.models import Profile
+
 
 # Create your views here.
 def home_view(request):
@@ -100,10 +103,19 @@ def internship_detail_view(request, pk: int):
         .order_by("application_deadline")[:3]
     )
 
+    user_profile = None
+    has_applied_intern = False
+    if request.user.is_authenticated:
+        prof = Profile.objects.filter(user=request.user).first()
+        if prof:
+            has_applied_intern = Application.objects.filter(
+                candidate=prof, internship_post=internship
+        ).exclude(status__in=["withdrawn", "rejected"]).exists()
     return render(request, "view-intern.html", {
         "internship": internship,
         "more_internships": more_internships,
-        "skills_names": skills_names,   # <- pass to template
+        "skills_names": skills_names,
+        "has_applied_intern": has_applied_intern,
     })
 
 def company_detail_view(request, pk: int):
@@ -175,8 +187,17 @@ def job_detail_view(request, pk: int):
         .order_by("application_deadline")[:3]
     )
 
+    user_profile = None
+    has_applied_job = False
+    if request.user.is_authenticated:
+        prof = Profile.objects.filter(user=request.user).first()
+        if prof:
+            has_applied_job = Application.objects.filter(
+                candidate=prof, job_post=job
+            ).exclude(status__in=["withdrawn", "rejected"]).exists()
     return render(request, "view-job.html", {
         "job": job,
         "skills_names": skills_names,
         "more_jobs": more_jobs,
+        "has_applied_job": has_applied_job,
     })

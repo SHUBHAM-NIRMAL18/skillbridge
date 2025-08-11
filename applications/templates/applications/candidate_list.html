@@ -1,0 +1,44 @@
+{% extends "website/base.html" %}
+{% load humanize %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-3">My Applications</h3>
+
+  {% if apps %}
+    <div class="list-group">
+      {% for a in apps %}
+        <div class="list-group-item py-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <div class="fw-semibold">{{ a.target_title }}</div>
+              <div class="small text-danger">
+                {{ a.company.first_name }} {{ a.company.last_name }}
+                ·
+                {% if a.is_job %}Job{% else %}Internship{% endif %}
+              </div>
+              <div class="small text-muted">
+                Applied {{ a.applied_at|naturaltime }} ·
+                Deadline: {{ a.target_deadline|date:"M j, Y" }}
+              </div>
+            </div>
+            <div class="text-end">
+              <span class="badge rounded-pill bg-light text-dark border">{{ a.get_status_display }}</span><br>
+              {% if a.status in "applied,under_review" %}
+                <form action="{% url 'applications:withdraw' a.id %}" method="post" class="mt-2">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-danger btn-sm">Withdraw</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-light border">No applications yet.</div>
+  {% endif %}
+</div>
+{% endblock %}
