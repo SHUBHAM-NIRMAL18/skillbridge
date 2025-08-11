@@ -1,0 +1,319 @@
+{% extends "candidate/base.html" %}
+{% load humanize static %}
+
+{% block title %}Applications{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  <!-- header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <nav aria-label="breadcrumb" class="small text-muted">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item">Dashboard</li>
+          <li class="breadcrumb-item active" aria-current="page">Internship/Job Applications</li>
+        </ol>
+      </nav>
+      <h4 class="mb-0">Internship/Job Applications</h4>
+    </div>
+
+    <form class="d-flex gap-2" method="get">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
+        <option value="all" {% if typ == 'all' %}selected{% endif %}>All Types ({{ total_all }})</option>
+        <option value="job" {% if typ == 'job' %}selected{% endif %}>Jobs ({{ total_job }})</option>
+        <option value="intern" {% if typ == 'intern' %}selected{% endif %}>Internships ({{ total_int }})</option>
+      </select>
+      <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+      </select>
+      <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Search title or company">
+      <button class="btn btn-danger btn-sm">Search</button>
+    </form>
+  </div>
+
+  <!-- tabs -->
+  <ul class="nav nav-tabs small mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'all' %}active{% endif %}" href="?tab=all&type={{ typ }}">All
+        <span class="badge bg-secondary ms-1">{{ total_all }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'pending' %}active{% endif %}" href="?tab=pending&type={{ typ }}">Pending
+        <span class="badge bg-secondary ms-1">{{ counts.applied|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'viewed' %}active{% endif %}" href="?tab=viewed&type={{ typ }}">Viewed
+        <span class="badge bg-secondary ms-1">{{ counts.under_review|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'shortlisted' %}active{% endif %}" href="?tab=shortlisted&type={{ typ }}">Shortlisted
+        <span class="badge bg-secondary ms-1">{{ counts.shortlisted|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'offered' %}active{% endif %}" href="?tab=offered&type={{ typ }}">Offered
+        <span class="badge bg-secondary ms-1">{{ counts.offered|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'rejected' %}active{% endif %}" href="?tab=rejected&type={{ typ }}">Rejected
+        <span class="badge bg-secondary ms-1">{{ counts.rejected|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'withdrawn' %}active{% endif %}" href="?tab=withdrawn&type={{ typ }}">Withdrawn
+        <span class="badge bg-secondary ms-1">{{ counts.withdrawn|default:0 }}</span>
+      </a>
+    </li>
+  </ul>
+
+  {% if apps %}
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead class="table-light">
+        <tr class="small text-muted">
+          <th>Title</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Location</th>
+          <th>Openings</th>
+          <th>Applied Date</th>
+          <th class="text-end">Details</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        {# JOB ROWS #}
+        {% for a in apps %}
+          {% if a.is_job %}
+            {% with post=a.job_post %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ post.title }}</div>
+                <div class="small text-muted">Job</div>
+              </td>
+              <td class="text-nowrap">
+                <div class="d-flex align-items-center">
+                  {% if a.company.logo %}
+                    <img src="{{ a.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
+                  {% else %}
+                    <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
+                  {% endif %}
+                  <span>{{ a.company.first_name }} {{ a.company.last_name }}</span>
+                </div>
+              </td>
+              <td>
+                {% with s=a.status %}
+                  <span class="badge
+                    {% if s == 'applied' %} bg-secondary
+                    {% elif s == 'under_review' %} bg-info text-dark
+                    {% elif s == 'shortlisted' %} bg-success
+                    {% elif s == 'offered' %} bg-primary
+                    {% elif s == 'rejected' %} bg-danger
+                    {% elif s == 'withdrawn' %} bg-dark
+                    {% else %} bg-light text-dark border{% endif %}
+                  ">{{ a.get_status_display }}</span>
+                {% endwith %}
+              </td>
+              <td class="text-nowrap">{{ post.city }}</td>
+              <td>{{ post.openings }}</td>
+              <td class="text-nowrap">{{ a.applied_at|date:"F j, Y" }}</td>
+              <td class="text-end">
+                <a href="{% url 'website:job_detail' post.id %}" class="text-decoration-none">See Details →</a>
+              </td>
+              <td class="text-end">
+                {% if a.status == 'applied' or a.status == 'under_review' %}
+                  <button type="button"
+                          class="btn btn-outline-danger btn-sm js-withdraw-btn"
+                          data-action="{% url 'applications:withdraw' a.id %}"
+                          data-title="{{ post.title }}">
+                    Withdraw
+                  </button>
+                {% elif a.status == 'withdrawn' or a.status == 'rejected' %}
+                  {% if a.target_is_open %}
+                    <button type="button"
+                            class="btn btn-danger btn-sm js-apply-btn"
+                            data-type="job"
+                            data-id="{{ post.id }}"
+                            data-auth="1"
+                            data-login="{% url 'accounts:login' %}"
+                            data-next="{% url 'website:job_detail' post.id %}">
+                      Apply Again
+                    </button>
+                  {% else %}
+                    <span class="badge bg-secondary">Closed</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endwith %}
+          {% endif %}
+        {% endfor %}
+
+        {# INTERNSHIP ROWS #}
+        {% for a in apps %}
+          {% if not a.is_job %}
+            {% with post=a.internship_post %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ post.title }}</div>
+                <div class="small text-muted">Internship</div>
+              </td>
+              <td class="text-nowrap">
+                <div class="d-flex align-items-center">
+                  {% if a.company.logo %}
+                    <img src="{{ a.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
+                  {% else %}
+                    <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
+                  {% endif %}
+                  <span>{{ a.company.first_name }} {{ a.company.last_name }}</span>
+                </div>
+              </td>
+              <td>
+                {% with s=a.status %}
+                  <span class="badge
+                    {% if s == 'applied' %} bg-secondary
+                    {% elif s == 'under_review' %} bg-info text-dark
+                    {% elif s == 'shortlisted' %} bg-success
+                    {% elif s == 'offered' %} bg-primary
+                    {% elif s == 'rejected' %} bg-danger
+                    {% elif s == 'withdrawn' %} bg-dark
+                    {% else %} bg-light text-dark border{% endif %}
+                  ">{{ a.get_status_display }}</span>
+                {% endwith %}
+              </td>
+              <td class="text-nowrap">{{ post.city }}</td>
+              <td>{{ post.openings }}</td>
+              <td class="text-nowrap">{{ a.applied_at|date:"F j, Y" }}</td>
+              <td class="text-end">
+                <a href="{% url 'website:internship_detail' post.id %}" class="text-decoration-none">See Details →</a>
+              </td>
+              <td class="text-end">
+                {% if a.status == 'applied' or a.status == 'under_review' %}
+                  <button type="button"
+                          class="btn btn-outline-danger btn-sm js-withdraw-btn"
+                          data-action="{% url 'applications:withdraw' a.id %}"
+                          data-title="{{ post.title }}">
+                    Withdraw
+                  </button>
+                {% elif a.status == 'withdrawn' or a.status == 'rejected' %}
+                  {% if a.target_is_open %}
+                    <button type="button"
+                            class="btn btn-danger btn-sm js-apply-btn"
+                            data-type="intern"
+                            data-id="{{ post.id }}"
+                            data-auth="1"
+                            data-login="{% url 'accounts:login' %}"
+                            data-next="{% url 'website:internship_detail' post.id %}">
+                      Apply Again
+                    </button>
+                  {% else %}
+                    <span class="badge bg-secondary">Closed</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endwith %}
+          {% endif %}
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination pagination-sm">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">«</a>
+          </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">»</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
+  {% else %}
+    <div class="alert alert-light border">No applications found.</div>
+  {% endif %}
+</div>
+
+<!-- Withdraw Confirm Modal -->
+<div class="modal fade" id="withdrawConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-3">
+      <form id="withdrawForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Withdraw application?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">
+            You're about to withdraw your application for
+            <strong id="withdrawTitle">this posting</strong>.
+            You can re-apply later if the posting is still open.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="withdrawConfirmBtn" type="submit" class="btn btn-danger">Yes, withdraw</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEl = document.getElementById('withdrawConfirmModal');
+  const titleEl = document.getElementById('withdrawTitle');
+  const formEl = document.getElementById('withdrawForm');
+
+  // Delegate clicks from any Withdraw button in the table
+  document.body.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-withdraw-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    const action = btn.getAttribute('data-action');
+    const title = btn.getAttribute('data-title') || 'this posting';
+
+    formEl.setAttribute('action', action);
+    titleEl.textContent = title;
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  });
+
+  // Optional: disable confirm while submitting
+  formEl.addEventListener('submit', function () {
+    const confirmBtn = document.getElementById('withdrawConfirmBtn');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = 'Withdrawing...';
+    }
+  });
+});
+</script>
+
+{% endblock %}

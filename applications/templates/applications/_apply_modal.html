@@ -256,10 +256,17 @@
             Go to Candidate Dashboard
           </a>
         {% elif already %}
-          <div class="alert alert-success">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            You already applied to <strong>{{ post.title }}</strong>. We'll keep you posted.
+        <div class="alert alert-success">
+            You already applied to <strong>{{ post.title }}</strong>. Check <a href="{% url 'applications:my_applications' %}">My Applications</a>.
+        </div>
+        {% elif not profile %}
+          <div class="alert alert-warning">
+            <i class="bi bi-lightbulb-fill me-2"></i>
+            You need to create a profile first. Please fill out your profile details.
           </div>
+          <a href="{% url 'candidate:profile' 'basic' %}" class="btn btn-danger">
+            Create Profile
+          </a>
         {% else %}
           <div class="alert alert-warning">
             <i class="bi bi-lightbulb-fill me-2"></i>

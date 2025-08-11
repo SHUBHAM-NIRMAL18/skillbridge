@@ -19,3 +19,6 @@ urlpatterns = [
     # Dynamic wizard step
     path('profile/<str:step>/', ProfileWizardView.as_view(), name='profile'),
 ]
+# candidate/urls.py
+from applications.views import my_applications
+urlpatterns += [ path("applications/", my_applications, name="applications") ]
