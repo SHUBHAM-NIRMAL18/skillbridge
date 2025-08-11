@@ -1,0 +1,107 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Jobs{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+
+    <!-- LEFT: controls + dynamic cards -->
+    <aside class="col-md-4">
+      <div class="d-flex mb-4 align-items-center">
+        <div class="me-3">
+          <div class="dropdown">
+            <button class="btn btn-danger dropdown-toggle fs-6" type="button" data-bs-toggle="dropdown">
+              Jobs
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item fs-6" href="{% url 'website:jobs_list' %}">All Jobs</a></li>
+              <li><a class="dropdown-item fs-6" href="#">My Applications</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle fs-6" type="button" data-bs-toggle="dropdown">
+              Sort
+            </button>
+            <div class="dropdown-menu p-3" style="min-width: 240px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0 fs-6">Sort</h6>
+                <a href="{% url 'website:jobs_list' %}" class="small text-danger text-decoration-none">Reset</a>
+              </div>
+              <div class="d-flex gap-2 flex-wrap mb-2">
+                <a href="{% url 'website:jobs_list' %}?sort=newest" class="btn btn-outline-secondary btn-sm">Newest</a>
+                <a href="{% url 'website:jobs_list' %}?sort=oldest" class="btn btn-outline-secondary btn-sm">Oldest</a>
+                <a href="{% url 'website:jobs_list' %}?sort=deadline" class="btn btn-outline-secondary btn-sm">Nearest Deadline</a>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a class="btn btn-danger btn-sm w-100" href="#">Show Results</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic job cards -->
+      <div class="mb-4">
+        {% if jobs %}
+          {% for job in jobs %}
+            <div class="card {% if forloop.first %}border-danger{% endif %} mb-4 h-100 shadow-sm">
+              <div class="card-body p-4">
+                <div class="d-flex">
+                  {% if job.company.logo %}
+                    <img src="{{ job.company.logo.url }}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px; object-fit:cover;">
+                  {% else %}
+                    <img src="{% static 'icons/employee.svg' %}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px;">
+                  {% endif %}
+                  <div>
+                    <h6 class="card-title mb-1 fs-6">{{ job.title }}</h6>
+                    <p class="text-danger mb-2 small">
+                      {{ job.company.first_name }} {{ job.company.last_name }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-1">
+                      {% for tag in job.skills.all|slice:":3" %}
+                        <span class="badge bg-light text-dark border small">#{{ tag.name }}</span>
+                      {% empty %}
+                        <span class="text-muted small">No tags</span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
+                  <div>
+                    <i class="bi-clock me-1"></i>
+                    {% if job.days_left > 0 %}{{ job.days_left }} days left{% else %}Closed{% endif %}
+                  </div>
+                  <a href="{% url 'website:job_detail' job.id %}" class="text-danger text-decoration-none small">View Details →</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="alert alert-light border">No jobs available right now.</div>
+        {% endif %}
+      </div>
+    </aside>
+
+    <!-- RIGHT: simple placeholder -->
+    <div class="col-md-8">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-5 text-center text-muted">
+          <i class="bi bi-search fs-1 d-block mb-3"></i>
+          <div class="fs-6">Click “View Details →” on any job to open the full page.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+.card.shadow-sm { border-radius: 14px; }
+.badge.text-bg-light { background: #f8f9fa; }
+</style>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row g-4">
+    <!-- Left content -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start">
+            <div class="me-3">
+              {% if job.company.logo %}
+                <img src="{{ job.company.logo.url }}" alt="Logo" class="rounded" style="width:72px;height:72px;object-fit:cover;">
+              {% else %}
+                <img src="{% static 'icons/employee.svg' %}" alt="Logo" class="rounded" style="width:72px;height:72px;">
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <h1 class="h4 mb-1">{{ job.title }}</h1>
+              <div class="d-flex flex-wrap gap-3 small text-muted">
+                <a href="{% url 'website:company_detail' job.company.id %}" class="text-decoration-none text-danger fw-semibold">
+                  {{ job.company.first_name }} {{ job.company.last_name }}
+                </a>
+                <span><i class="bi-geo-alt me-1"></i>{{ job.city }}, {{ job.province }}</span>
+                <span><i class="bi-briefcase me-1"></i>{{ job.job_type }}</span>
+                <span><i class="bi-building me-1"></i>{{ job.location_type }}</span>
+              </div>
+            </div>
+            <div class="text-end">
+              {% if job.status == "Active" %}
+                <a href="#" class="btn btn-danger btn-sm">Apply Now</a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row row-cols-2 row-cols-md-4 g-3 mt-3">
+            <div class="col">
+              <div class="bg-light rounded p-3 text-center h-100">
+                <div class="small text-muted">Salary</div>
+                <div class="fw-semibold">
+                  Rs {{ job.salary_min|floatformat:0|intcomma }}–{{ job.salary_max|floatformat:0|intcomma }}
+                </div>
+                <div class="small">{{ job.salary_period }}</div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="bg-light rounded p-3 text-center h-100">
+                <div class="small text-muted">Level</div>
+                <div class="fw-semibold">{{ job.job_level }}</div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="bg-light rounded p-3 text-center h-100">
+                <div class="small text-muted">Experience</div>
+                <div class="fw-semibold">{{ job.experience_required }} {{ job.experience_unit }}</div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="bg-light rounded p-3 text-center h-100">
+                <div class="small text-muted">Openings</div>
+                <div class="fw-semibold">{{ job.openings }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if job.responsibilities %}
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Responsibilities</h5>
+          <div class="ck-content">{{ job.responsibilities|safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if job.qualifications %}
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Requirements</h5>
+          <div class="ck-content">{{ job.qualifications|safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if job.benefits %}
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Benefits</h5>
+          <div class="ck-content">{{ job.benefits|safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">Required Skills</h5>
+          <div class="d-flex flex-wrap gap-2">
+            {% if skills_names %}
+              {% for name in skills_names %}
+                <span class="badge rounded-pill text-bg-light border">#{{ name }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="text-muted">Not specified</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h5 class="h6 mb-3">About {{ job.company.first_name }} {{ job.company.last_name }}</h5>
+          {% if job.company.about_company %}
+            <div class="ck-content">{{ job.company.about_company|linebreaks }}</div>
+          {% else %}
+            <div class="text-muted small">No company description provided.</div>
+          {% endif %}
+          <div class="row small text-muted mt-3">
+            <div class="col-md-6 mb-2"><i class="bi-geo-alt me-1"></i>{{ job.company.current_address }}, {{ job.company.city }}, {{ job.company.province }}</div>
+            <div class="col-md-6 mb-2"><i class="bi-telephone me-1"></i>{{ job.company.phone }}</div>
+            {% if job.company.website_url %}
+            <div class="col-md-6 mb-2"><i class="bi-globe me-1"></i><a href="{{ job.company.website_url }}" target="_blank" rel="noopener">Visit website</a></div>
+            {% endif %}
+          </div>
+          <a href="{% url 'website:company_detail' job.company.id %}" class="btn btn-outline-danger btn-sm mt-3">View Company Profile →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 88px;">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              {% if job.company.logo %}
+                <img src="{{ job.company.logo.url }}" alt="Logo" class="rounded me-3" style="width:40px;height:40px;object-fit:cover;">
+              {% else %}
+                <img src="{% static 'icons/employee.svg' %}" alt="Logo" class="rounded me-3" style="width:40px;height:40px;">
+              {% endif %}
+              <div>
+                <div class="fw-semibold">{{ job.company.first_name }} {{ job.company.last_name }}</div>
+                <div class="small text-muted">{{ job.company.city }}, {{ job.company.province }}</div>
+              </div>
+            </div>
+            <div class="small text-muted">Application ends</div>
+            <div class="fw-semibold mb-3">{{ job.application_deadline|date:"F j, Y" }}</div>
+            {% if job.status == "Active" %}
+              <a href="#" class="btn btn-danger w-100">Apply Now</a>
+            {% else %}
+              <button class="btn btn-secondary w-100" disabled>Applications Closed</button>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if more_jobs %}
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h6 class="h6">More from this company</h6>
+            <ul class="list-unstyled mb-0">
+              {% for item in more_jobs %}
+              <li class="mb-3">
+                <a href="{% url 'website:job_detail' item.id %}" class="text-decoration-none">
+                  <div class="fw-semibold">{{ item.title }}</div>
+                  <div class="small text-muted">{{ item.city }} · {{ item.job_type }}</div>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ck-content p { margin: 0 0 .7rem; }
+.ck-content ul, .ck-content ol { padding-left: 1.25rem; margin: .5rem 0 .7rem; }
+.ck-content li { margin-bottom: .25rem; }
+.card.shadow-sm { border-radius: 14px; }
+.badge.text-bg-light { background: #0a0b0bff; }
+</style>
+{% endblock %}

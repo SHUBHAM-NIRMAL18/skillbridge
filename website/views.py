@@ -128,3 +128,55 @@ def company_detail_view(request, pk: int):
         "active_internships": active_internships,
         "active_jobs": active_jobs,
     })
+
+
+def jobs_list_view(request):
+    """
+    Show ALL active, non-expired jobs (soonest deadline by default).
+    Supports ?sort=newest|oldest|deadline
+    """
+    today = timezone.localdate()
+    sort = request.GET.get("sort", "deadline")
+    order_map = {"newest": "-created_at", "oldest": "created_at", "deadline": "application_deadline"}
+    ordering = order_map.get(sort, "application_deadline")
+
+    jobs = (
+        JobPost.objects
+        .filter(is_active=True, application_deadline__gte=today)
+        .select_related("company")
+        .prefetch_related("skills")
+        .order_by(ordering)
+    )
+
+    return render(request, "jobs.html", {
+        "jobs": jobs,
+        "sort": sort,
+    })
+
+
+def job_detail_view(request, pk: int):
+    """
+    Full-page dynamic job detail (ID-based).
+    """
+    job = get_object_or_404(
+        JobPost.objects.select_related("company").prefetch_related("skills"),
+        pk=pk
+    )
+
+    # Robust skills list for the template
+    skills_names = list(job.skills.order_by("name").values_list("name", flat=True))
+
+    today = timezone.localdate()
+    more_jobs = (
+        JobPost.objects
+        .filter(company=job.company, is_active=True, application_deadline__gte=today)
+        .exclude(pk=job.pk)
+        .select_related("company")
+        .order_by("application_deadline")[:3]
+    )
+
+    return render(request, "view-job.html", {
+        "job": job,
+        "skills_names": skills_names,
+        "more_jobs": more_jobs,
+    })

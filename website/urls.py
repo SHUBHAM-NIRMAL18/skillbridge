@@ -10,6 +10,8 @@ urlpatterns = [
     path('terms/', views.termcondition_view, name='terms'),
     path("internships/", views.internships_list_view, name="internship"),
     path("internships/<int:pk>/", views.internship_detail_view, name="internship_detail"),
+    path("jobs/", views.jobs_list_view, name="jobs_list"),
+    path("jobs/<int:pk>/", views.job_detail_view, name="job_detail"),
     path("companies/<int:pk>/", views.company_detail_view, name="company_detail"),
     # Add other URL patterns for the website app here as needed
 ]

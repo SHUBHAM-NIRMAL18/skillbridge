@@ -75,7 +75,7 @@
     <!-- Right -->
     <div class="col-lg-4">
       <div class="position-sticky" style="top: 88px;">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm mb-4">
           <div class="card-body p-4">
             <h6 class="h6 mb-3">Company Overview</h6>
             <div class="small mb-2"><span class="text-muted">Industry:</span> {{ company.industry }}</div>
@@ -86,6 +86,62 @@
             {% if company.website_url %}
               <div class="small"><span class="text-muted">Website:</span> <a href="{{ company.website_url }}" target="_blank" rel="noopener">Visit</a></div>
             {% endif %}
+          </div>
+        </div>
+
+        <!-- Recommended Jobs Section -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h6 class="h6 mb-3">Recommended Jobs</h6>
+            
+            <!-- Job 1 -->
+            <div class="border rounded p-3 mb-3">
+              <a href="#" class="text-decoration-none">
+                <div class="d-flex align-items-start">
+                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small">Frontend Developer</div>
+                    <div class="text-muted" style="font-size:0.75rem;">TechCorp Inc.</div>
+                    <div class="text-muted" style="font-size:0.75rem;">Kathmandu · Full-time</div>
+                    <div class="text-success" style="font-size:0.75rem;">15 days left</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <!-- Job 2 -->
+            <div class="border rounded p-3 mb-3">
+              <a href="#" class="text-decoration-none">
+                <div class="d-flex align-items-start">
+                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small">UI/UX Designer</div>
+                    <div class="text-muted" style="font-size:0.75rem;">Design Studio</div>
+                    <div class="text-muted" style="font-size:0.75rem;">Lalitpur · Part-time</div>
+                    <div class="text-success" style="font-size:0.75rem;">22 days left</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <!-- Job 3 -->
+            <div class="border rounded p-3 mb-3">
+              <a href="#" class="text-decoration-none">
+                <div class="d-flex align-items-start">
+                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small">Backend Developer</div>
+                    <div class="text-muted" style="font-size:0.75rem;">StartupXYZ</div>
+                    <div class="text-muted" style="font-size:0.75rem;">Remote · Full-time</div>
+                    <div class="text-success" style="font-size:0.75rem;">8 days left</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <div class="text-center">
+              <a href="#" class="btn btn-outline-primary btn-sm">View All Jobs</a>
+            </div>
           </div>
         </div>
       </div>
