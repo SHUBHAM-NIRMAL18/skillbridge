@@ -1,0 +1,155 @@
+{% load humanize static %}
+
+{# Allow JS to set the header title from this hidden meta #}
+<input type="hidden" id="drawerTitleData" value="{{ profile.first_name }} {{ profile.last_name }}">
+
+<div class="p-3 border-bottom">
+  <div class="d-flex align-items-center">
+    {% if profile.profile_picture %}
+      <img src="{{ profile.profile_picture.url }}" class="rounded me-3" style="width:48px;height:48px;object-fit:cover;">
+    {% else %}
+      <img src="{% static 'icons/employee.svg' %}" class="rounded me-3" style="width:48px;height:48px;">
+    {% endif %}
+    <div>
+      <div class="fw-semibold">{{ profile.first_name }} {{ profile.last_name }}</div>
+      <div class="small text-muted">
+        {{ profile.designation|default:"Candidate" }}
+        {% if profile.city %} · {{ profile.city }}{% endif %}
+        {% if profile.get_province_display %} · {{ profile.get_province_display }}{% endif %}
+      </div>
+      <div class="small">
+        <a href="mailto:{{ profile.email }}" class="text-decoration-none">{{ profile.email }}</a>
+        {% if profile.phone_number %} · <span class="text-muted">{{ profile.phone_number }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex flex-wrap gap-2">
+    {% for link in profile.social_links.all %}
+      <a href="{{ link.url }}" target="_blank" class="badge bg-light text-dark border text-decoration-none">
+        {{ link.get_platform_display }}
+      </a>
+    {% empty %}
+    {% endfor %}
+  </div>
+</div>
+
+<div class="p-3 border-bottom">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <div class="small text-muted">Applied</div>
+      <div class="fw-semibold">{{ app.applied_at|date:"M j, Y, g:i a" }}</div>
+      <div class="small text-muted">Last update: {{ app.updated_at|naturaltime }}</div>
+    </div>
+    <div class="text-end">
+      <div id="drawerStatusBadge">
+        {% with s=app.status %}
+          <span class="badge
+            {% if s == 'applied' %} bg-secondary
+            {% elif s == 'under_review' %} bg-info text-dark
+            {% elif s == 'shortlisted' %} bg-success
+            {% elif s == 'interview' %} bg-primary
+            {% elif s == 'offered' %} bg-primary
+            {% elif s == 'rejected' %} bg-danger
+            {% elif s == 'withdrawn' %} bg-dark
+            {% else %} bg-light text-dark border{% endif %}
+          ">{{ app.get_status_display }}</span>
+        {% endwith %}
+      </div>
+      <select class="form-select form-select-sm mt-2 js-status-drawer" data-app="{{ app.id }}" style="min-width: 180px;">
+        {% for value,label in statuses %}
+          <option value="{{ value }}" {% if value == app.status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="p-3 border-bottom">
+  <div class="small text-muted mb-1">Posting</div>
+  <div class="d-flex justify-content-between align-items-start">
+    <div>
+      <div class="fw-semibold">
+        {% if posting_type == 'job' %}
+          {{ posting.title }} <span class="badge bg-white text-dark border ms-1">Job</span>
+        {% else %}
+          {{ posting.title }} <span class="badge bg-white text-dark border ms-1">Internship</span>
+        {% endif %}
+      </div>
+      <div class="small text-muted">{{ posting.city }} · Deadline: {{ app.target_deadline|date:"M j, Y" }}</div>
+    </div>
+    <div>
+      {% if posting_type == 'job' %}
+        <a href="{% url 'company:job_detail' posting.id %}" class="btn btn-outline-secondary btn-sm">Open Posting</a>
+      {% else %}
+        <a href="{% url 'company:internship_detail' posting.id %}" class="btn btn-outline-secondary btn-sm">Open Posting</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="p-3 border-bottom">
+  <div class="small text-muted mb-2">Fit Summary</div>
+  <div class="mb-2">
+    {% if overlap_skills %}
+      {% for s in overlap_skills %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle">{{ s }}</span>
+      {% endfor %}
+    {% else %}
+      <span class="text-muted small">No matching skills detected.</span>
+    {% endif %}
+  </div>
+  {% if missing_skills %}
+    <div class="small text-muted mb-1">Missing:</div>
+    {% for s in missing_skills %}
+      <span class="badge bg-light text-dark border">{{ s }}</span>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<div class="p-3 border-bottom">
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="small text-muted">Resume</div>
+    {% if app.resume_file %}
+      <a href="{{ app.resume_file.url }}" target="_blank" class="small text-decoration-none">
+        Download
+      </a>
+    {% endif %}
+  </div>
+
+  {% if app.resume_file %}
+    {% if ".pdf" in app.resume_file.name|lower %}
+      <div class="ratio ratio-4x3 mt-2">
+        <iframe src="{{ app.resume_file.url }}" title="Resume preview" style="border:0;"></iframe>
+      </div>
+    {% else %}
+      <div class="alert alert-light border mt-2 small mb-0">
+        Inline preview is available for PDFs. Use the download link above to view this file.
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="text-muted small">No resume attached.</div>
+  {% endif %}
+</div>
+
+{% if app.cover_letter %}
+<div class="p-3 border-bottom">
+  <div class="small text-muted mb-1">Cover Letter</div>
+  <div class="small">{{ app.cover_letter|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+<div class="p-3">
+  <div class="small text-muted mb-1">Timeline</div>
+  <ul class="list-unstyled small mb-0" id="drawerTimeline">
+    <li class="mb-1">
+      <i class="bi bi-check2-circle me-1"></i>
+      Applied — <span class="text-muted">{{ app.applied_at|date:"M j, Y, g:i a" }}</span>
+    </li>
+    <li class="mb-1">
+      <i class="bi bi-arrow-repeat me-1"></i>
+      Status: <strong>{{ app.get_status_display }}</strong>
+      <span class="text-muted"> · updated {{ app.updated_at|naturaltime }}</span>
+    </li>
+  </ul>
+</div>

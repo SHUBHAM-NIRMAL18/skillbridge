@@ -204,6 +204,7 @@
             <th>Resume</th>
             <th>Cover</th>
             <th>Update</th>
+            <th>View</th>
           </tr>
         </thead>
         <tbody>
@@ -281,11 +282,19 @@
                   {% endfor %}
                 </select>
               </td>
+
+              <td>
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm js-view-applicant"
+                        data-app="{{ a.id }}">
+                  View
+                </button>
+              </td>
             </tr>
 
             {% if a.cover_letter %}
             <tr class="collapse bg-light" id="cover-{{ a.id }}">
-              <td colspan="8">
+              <td colspan="9">
                 <div class="p-3 small">{{ a.cover_letter|linebreaksbr }}</div>
               </td>
             </tr>
@@ -364,6 +373,18 @@
       </div>
     </div>
   {% endif %}
+  
+  <!-- Applicant Drawer (Offcanvas) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="applicantDrawer" aria-labelledby="applicantDrawerLabel" style="width: 520px;">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title" id="applicantDrawerLabel">Applicant</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div id="applicantDrawerBody" class="offcanvas-body p-0">
+    <div class="p-4 text-center text-muted small" id="drawerLoading">Select an applicant…</div>
+  </div>
+</div>
+
 </div>
 {% endblock %}
 
@@ -413,4 +434,109 @@ document.addEventListener('change', async (e) => {
   }
 });
 </script>
+<script>
+(function(){
+  const drawerEl  = document.getElementById('applicantDrawer');
+  const bodyEl    = document.getElementById('applicantDrawerBody');
+  const titleEl   = document.getElementById('applicantDrawerLabel');
+  const offcanvas = new bootstrap.Offcanvas(drawerEl);
+
+  // Open drawer & load partial
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.js-view-applicant');
+    if (!btn) return;
+
+    e.preventDefault();
+    const id = btn.getAttribute('data-app');
+    titleEl.textContent = 'Applicant';
+    bodyEl.innerHTML = '<div class="p-4 text-center text-muted small">Loading…</div>';
+    offcanvas.show();
+
+    try {
+      const url  = `{% url 'company:applicant_detail' 0 %}`.replace('/0/', `/${id}/`);
+      const resp = await fetch(url, {headers: {'X-Requested-With':'XMLHttpRequest'}});
+      const data = await resp.json();
+      if (data.ok) {
+        bodyEl.innerHTML = data.html;
+
+        // set header title from hidden input in partial
+        const m = bodyEl.querySelector('#drawerTitleData');
+        if (m) titleEl.textContent = m.value || 'Applicant';
+
+        // wire drawer status select
+        const sel = bodyEl.querySelector('.js-status-drawer');
+        if (sel) {
+          sel.addEventListener('change', () => updateStatusAjax(sel));
+        }
+      } else {
+        bodyEl.innerHTML = `<div class="p-4 text-danger">${data.error || 'Failed to load'}</div>`;
+      }
+    } catch (err) {
+      bodyEl.innerHTML = '<div class="p-4 text-danger">Network error. Please try again.</div>';
+    }
+  });
+
+  // Shared AJAX status update for drawer + table
+  async function updateStatusAjax(selectEl){
+    const appId = selectEl.getAttribute('data-app');
+    const value = selectEl.value;
+
+    selectEl.disabled = true;
+    try {
+      const resp = await fetch(`{% url 'company:applicant_update_status' 0 %}`.replace('/0/', `/${appId}/`), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: new URLSearchParams({ status: value })
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        // update badge in table
+        const badgeCell = document.getElementById(`badge-${appId}`);
+        if (badgeCell) badgeCell.innerHTML = data.badge;
+
+        // update the row's select (if present) to match
+        const rowSelect = document.querySelector(`.js-status[data-app="${appId}"]`);
+        if (rowSelect) rowSelect.value = value;
+
+        // update drawer badge
+        const drawerBadge = document.querySelector('#drawerStatusBadge');
+        if (drawerBadge) drawerBadge.innerHTML = data.badge;
+
+        // append timeline note
+        const tl = document.getElementById('drawerTimeline');
+        if (tl) {
+          const li = document.createElement('li');
+          li.className = 'mb-1';
+          li.innerHTML = `<i class="bi bi-arrow-repeat me-1"></i>Status: <strong>${selectEl.options[selectEl.selectedIndex].text}</strong> <span class="text-muted">· just now</span>`;
+          tl.appendChild(li);
+        }
+
+        showToast('Status updated', 'success');
+      } else {
+        showToast(data.error || 'Failed to update.', 'danger');
+      }
+    } catch (err) {
+      showToast('Network error. Try again.', 'danger');
+    } finally {
+      selectEl.disabled = false;
+    }
+  }
+
+  // Reuse CSRF + toast helpers from earlier extra_js (kept here for isolation)
+  function getCookie(name){const m=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return m?m.pop():'';}
+  function showToast(message, level){
+    const container = document.querySelector('.position-fixed.top-0.end-0.p-3') || (()=> {
+      const d=document.createElement('div'); d.className='position-fixed top-0 end-0 p-3'; d.style.zIndex=1200; document.body.appendChild(d); return d;
+    })();
+    const el=document.createElement('div');
+    el.className=`toast align-items-center text-bg-${level||'success'} border-0 mb-2`;
+    el.setAttribute('role','alert'); el.setAttribute('aria-live','assertive'); el.setAttribute('aria-atomic','true');
+    el.setAttribute('data-bs-delay','3000');
+    el.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+    container.appendChild(el);
+    new bootstrap.Toast(el).show();
+  }
+})();
+</script>
+
 {% endblock %}

@@ -16,10 +16,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+
 
 from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
 from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
+from candidate.models import Profile
 
 
 
@@ -484,3 +487,60 @@ def applicant_update_status(request, pk):
     )
 
     return JsonResponse({"ok": True, "badge": badge_html, "status": new_status})
+
+
+@login_required(login_url="accounts:login")
+def applicant_detail_partial(request, pk: int):
+    """
+    Returns the HTML partial for the right-side applicant drawer (offcanvas).
+    Includes: candidate snapshot, fit summary, resume preview, cover letter, mini timeline.
+    """
+    if not hasattr(request.user, "company_profile"):
+        return JsonResponse({"ok": False, "error": "Company account required."}, status=403)
+
+    company = request.user.company_profile
+
+    app = get_object_or_404(
+        Application.objects.select_related(
+            "candidate__user", "company", "job_post", "internship_post"
+        ),
+        pk=pk, company=company
+    )
+    profile: Profile = app.candidate
+
+    # Posting & required skills
+    posting = app.job_post if app.job_post_id else app.internship_post
+    posting_type = "job" if app.job_post_id else "internship"
+    required_skills = []
+    if posting:
+        try:
+            required_skills = list(posting.skills.order_by("name").values_list("name", flat=True))
+        except Exception:
+            required_skills = []
+
+    # Candidate skills (Profile.skills_list already tokenizes Tagify, CSV etc.)
+    cand_skills = profile.skills_list
+
+    # Compute overlap/missing (case-insensitive compare, display original case)
+    req_lower = {s.lower(): s for s in required_skills}
+    cand_lower = {s.lower(): s for s in cand_skills}
+    overlap_keys = set(req_lower.keys()) & set(cand_lower.keys())
+    overlap_skills = [req_lower[k] for k in sorted(overlap_keys)]
+    missing_skills = [req_lower[k] for k in sorted(set(req_lower.keys()) - set(cand_lower.keys()))]
+
+    # Status choices for drawer dropdown
+    statuses = Application.STATUS_CHOICES
+
+    html = render_to_string("company/_applicant_detail.html", {
+        "app": app,
+        "profile": profile,
+        "posting": posting,
+        "posting_type": posting_type,
+        "required_skills": required_skills,
+        "cand_skills": cand_skills,
+        "overlap_skills": overlap_skills,
+        "missing_skills": missing_skills,
+        "statuses": statuses,
+    }, request=request)
+
+    return JsonResponse({"ok": True, "html": html, "title": f"{profile.first_name} {profile.last_name}".strip() or profile.user.username})

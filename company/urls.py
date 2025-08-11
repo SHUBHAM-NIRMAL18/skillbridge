@@ -58,5 +58,6 @@ urlpatterns = [
 
     # AJAX status update
     path("applicants/<int:pk>/status/",      views.applicant_update_status, name="applicant_update_status"),
+    path("applicants/<int:pk>/detail/", views.applicant_detail_partial, name="applicant_detail"),
 
 ]
