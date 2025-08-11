@@ -72,26 +72,30 @@
             </ul>
           </div>
         </li>
-        <!-- Manage Applicants (with collapse) -->
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="collapse" href="#collapseApplicants" role="button" aria-expanded="false" aria-controls="collapseApplicants">
-            <i class="bi bi-people"></i> Manage Applicants
-            <i class="bi bi-chevron-down float-end"></i>
-          </a>
-          <div class="collapse ps-4" id="collapseApplicants">
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link" href="#">New Applications</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Shortlisted</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">All Applicants</a>
-              </li>
-            </ul>
-          </div>
-        </li>
+          <!-- Manage Applicants (with collapse) -->
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name in 'applicants_all,applicants_new,applicants_shortlisted' %}active{% endif %}"
+              data-bs-toggle="collapse" href="#collapseApplicants" role="button"
+              aria-expanded="{% if request.resolver_match.url_name in 'applicants_all,applicants_new,applicants_shortlisted' %}true{% else %}false{% endif %}"
+              aria-controls="collapseApplicants">
+              <i class="bi bi-people"></i> Manage Applicants
+              <i class="bi bi-chevron-down float-end"></i>
+            </a>
+            <div class="collapse ps-4 {% if request.resolver_match.url_name in 'applicants_all,applicants_new,applicants_shortlisted' %}show{% endif %}" id="collapseApplicants">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'applicants_new' %}active{% endif %}" href="{% url 'company:applicants_new' %}">New Applications</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'applicants_shortlisted' %}active{% endif %}" href="{% url 'company:applicants_shortlisted' %}">Shortlisted</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'applicants_all' %}active{% endif %}" href="{% url 'company:applicants_all' %}">All Applicants</a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
         <!-- Membership (with collapse) -->
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="collapse" href="#collapseMembership" role="button" aria-expanded="false" aria-controls="collapseMembership">

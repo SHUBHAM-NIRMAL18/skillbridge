@@ -13,10 +13,13 @@ from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
 from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.db.models import Q, Count
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404
 
 from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
 from .models import CompanyProfile, InternshipPost, JobPost
+from applications.models import Application
 
 
 
@@ -348,3 +351,136 @@ def deactivate_account(request):
     logout(request)
     messages.success(request, "Your account has been deactivated.")
     return redirect('index')
+
+
+def _require_company_profile(user):
+    return hasattr(user, "company_profile") and user.company_profile is not None
+
+@login_required(login_url="accounts:login")
+def applicants_list(request, pk=None, status=None):
+    """
+    Company-wide applicants list, with optional:
+      - status filter via URL kwarg (e.g., 'applied', 'shortlisted')
+      - per-posting list via pk + path (jobs/<pk>/applicants or internships/<pk>/applicants)
+    Query params:
+      - type = all|job|intern
+      - q = search (candidate name/title)
+      - sort = newest|oldest
+    """
+    if not _require_company_profile(request.user):
+        return HttpResponseForbidden("Company account required.")
+
+    company = request.user.company_profile
+
+    qs = (Application.objects
+          .select_related("candidate__user", "company", "job_post", "internship_post")
+          .filter(company=company))
+
+    # Per-posting filters based on the path
+    if request.resolver_match.url_name == "job_applicants" and pk:
+        qs = qs.filter(job_post_id=pk)
+        posting = get_object_or_404(JobPost, pk=pk, company=company)
+        posting_title = posting.title
+        posting_type = "job"
+    elif request.resolver_match.url_name == "intern_applicants" and pk:
+        qs = qs.filter(internship_post_id=pk)
+        posting = get_object_or_404(InternshipPost, pk=pk, company=company)
+        posting_title = posting.title
+        posting_type = "intern"
+    else:
+        posting = None
+        posting_title = None
+        posting_type = None
+
+    # Sidebar pages (status via url kwarg)
+    if status:
+        qs = qs.filter(status=status)
+
+    # Querystring filters
+    typ  = request.GET.get("type", "all")      # all|job|intern
+    q    = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "newest")   # newest|oldest
+
+    if typ == "job":
+        qs = qs.filter(job_post__isnull=False)
+    elif typ == "intern":
+        qs = qs.filter(internship_post__isnull=False)
+
+    if q:
+        qs = qs.filter(
+            Q(candidate__first_name__icontains=q) |
+            Q(candidate__last_name__icontains=q) |
+            Q(candidate__user__username__icontains=q) |
+            Q(job_post__title__icontains=q) |
+            Q(internship_post__title__icontains=q)
+        )
+
+    qs = qs.order_by("-applied_at" if sort == "newest" else "applied_at")
+
+    # Counts for header badges
+    counts = dict(qs.values("status").annotate(c=Count("id")).values_list("status", "c"))
+    total_all = qs.count()
+    total_job = qs.filter(job_post__isnull=False).count()
+    total_int = qs.filter(internship_post__isnull=False).count()
+
+    page_obj = Paginator(qs, 12).get_page(request.GET.get("page"))
+
+    # Status choices for dropdown
+    statuses = Application.STATUS_CHOICES
+
+    return render(request, "company/applicants_list.html", {
+        "page_obj": page_obj,
+        "apps": page_obj.object_list,
+        "statuses": statuses,
+
+        "counts": counts,
+        "total_all": total_all,
+        "total_job": total_job,
+        "total_int": total_int,
+
+        "typ": typ, "q": q, "sort": sort,
+        "url_status": status,                # for tab highlight
+        "posting": posting,
+        "posting_title": posting_title,
+        "posting_type": posting_type,
+    })
+
+@login_required(login_url="accounts:login")
+def applicant_update_status(request, pk):
+    """
+    AJAX: update an Application.status belonging to this company.
+    POST: {status: 'under_review'|'shortlisted'|'interview'|'offered'|'rejected'|'withdrawn'|'applied'}
+    """
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Invalid method."}, status=405)
+
+    if not _require_company_profile(request.user):
+        return JsonResponse({"ok": False, "error": "Company account required."}, status=403)
+
+    company = request.user.company_profile
+    app = get_object_or_404(Application.objects.select_related("company"), pk=pk, company=company)
+
+    new_status = request.POST.get("status")
+    valid_keys = {k for k, _ in Application.STATUS_CHOICES}
+    if new_status not in valid_keys:
+        return JsonResponse({"ok": False, "error": "Invalid status."}, status=400)
+
+    app.status = new_status
+    app.save(update_fields=["status", "updated_at"])
+
+    # Return the new badge HTML so the row can update without reload
+    label = dict(Application.STATUS_CHOICES)[new_status]
+    # Very small badge template for client-side swap:
+    badge_html = (
+        f'<span class="badge '
+        f'{"bg-secondary" if new_status=="applied" else ""}'
+        f'{" bg-info text-dark" if new_status=="under_review" else ""}'
+        f'{" bg-success" if new_status=="shortlisted" else ""}'
+        f'{" bg-primary" if new_status=="interview" or new_status=="offered" else ""}'
+        f'{" bg-danger" if new_status=="rejected" else ""}'
+        f'{" bg-dark" if new_status=="withdrawn" else ""}'
+        f'{" bg-light text-dark border" if new_status not in ["applied","under_review","shortlisted","interview","offered","rejected","withdrawn"] else ""}'
+        f'">{label}</span>'
+    )
+
+    return JsonResponse({"ok": True, "badge": badge_html, "status": new_status})

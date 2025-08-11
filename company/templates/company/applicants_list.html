@@ -1,0 +1,416 @@
+{% extends "company/base.html" %}
+{% load humanize static %}
+
+{% block extra_head %}
+<style>
+  .filter-section {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+  
+  .table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    color: #495057;
+    border: none;
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+  
+  .table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    border-color: #f1f3f4;
+    font-size: 0.85rem;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+  }
+  
+  /* Action Buttons */
+  .btn-action {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+  
+  .btn-view {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    border: none;
+  }
+  
+  .btn-view:hover {
+    background: linear-gradient(135deg, #138496, #117a8b);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(23, 162, 184, 0.3);
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+  
+  /* Status badges */
+  .status-select {
+    min-width: 140px;
+    font-size: 0.8rem;
+  }
+  
+  .badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+  }
+  
+  /* Pagination Styling */
+  .pagination-sm .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination-sm .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+  }
+  
+  .pagination-sm .page-link:hover {
+    background-color: #f8f9fa;
+    border-color: #667eea;
+    color: #667eea;
+  }
+  
+  .pagination-sm .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+  }
+  
+  /* Small text adjustments */
+  .small-text {
+    font-size: 0.8rem;
+  }
+  
+  .candidate-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  
+  .posting-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="center-wrapper">
+
+  <!-- Header -->
+  <div class="header-section d-flex justify-content-between align-items-center">
+    <div>
+      <h5>Applicants</h5>
+      {% if posting %}
+        <div class="text-muted small">
+          For {{ posting_type|title }}: <strong>{{ posting_title }}</strong>
+        </div>
+      {% else %}
+        <div class="text-muted small">
+          All postings · Jobs: {{ total_job }} · Internships: {{ total_int }} · Total: {{ total_all }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Filter / Search / Sort Form -->
+  <div class="filter-section">
+    <form method="get" class="row g-3">
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small text-muted">Filter by Type</label>
+        <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
+          <option value="all" {% if typ == 'all' %}selected{% endif %}>All Types</option>
+          <option value="job" {% if typ == 'job' %}selected{% endif %}>Jobs</option>
+          <option value="intern" {% if typ == 'intern' %}selected{% endif %}>Internships</option>
+        </select>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label small text-muted">Search</label>
+        <div class="input-group input-group-sm">
+          <input class="form-control" name="q" value="{{ q }}" placeholder="Search candidate or title">
+          <button class="btn btn-outline-secondary" type="submit">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-3">
+        <label class="form-label small text-muted">Sort by</label>
+        <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabs (match your "Manage Applicants" categories) -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link {% if url_status == None %}active{% endif %}" href="{% url 'company:applicants_all' %}">
+        <i class="bi bi-list-ul me-1"></i>All
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if url_status == 'applied' %}active{% endif %}" href="{% url 'company:applicants_new' %}">
+        <i class="bi bi-plus-circle me-1"></i>New
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if url_status == 'shortlisted' %}active{% endif %}" href="{% url 'company:applicants_shortlisted' %}">
+        <i class="bi bi-check-circle me-1"></i>Shortlisted
+      </a>
+    </li>
+  </ul>
+
+  {% if apps %}
+  <!-- Posts Table -->
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Posting</th>
+            <th>Type</th>
+            <th>Applied</th>
+            <th>Status</th>
+            <th>Resume</th>
+            <th>Cover</th>
+            <th>Update</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in apps %}
+            <tr id="row-{{ a.id }}">
+              <td>
+                <div class="candidate-name">{{ a.candidate.first_name }} {{ a.candidate.last_name }}</div>
+                <small class="text-muted">{{ a.candidate.user.email }}</small>
+              </td>
+              <td>
+                {% if a.is_job %}
+                  <div class="posting-title">{{ a.job_post.title }}</div>
+                  <small class="text-muted">
+                    <i class="bi bi-geo-alt me-1"></i>{{ a.job_post.city }}
+                  </small>
+                {% else %}
+                  <div class="posting-title">{{ a.internship_post.title }}</div>
+                  <small class="text-muted">
+                    <i class="bi bi-geo-alt me-1"></i>{{ a.internship_post.city }}
+                  </small>
+                {% endif %}
+              </td>
+              <td>
+                {% if a.is_job %}
+                  <span class="badge bg-info">Job</span>
+                {% else %}
+                  <span class="badge bg-primary">Internship</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="small-text">{{ a.applied_at|date:"M j, Y" }}</div>
+                <small class="text-muted">({{ a.applied_at|naturaltime }})</small>
+              </td>
+
+              <td id="badge-{{ a.id }}">
+                {% with s=a.status %}
+                  <span class="badge
+                    {% if s == 'applied' %} bg-secondary
+                    {% elif s == 'under_review' %} bg-info text-dark
+                    {% elif s == 'shortlisted' %} bg-success
+                    {% elif s == 'interview' %} bg-primary
+                    {% elif s == 'offered' %} bg-primary
+                    {% elif s == 'rejected' %} bg-danger
+                    {% elif s == 'withdrawn' %} bg-dark
+                    {% else %} bg-light text-dark border{% endif %}
+                  ">{{ a.get_status_display }}</span>
+                {% endwith %}
+              </td>
+
+              <td>
+                {% if a.resume_file %}
+                  <a href="{{ a.resume_file.url }}" target="_blank" class="btn btn-action btn-view" title="Open Resume">
+                    <i class="bi bi-file-earmark-text"></i>
+                  </a>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if a.cover_letter %}
+                  <button type="button" class="btn btn-action btn-view" data-bs-toggle="collapse" data-bs-target="#cover-{{ a.id }}" title="View Cover Letter">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <select class="form-select form-select-sm status-select js-status"
+                        data-app="{{ a.id }}">
+                  {% for value,label in statuses %}
+                    <option value="{{ value }}" {% if value == a.status %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+
+            {% if a.cover_letter %}
+            <tr class="collapse bg-light" id="cover-{{ a.id }}">
+              <td colspan="8">
+                <div class="p-3 small">{{ a.cover_letter|linebreaksbr }}</div>
+              </td>
+            </tr>
+            {% endif %}
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Applicants pagination" class="mt-4">
+      <ul class="pagination pagination-sm justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&laquo;</span>
+          </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&raquo;</span>
+          </li>
+        {% endif %}
+      </ul>
+      
+      <!-- Pagination Info -->
+      <div class="text-center mt-2">
+        <small class="text-muted">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </small>
+      </div>
+    </nav>
+  {% endif %}
+
+  {% else %}
+    <div class="table-container">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <tbody>
+            <tr>
+              <td class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                <div class="h6 mt-3">No applicants found</div>
+                <p class="mb-0 text-muted">There are no applications matching your current filters.</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// CSRF helper
+function getCookie(name){const m=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return m?m.pop():'';}
+function showToast(message, level){ // level: success|danger|warning|info
+  const container = document.querySelector('.position-fixed.top-0.end-0.p-3') || (()=> {
+    const d=document.createElement('div'); d.className='position-fixed top-0 end-0 p-3'; d.style.zIndex=1200; document.body.appendChild(d); return d;
+  })();
+  const el=document.createElement('div');
+  el.className=`toast align-items-center text-bg-${level||'success'} border-0 mb-2`;
+  el.setAttribute('role','alert'); el.setAttribute('aria-live','assertive'); el.setAttribute('aria-atomic','true');
+  el.setAttribute('data-bs-delay','3000');
+  el.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+  container.appendChild(el);
+  new bootstrap.Toast(el).show();
+}
+
+document.addEventListener('change', async (e) => {
+  const sel = e.target.closest('.js-status');
+  if (!sel) return;
+  const appId = sel.getAttribute('data-app');
+  const value = sel.value;
+
+  sel.disabled = true;
+  try {
+    const resp = await fetch(`{% url 'company:applicant_update_status' 0 %}`.replace('/0/', `/${appId}/`), {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      body: new URLSearchParams({ status: value })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      // swap badge
+      const badgeCell = document.getElementById(`badge-${appId}`);
+      if (badgeCell) { badgeCell.innerHTML = data.badge; }
+      showToast('Status updated', 'success');
+    } else {
+      showToast(data.error || 'Failed to update.', 'danger');
+    }
+  } catch(err) {
+    showToast('Network error. Try again.', 'danger');
+  } finally {
+    sel.disabled = false;
+  }
+});
+</script>
+{% endblock %}

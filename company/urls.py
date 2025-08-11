@@ -46,4 +46,17 @@ urlpatterns = [
     
     path('settings/', company_settings, name='company_settings'),
     path('settings/deactivate/', deactivate_account, name='company_deactivate'),
+
+    # Applicants (company-side)
+    path("applicants/",                      views.applicants_list, name="applicants_all"),
+    path("applicants/new/",                  views.applicants_list, {"status": "applied"},     name="applicants_new"),
+    path("applicants/shortlisted/",          views.applicants_list, {"status": "shortlisted"}, name="applicants_shortlisted"),
+
+    # Per-posting applicant lists
+    path("jobs/<int:pk>/applicants/",        views.applicants_list, name="job_applicants"),
+    path("internships/<int:pk>/applicants/", views.applicants_list, name="intern_applicants"),
+
+    # AJAX status update
+    path("applicants/<int:pk>/status/",      views.applicant_update_status, name="applicant_update_status"),
+
 ]
