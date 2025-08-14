@@ -1,0 +1,42 @@
+{% extends "candidate/base.html" %}
+{% block title %}Recommended Jobs (Demo){% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h3 class="mb-3">Recommended Jobs / Internships</h3>
+
+  {% if recommended_jobs %}
+    <ul class="list-group">
+      {% for item in recommended_jobs %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-semibold">
+              {{ item.obj.title }}
+              {% if item.obj.company %}<span class="text-muted"> – {{ item.obj.company }}</span>{% endif %}
+            </div>
+            <div class="small text-muted">
+              {{ item.obj.city }}{% if item.obj.province %}, Province {{ item.obj.province }}{% endif %}
+              •
+              {% if item.obj.location_type %}{{ item.obj.location_type }}{% elif item.obj.location %}{{ item.obj.location }}{% endif %}
+              •
+              Sector: {{ item.obj.sector }}
+              {% if item.obj.application_deadline %} • Apply by {{ item.obj.application_deadline }}{% endif %}
+            </div>
+            <div class="small mt-1 text-secondary">
+              Why: {{ item.why }}
+            </div>
+          </div>
+          <div class="text-end">
+            <span class="badge text-bg-primary">Score {{ item.score|floatformat:2 }}</span><br/>
+            {% if item.obj.get_absolute_url %}
+              <a href="{{ item.obj.get_absolute_url }}" class="btn btn-sm btn-outline-secondary mt-2">View</a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="alert alert-info">No recommendations yet. Add some skills to your profile and make sure there are active jobs.</div>
+  {% endif %}
+</div>
+{% endblock %}

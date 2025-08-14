@@ -14,6 +14,9 @@ from .forms import (
 from .models import Profile
 
 
+
+
+
 @login_required
 def candidate_dashboard(request):
     if getattr(request.user, "role", None) != getattr(request.user, "ROLE_CANDIDATE", None):
@@ -386,3 +389,18 @@ class ProfilePreviewView(LoginRequiredMixin, TemplateView):
             ctx['sectors_list'] = []
             ctx['skills_list'] = []
         return ctx
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import render
+from recommendations.simple_hybrid import recommend_jobs_for_candidate
+
+@login_required
+def recommended_demo(request):
+    recs = recommend_jobs_for_candidate(request.user, limit=20)
+    items = []
+    for r in recs:
+        ct = ContentType.objects.get_for_id(r.ct_id)
+        obj = ct.get_object_for_this_type(id=r.obj_id)  # JobPost or InternshipPost
+        items.append({"obj": obj, "score": r.score, "why": r.why, "ct_id": r.ct_id})
+    return render(request, "candidate/recommended_demo.html", {"recommended_jobs": items})

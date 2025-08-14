@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "company",
     "website",
     "candidate.apps.CandidateConfig",
+    'recommendations',
     'applications',
     'bootstrap5',
     'formtools',
