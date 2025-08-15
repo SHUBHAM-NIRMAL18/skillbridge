@@ -5,86 +5,139 @@
 {% block title %}{{ internship.title }}{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container-fluid px-3 px-lg-4 py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Internships</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ internship.title }}</li>
+    </ol>
+  </nav>
+
   <div class="row g-4">
     <!-- Left content -->
-    <div class="col-lg-8">
-      <!-- Hero -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-start">
-            <div class="me-3">
+    <div class="col-xl-8 col-lg-7">
+      <!-- Hero Section -->
+      <div class="hero-card mb-4">
+        <div class="hero-content">
+          <div class="d-flex align-items-start gap-4">
+            <div class="company-logo-wrapper">
               {% if internship.company.logo %}
-                <img src="{{ internship.company.logo.url }}" alt="Logo" class="rounded" style="width:72px;height:72px;object-fit:cover;">
+                <img src="{{ internship.company.logo.url }}" alt="Logo" class="company-logo">
               {% else %}
-                <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="rounded" style="width:72px;height:72px;">
+                <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="company-logo">
               {% endif %}
             </div>
+            
             <div class="flex-grow-1">
-              <h1 class="h4 mb-1">{{ internship.title }}</h1>
-              <div class="d-flex flex-wrap gap-3 small text-muted">
-                <a href="{% url 'website:company_detail' internship.company.id %}" class="text-decoration-none text-danger fw-semibold">
-                  {{ internship.company.first_name }} {{ internship.company.last_name }}
-                </a>
-                <span><i class="bi-geo-alt me-1"></i>{{ internship.city }}</span>
-                <span><i class="bi-briefcase me-1"></i>{{ internship.type }}</span>
-                <span><i class="bi-building me-1"></i>{{ internship.location }}</span>
+              <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
+                <div>
+                  <h1 class="job-title">{{ internship.title }}</h1>
+                  <div class="job-meta">
+                    <a href="{% url 'website:company_detail' internship.company.id %}" class="company-link">
+                      <i class="bi bi-building-fill me-2"></i>
+                      {{ internship.company.first_name }} {{ internship.company.last_name }}
+                    </a>
+                    <div class="meta-items">
+                      <span class="meta-item">
+                        <i class="bi bi-geo-alt-fill me-1"></i>{{ internship.city }}
+                      </span>
+                      <span class="meta-item">
+                        <i class="bi bi-briefcase-fill me-1"></i>{{ internship.type }}
+                      </span>
+                      <span class="meta-item">
+                        <i class="bi bi-clock-fill me-1"></i>{{ internship.location }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Apply Button -->
+                <div class="apply-button-container">
+                  {% comment %} Apply actions for internship {% endcomment %}
+                  {% if not request.user.is_authenticated %}
+                    <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+                      class="btn btn-apply">
+                      <i class="bi bi-person-check me-2"></i>Login to Apply
+                    </a>
+                  {% else %}
+                    {% if internship.status != "Active" %}
+                      <button class="btn btn-closed" disabled>
+                        <i class="bi bi-x-circle me-2"></i>Applications Closed
+                      </button>
+                    {% elif has_applied_intern %}
+                      <div class="applied-status">
+                        <button class="btn btn-applied" disabled>
+                          <i class="bi bi-check-circle-fill me-2"></i>Applied
+                        </button>
+                        <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-primary btn-sm mt-2">
+                          View Applications
+                        </a>
+                      </div>
+                    {% else %}
+                      <a href="#"
+                        class="btn btn-apply js-apply-btn"
+                        data-type="intern"
+                        data-id="{{ internship.id }}"
+                        data-auth="1"
+                        data-login="{% url 'accounts:login' %}"
+                        data-next="{{ request.get_full_path }}">
+                        <i class="bi bi-send-fill me-2"></i>Apply Now
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                  <div id="applyModalContainer"></div>
+                </div>
               </div>
             </div>
-            {% comment %} Apply actions for internship {% endcomment %}
-              {% if not request.user.is_authenticated %}
-                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
-                  class="btn btn-danger btn-sm">Login to apply</a>
-              {% else %}
-                {% if internship.status != "Active" %}
-                  <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
-                {% elif has_applied_intern %}
-                  <button class="btn btn-outline-success btn-sm" disabled>Applied ✓</button>
-                  <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm">My Applications</a>
-                {% else %}
-                  <a href="#"
-                    class="btn btn-danger btn-sm js-apply-btn"
-                    data-type="intern"
-                    data-id="{{ internship.id }}"
-                    data-auth="1"
-                    data-login="{% url 'accounts:login' %}"
-                    data-next="{{ request.get_full_path }}">
-                    Apply Now
-                  </a>
-                {% endif %}
-              {% endif %}
-
-              {# The modal gets injected here by JS #}
-              <div id="applyModalContainer"></div>
-
           </div>
 
-          <!-- Meta chips -->
-          <div class="row row-cols-2 row-cols-md-4 g-3 mt-3">
-            <div class="col">
-              <div class="bg-light rounded p-3 text-center h-100">
-                <div class="small text-muted">Compensation</div>
-                <div class="fw-semibold">Rs {{ internship.comp_min|intcomma }}–{{ internship.comp_max|intcomma }}</div>
-                <div class="small">{{ internship.comp_frequency }}</div>
+          <!-- Stats Cards -->
+          <div class="stats-grid mt-4">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-currency-dollar"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Compensation</div>
+                <div class="stat-value">Rs {{ internship.comp_min|intcomma }}–{{ internship.comp_max|intcomma }}</div>
+                <div class="stat-subtitle">{{ internship.comp_frequency }}</div>
               </div>
             </div>
-            <div class="col">
-              <div class="bg-light rounded p-3 text-center h-100">
-                <div class="small text-muted">Level</div>
-                <div class="fw-semibold">{{ internship.level|default:"—" }}</div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-bar-chart-steps"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Level</div>
+                <div class="stat-value">{{ internship.level|default:"Entry Level" }}</div>
               </div>
             </div>
-            <div class="col">
-              <div class="bg-light rounded p-3 text-center h-100">
-                <div class="small text-muted">Openings</div>
-                <div class="fw-semibold">{{ internship.openings }}</div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Openings</div>
+                <div class="stat-value">{{ internship.openings }}</div>
               </div>
             </div>
-            <div class="col">
-              <div class="bg-light rounded p-3 text-center h-100">
-                <div class="small text-muted">Status</div>
-                <div class="fw-semibold">
-                  {% if internship.days_left > 0 %}{{ internship.days_left }} days left{% else %}Closed{% endif %}
+            
+            <div class="stat-card">
+              <div class="stat-icon status-icon">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-label">Status</div>
+                <div class="stat-value">
+                  {% if internship.days_left > 0 %}
+                    <span class="text-success">{{ internship.days_left }} days left</span>
+                  {% else %}
+                    <span class="text-danger">Closed</span>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -92,153 +145,189 @@
         </div>
       </div>
 
-      <!-- Sections (CKEditor HTML rendered as-is) -->
+      <!-- Content Sections -->
       {% if internship.responsibilities %}
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Responsibilities</h5>
-          <div class="ck-content">
-            {{ internship.responsibilities|safe }}
-          </div>
+      <div class="content-card mb-4">
+        <div class="content-header">
+          <i class="bi bi-list-task me-2"></i>
+          <h5>Key Responsibilities</h5>
+        </div>
+        <div class="ck-content content-body">
+          {{ internship.responsibilities|safe }}
         </div>
       </div>
       {% endif %}
 
       {% if internship.qualifications %}
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Requirements</h5>
-          <div class="ck-content">
-            {{ internship.qualifications|safe }}
-          </div>
+      <div class="content-card mb-4">
+        <div class="content-header">
+          <i class="bi bi-check-circle me-2"></i>
+          <h5>Requirements & Qualifications</h5>
+        </div>
+        <div class="ck-content content-body">
+          {{ internship.qualifications|safe }}
         </div>
       </div>
       {% endif %}
 
       {% if internship.benefits %}
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Benefits</h5>
-          <div class="ck-content">
-            {{ internship.benefits|safe }}
-          </div>
+      <div class="content-card mb-4">
+        <div class="content-header">
+          <i class="bi bi-gift me-2"></i>
+          <h5>Benefits & Perks</h5>
+        </div>
+        <div class="ck-content content-body">
+          {{ internship.benefits|safe }}
         </div>
       </div>
       {% endif %}
 
-      <!-- Skills (always show the card; show “Not specified” if empty) -->
-      <!-- Skills -->
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Required Skills</h5>
-          <div class="d-flex flex-wrap gap-2">
+      <!-- Skills Section -->
+      <div class="content-card mb-4">
+        <div class="content-header">
+          <i class="bi bi-code-square me-2"></i>
+          <h5>Required Skills</h5>
+        </div>
+        <div class="content-body">
+          <div class="skills-container">
             {% if skills_names %}
               {% for name in skills_names %}
-                <span class="badge rounded-pill text-bg-light border">#{{ name }}</span>
+                <span class="skill-badge">#{{ name }}</span>
               {% endfor %}
             {% else %}
-              <span class="text-muted">Not specified</span>
+              <div class="empty-state">
+                <i class="bi bi-info-circle me-2"></i>
+                <span>No specific skills mentioned</span>
+              </div>
             {% endif %}
           </div>
         </div>
       </div>
 
-
-      <!-- About Company (full details) -->
-      <div class="card border-0 shadow-sm mt-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">About {{ internship.company.first_name }} {{ internship.company.last_name }}</h5>
+      <!-- Company Section -->
+      <div class="content-card">
+        <div class="content-header">
+          <i class="bi bi-building me-2"></i>
+          <h5>About {{ internship.company.first_name }} {{ internship.company.last_name }}</h5>
+        </div>
+        <div class="content-body">
           {% if internship.company.about_company %}
-            <div class="ck-content">{{ internship.company.about_company|linebreaks }}</div>
+            <div class="company-description">{{ internship.company.about_company|linebreaks }}</div>
           {% else %}
-            <div class="text-muted small">No company description provided.</div>
+            <div class="empty-state mb-3">
+              <i class="bi bi-info-circle me-2"></i>
+              <span>Company description not available</span>
+            </div>
           {% endif %}
 
-          <div class="row small text-muted mt-3">
-            <div class="col-md-6 mb-2">
-              <i class="bi-geo-alt me-1"></i>
-              {{ internship.company.current_address }}, {{ internship.company.city }}, {{ internship.company.province }}
+          <div class="company-details">
+            <div class="detail-item">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>{{ internship.company.current_address }}, {{ internship.company.city }}, {{ internship.company.province }}</span>
             </div>
-            <div class="col-md-6 mb-2">
-              <i class="bi-telephone me-1"></i>{{ internship.company.phone }}
+            <div class="detail-item">
+              <i class="bi bi-telephone-fill"></i>
+              <span>{{ internship.company.phone }}</span>
             </div>
             {% if internship.company.website_url %}
-            <div class="col-md-6 mb-2">
-              <i class="bi-globe me-1"></i>
-              <a href="{{ internship.company.website_url }}" target="_blank" rel="noopener">Visit website</a>
+            <div class="detail-item">
+              <i class="bi bi-globe"></i>
+              <a href="{{ internship.company.website_url }}" target="_blank" rel="noopener" class="website-link">
+                Visit Company Website <i class="bi bi-arrow-up-right ms-1"></i>
+              </a>
             </div>
             {% endif %}
           </div>
 
           <a href="{% url 'website:company_detail' internship.company.id %}"
-             class="btn btn-outline-danger btn-sm mt-3">
-             View Company Profile →
+             class="btn btn-outline-primary mt-3">
+             <i class="bi bi-building me-2"></i>View Full Company Profile
           </a>
         </div>
       </div>
     </div>
 
-    <!-- Right sidebar -->
-    <div class="col-lg-4">
-      <div class="position-sticky" style="top: 88px;">
-        <div class="card border-0 shadow-sm mb-4">
-          <div class="card-body p-4">
+    <!-- Right Sidebar -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="sidebar-sticky">
+        <!-- Quick Apply Card -->
+        <div class="sidebar-card mb-4">
+          <div class="sidebar-card-body">
             <div class="d-flex align-items-center mb-3">
               {% if internship.company.logo %}
-                <img src="{{ internship.company.logo.url }}" alt="Logo" class="rounded me-3" style="width:40px;height:40px;object-fit:cover;">
+                <img src="{{ internship.company.logo.url }}" alt="Logo" class="sidebar-logo">
               {% else %}
-                <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="rounded me-3" style="width:40px;height:40px;">
+                <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="sidebar-logo">
               {% endif %}
-              <div>
-                <div class="fw-semibold">{{ internship.company.first_name }} {{ internship.company.last_name }}</div>
-                <div class="small text-muted">{{ internship.company.city }}, {{ internship.company.province }}</div>
+              <div class="ms-3">
+                <div class="sidebar-company-name">{{ internship.company.first_name }} {{ internship.company.last_name }}</div>
+                <div class="sidebar-company-location">{{ internship.company.city }}, {{ internship.company.province }}</div>
               </div>
             </div>
-            <div class="small text-muted">Application ends</div>
-            <div class="fw-semibold mb-3">{{ internship.application_deadline|date:"F j, Y" }}</div>
-                          {% comment %} Apply actions for internship {% endcomment %}
+            
+            <div class="deadline-info">
+              <div class="deadline-label">Application Deadline</div>
+              <div class="deadline-date">
+                <i class="bi bi-calendar-event me-2"></i>
+                {{ internship.application_deadline|date:"F j, Y" }}
+              </div>
+            </div>
+
+            <div class="sidebar-apply-section mt-4">
+              {% comment %} Apply actions for internship {% endcomment %}
               {% if not request.user.is_authenticated %}
                 <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
-                  class="btn btn-danger btn-sm">Login to apply</a>
+                  class="btn btn-apply w-100">
+                  <i class="bi bi-person-check me-2"></i>Login to Apply
+                </a>
               {% else %}
                 {% if internship.status != "Active" %}
-                  <button class="btn btn-secondary btn-sm" disabled>Applications Closed</button>
+                  <button class="btn btn-closed w-100" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Applications Closed
+                  </button>
                 {% elif has_applied_intern %}
-                  <button class="btn btn-outline-success btn-sm" disabled>Applied ✓</button>
-                  <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm">My Applications</a>
+                  <button class="btn btn-applied w-100" disabled>
+                    <i class="bi bi-check-circle-fill me-2"></i>Application Submitted
+                  </button>
+                  <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                    <i class="bi bi-list-check me-2"></i>My Applications
+                  </a>
                 {% else %}
                   <a href="#"
-                    class="btn btn-danger btn-sm js-apply-btn"
+                    class="btn btn-apply w-100 js-apply-btn"
                     data-type="intern"
                     data-id="{{ internship.id }}"
                     data-auth="1"
                     data-login="{% url 'accounts:login' %}"
                     data-next="{{ request.get_full_path }}">
-                    Apply Now
+                    <i class="bi bi-send-fill me-2"></i>Apply Now
                   </a>
                 {% endif %}
               {% endif %}
-
-              {# The modal gets injected here by JS #}
               <div id="applyModalContainer"></div>
-
+            </div>
           </div>
         </div>
 
+        <!-- More from Company -->
         {% if more_internships %}
-        <div class="card border-0 shadow-sm">
-          <div class="card-body p-4">
-            <h6 class="h6">More from this company</h6>
-            <ul class="list-unstyled mb-0">
+        <div class="sidebar-card">
+          <div class="sidebar-card-header">
+            <i class="bi bi-briefcase-fill me-2"></i>
+            More from this Company
+          </div>
+          <div class="sidebar-card-body">
+            <div class="more-jobs-list">
               {% for item in more_internships %}
-              <li class="mb-3">
-                <a href="{% url 'website:internship_detail' item.id %}" class="text-decoration-none">
-                  <div class="fw-semibold">{{ item.title }}</div>
-                  <div class="small text-muted">{{ item.city }} · {{ item.type }}</div>
-                </a>
-              </li>
+              <a href="{% url 'website:internship_detail' item.id %}" class="more-job-item">
+                <div class="more-job-title">{{ item.title }}</div>
+                <div class="more-job-meta">
+                  <span><i class="bi bi-geo-alt me-1"></i>{{ item.city }}</span>
+                  <span><i class="bi bi-briefcase me-1"></i>{{ item.type }}</span>
+                </div>
+              </a>
               {% endfor %}
-            </ul>
+            </div>
           </div>
         </div>
         {% endif %}
@@ -248,15 +337,770 @@
 </div>
 
 <style>
-/* CKEditor output polish */
-.ck-content p { margin: 0 0 .7rem; }
-.ck-content h3, .ck-content h4, .ck-content h5 { margin: 1rem 0 .5rem; font-weight: 600; }
-.ck-content ul, .ck-content ol { padding-left: 1.25rem; margin: .5rem 0 .7rem; }
-.ck-content li { margin-bottom: .25rem; }
-.ck-content a { text-decoration: underline; }
+/* Modern Color Palette */
+:root {
+  --primary-color: #dc2626;
+  --primary-hover: #b91c1c;
+  --primary-light: #fef2f2;
+  --success-color: #059669;
+  --danger-color: #dc2626;
+  --warning-color: #d97706;
+  --secondary-color: #64748b;
+  --light-gray: #f8fafc;
+  --medium-gray: #e2e8f0;
+  --dark-gray: #475569;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
 
-/* Card & badges tweaks */
-.card.shadow-sm { border-radius: 14px; }
-.badge.text-bg-light { background: #141414ff; }
+/* Breadcrumb Styling */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  color: var(--text-secondary);
+}
+
+.breadcrumb-item.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Hero Card */
+.hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.hero-content {
+  padding: 2rem;
+}
+
+.company-logo-wrapper {
+  position: relative;
+}
+
+.company-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.job-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.company-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+.company-link:hover {
+  color: var(--primary-hover);
+}
+
+.meta-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.meta-item {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.meta-item i {
+  color: var(--primary-color);
+}
+
+/* Apply Button */
+.apply-button-container {
+  flex-shrink: 0;
+}
+
+.btn-apply {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-apply:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  color: white;
+}
+
+.btn-applied {
+  background: var(--success-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-closed {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.applied-status {
+  text-align: center;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.125rem;
+}
+
+.stat-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Content Cards */
+.content-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.content-header {
+  background: var(--light-gray);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.content-header h5 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.content-header i {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+.content-body {
+  padding: 1.5rem;
+}
+
+/* Skills */
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.skill-badge {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.skill-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.empty-state {
+  color: var(--text-secondary);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+}
+
+/* Company Details */
+.company-description {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.company-details {
+  background: var(--light-gray);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-item i {
+  color: var(--primary-color);
+  font-size: 1rem;
+  width: 16px;
+}
+
+.website-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.website-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* Sidebar */
+.sidebar-sticky {
+  position: sticky;
+  top: 2rem;
+}
+
+.sidebar-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.sidebar-card-header {
+  background: var(--light-gray);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-card-header i {
+  color: var(--primary-color);
+}
+
+.sidebar-card-body {
+  padding: 1.5rem;
+}
+
+.sidebar-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.sidebar-company-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.sidebar-company-location {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 0.125rem;
+}
+
+.deadline-info {
+  background: var(--light-gray);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.deadline-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deadline-date {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.deadline-date i {
+  color: var(--primary-color);
+}
+
+.sidebar-apply-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+/* More Jobs */
+.more-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.more-job-item {
+  display: block;
+  text-decoration: none;
+  color: var(--text-primary);
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.more-job-item:hover {
+  background: var(--light-gray);
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.more-job-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.more-job-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.more-job-meta i {
+  color: var(--primary-color);
+}
+
+/* CKEditor Content Styling */
+.ck-content {
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.ck-content p {
+  margin: 0 0 1rem;
+}
+
+.ck-content h1, .ck-content h2, .ck-content h3, .ck-content h4, .ck-content h5, .ck-content h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 1.5rem 0 1rem;
+}
+
+.ck-content ul, .ck-content ol {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.ck-content li {
+  margin-bottom: 0.5rem;
+}
+
+.ck-content a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.ck-content a:hover {
+  color: var(--primary-hover);
+}
+
+.ck-content strong {
+  font-weight: 600;
+}
+
+.ck-content blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 1199.98px) {
+  .hero-content {
+    padding: 1.5rem;
+  }
+  
+  .job-title {
+    font-size: 1.75rem;
+  }
+  
+  .company-logo {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .hero-content {
+    padding: 1.25rem;
+  }
+  
+  .job-title {
+    font-size: 1.5rem;
+  }
+  
+  .company-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-card {
+    padding: 1.25rem;
+  }
+  
+  .meta-items {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .apply-button-container {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .btn-apply, .btn-applied, .btn-closed {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .d-flex.align-items-start.gap-4 {
+    flex-direction: column;
+    gap: 1rem !important;
+  }
+  
+  .company-logo-wrapper {
+    align-self: center;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .sidebar-sticky,
+  .apply-button-container,
+  .sidebar-apply-section {
+    display: none !important;
+  }
+  
+  .hero-card,
+  .content-card,
+  .sidebar-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus States for Accessibility */
+.btn:focus,
+.more-job-item:focus,
+.company-link:focus,
+.website-link:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Loading States */
+.btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced Hover Effects */
+.stat-card:hover .stat-icon {
+  transform: scale(1.05);
+}
+
+.content-card:hover {
+  border-color: var(--primary-color);
+}
+
+/* Custom Scrollbar */
+.sidebar-sticky::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 3px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb {
+  background: var(--medium-gray);
+  border-radius: 3px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-gray);
+}
+
+/* Status Indicators */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.closed {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+/* Utility Classes */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --light-gray: #1e293b;
+    --border-color: #334155;
+  }
+  
+  .hero-card,
+  .content-card,
+  .sidebar-card {
+    background: #0f172a;
+    border-color: var(--border-color);
+  }
+  
+  .content-header {
+    background: var(--light-gray);
+  }
+}
 </style>
+
+<!-- Additional JavaScript for enhanced interactions (optional) -->
+<script>
+// Add fade-in animation to content cards
+document.addEventListener('DOMContentLoaded', function() {
+  const cards = document.querySelectorAll('.content-card, .sidebar-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('fade-in');
+      }
+    });
+  });
+  
+  cards.forEach(card => {
+    observer.observe(card);
+  });
+});
+
+// Smooth scroll for internal links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  });
+});
+
+// Add loading state to apply button
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('js-apply-btn')) {
+    e.target.classList.add('loading');
+    // Remove loading state after 3 seconds (adjust based on your modal timing)
+    setTimeout(() => {
+      e.target.classList.remove('loading');
+    }, 3000);
+  }
+});
+</script>
 {% endblock %}
