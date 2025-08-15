@@ -1,42 +1,280 @@
 {% extends "candidate/base.html" %}
-{% block title %}Recommended Jobs (Demo){% endblock %}
+{% load static %}
+{% block title %}Recommended Jobs(v1){% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <h3 class="mb-3">Recommended Jobs / Internships</h3>
+<section class="py-5 bg-light px-4 px-md-5">
+  <div class="container px-0">
+    <!-- Enhanced header with better spacing -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-2 fw-bold text-dark">Recommended for you</h2>
+        <p class="text-muted mb-0 fs-6">Based on your profile & skills</p>
+      </div>
+      
+      <a href="{% url 'candidate:dashboard' %}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2 px-3">
+        View all <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
 
-  {% if recommended_jobs %}
-    <ul class="list-group">
+    <!-- Enhanced cards grid with better responsiveness -->
+    <div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3 g-4">
       {% for item in recommended_jobs %}
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-          <div>
-            <div class="fw-semibold">
-              {{ item.obj.title }}
-              {% if item.obj.company %}<span class="text-muted"> – {{ item.obj.company }}</span>{% endif %}
-            </div>
-            <div class="small text-muted">
-              {{ item.obj.city }}{% if item.obj.province %}, Province {{ item.obj.province }}{% endif %}
-              •
-              {% if item.obj.location_type %}{{ item.obj.location_type }}{% elif item.obj.location %}{{ item.obj.location }}{% endif %}
-              •
-              Sector: {{ item.obj.sector }}
-              {% if item.obj.application_deadline %} • Apply by {{ item.obj.application_deadline }}{% endif %}
-            </div>
-            <div class="small mt-1 text-secondary">
-              Why: {{ item.why }}
+        {% with job=item.obj %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm rounded-4 p-4 position-relative overflow-hidden hover-card">
+            
+            <!-- Subtle background gradient -->
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient opacity-25" style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); z-index: 0;"></div>
+            
+            <!-- Card content -->
+            <div class="position-relative" style="z-index: 1;">
+              
+              <!-- Logo + Score with improved layout -->
+              <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="bg-white rounded-3 p-2 shadow-sm">
+                    <img src="{% static 'icons/employee.svg' %}" alt="Company logo" style="height:32px; width:32px;">
+                  </div>
+                  <div>
+                    <h5 class="mb-1 fw-bold text-dark">{{ job.title }}</h5>
+                    <p class="text-danger small fw-semibold text-uppercase mb-0 letter-spacing-wide">
+                      {{ job.company }}
+                    </p>
+                  </div>
+                </div>
+                {% if item.score is not None %}
+                  <span class="badge bg-danger text-white px-3 py-2 rounded-pill fs-7 fw-semibold shadow-sm">
+                    {{ item.score|floatformat:1 }}★
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Job description with proper HTML stripping -->
+              {% firstof job.responsibilities job.description job.summary "" as blurb %}
+              {% if blurb %}
+                <div class="mb-4">
+                  <p class="text-muted small lh-base mb-0">
+                    {{ blurb|striptags|truncatewords:25 }}
+                    {% if blurb|striptags|wordcount > 25 %}
+                      <span class="text-danger fw-semibold">... read more</span>
+                    {% endif %}
+                  </p>
+                </div>
+              {% endif %}
+
+              <!-- Enhanced "Why" section -->
+              {% if item.why %}
+                <div class="mb-4">
+                  <div class="bg-success-subtle border border-success-subtle rounded-4 p-3">
+                    <div class="d-flex align-items-start gap-2">
+                      <i class="bi bi-stars text-success mt-1 fs-6"></i>
+                      <div class="small text-success-emphasis">
+                        <span class="fw-bold d-block mb-1">Perfect match because:</span>
+                        <span class="lh-base">{{ item.why }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Enhanced skills section -->
+              {% with matched=item.matched_skills missing=item.missing_skills %}
+                {% if matched or missing %}
+                  <div class="mb-4">
+                    <div class="d-flex flex-wrap gap-2">
+                      {% for s in matched %}
+                        <span class="badge bg-success text-white rounded-pill px-3 py-2 fw-normal">
+                          <i class="bi bi-check-circle-fill me-1"></i>{{ s }}
+                        </span>
+                      {% endfor %}
+                      {% for s in missing %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-normal">
+                          <i class="bi bi-plus-circle me-1"></i>{{ s }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endwith %}
+
+              <!-- Sector tag with better styling -->
+              {% if job.sector %}
+                <div class="mb-4">
+                  <span class="badge bg-secondary text-white rounded-pill px-3 py-2 fw-normal">
+                    <i class="bi bi-tag-fill me-1"></i>{{ job.sector }}
+                  </span>
+                </div>
+              {% endif %}
+
+              <!-- Enhanced stats pills with icons -->
+              <div class="row g-2 mb-4">
+                <!-- Deadline -->
+                <div class="col-12">
+                  <div class="bg-white rounded-3 px-3 py-2 shadow-sm border">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center">
+                        <i class="bi bi-clock text-primary me-2"></i>
+                        <small class="fw-semibold text-dark">
+                          {% with dl=item.days_left %}
+                            {% if dl is not None %}
+                              {% if dl > 0 %}
+                                {{ dl }} day{{ dl|pluralize }} left
+                              {% elif dl == 0 %}
+                                <span class="text-warning">Closes today</span>
+                              {% else %}
+                                <span class="text-danger">Closed</span>
+                              {% endif %}
+                            {% elif job.application_deadline %}
+                              Apply by {{ job.application_deadline|date:"M j, Y" }}
+                            {% else %}
+                              <span class="text-success">Ongoing</span>
+                            {% endif %}
+                          {% endwith %}
+                        </small>
+                      </div>
+                      {% if item.days_left %}
+                        {% if item.days_left > 7 %}
+                          <span class="badge bg-success-subtle text-success">Good time</span>
+                        {% elif item.days_left > 3 %}
+                          <span class="badge bg-warning-subtle text-warning">Act soon</span>
+                        {% elif item.days_left >= 0 %}
+                          <span class="badge bg-danger-subtle text-danger">Urgent</span>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Job details in a grid -->
+                <div class="col-6">
+                  {% if job.location_type %}
+                    <div class="bg-white rounded-3 px-3 py-2 shadow-sm border text-center">
+                      <i class="bi bi-geo-alt text-info d-block mb-1"></i>
+                      <small class="fw-semibold text-dark">{{ job.location_type }}</small>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="col-6">
+                  {% if job.job_type %}
+                    <div class="bg-white rounded-3 px-3 py-2 shadow-sm border text-center">
+                      <i class="bi bi-briefcase text-info d-block mb-1"></i>
+                      <small class="fw-semibold text-dark">{{ job.job_type }}</small>
+                    </div>
+                  {% endif %}
+                </div>
+
+                {% if job.city or job.province %}
+                <div class="col-12">
+                  <div class="bg-white rounded-3 px-3 py-2 shadow-sm border">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-building text-secondary me-2"></i>
+                      <small class="fw-semibold text-dark">
+                        {% if job.city %}{{ job.city }}{% endif %}
+                        {% if job.province %}{% if job.city %}, {% endif %}{{ job.province }} Province{% endif %}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Enhanced CTA button -->
+              <div class="d-grid">
+                <a href="{% if job.get_absolute_url %}{{ job.get_absolute_url }}{% else %}{% url 'website:job_detail' job.id %}{% endif %}"
+                   class="btn btn-danger fw-bold py-3 rounded-3 text-decoration-none d-flex align-items-center justify-content-center gap-2 hover-lift">
+                  <i class="bi bi-eye"></i>
+                  View & Apply
+                  <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
+
             </div>
           </div>
-          <div class="text-end">
-            <span class="badge text-bg-primary">Score {{ item.score|floatformat:2 }}</span><br/>
-            {% if item.obj.get_absolute_url %}
-              <a href="{{ item.obj.get_absolute_url }}" class="btn btn-sm btn-outline-secondary mt-2">View</a>
-            {% endif %}
+        </div>
+        {% endwith %}
+      {% empty %}
+        <!-- Enhanced empty state -->
+        <div class="col-12">
+          <div class="text-center py-5">
+            <div class="bg-white rounded-4 shadow-sm p-5 mx-auto" style="max-width: 400px;">
+              <div class="mb-4">
+                <i class="bi bi-briefcase-fill text-muted" style="font-size: 3rem;"></i>
+              </div>
+              <h5 class="text-dark mb-3">No recommendations yet</h5>
+              <p class="text-muted mb-4">Complete your profile with skills and preferences to get personalized job recommendations.</p>
+              <a href="{% url 'candidate:dashboard' %}" class="btn btn-danger px-4">
+                Complete Profile <i class="bi bi-arrow-right ms-2"></i>
+              </a>
+            </div>
           </div>
-        </li>
+        </div>
       {% endfor %}
-    </ul>
-  {% else %}
-    <div class="alert alert-info">No recommendations yet. Add some skills to your profile and make sure there are active jobs.</div>
-  {% endif %}
-</div>
+    </div>
+  </div>
+</section>
+
+<!-- Additional CSS for enhanced styling -->
+<style>
+.hover-card {
+  transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+
+.hover-lift {
+  transition: all 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.letter-spacing-wide {
+  letter-spacing: 0.5px;
+}
+
+.fs-7 {
+  font-size: 0.875rem;
+}
+
+.bg-gradient {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+}
+
+.lh-base {
+  line-height: 1.6;
+}
+
+/* Custom badge colors */
+.badge.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+  color: #198754 !important;
+}
+
+.badge.bg-warning-subtle {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+  color: #d63384 !important;
+}
+
+.badge.bg-danger-subtle {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .hover-card:hover {
+    transform: none;
+  }
+  
+  .row.g-4 {
+    gap: 1rem !important;
+  }
+}
+</style>
 {% endblock %}

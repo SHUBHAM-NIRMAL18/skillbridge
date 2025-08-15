@@ -54,7 +54,7 @@
             <i class="bi bi-search"></i> Search Opportunities
           </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" >
           <a class="nav-link" href="#">
             <i class="bi bi-chat-dots"></i> Inbox
           </a>
@@ -99,8 +99,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">
-            <i class="bi bi-plus-square"></i> Requests
+          <a class="nav-link" href="{% url 'candidate:recommended_demo' %}">
+            <i class="bi bi-graph-up-arrow"></i> Recommended Jobs
           </a>
         </li>
         <li class="nav-item">
@@ -147,9 +147,6 @@
           <li class="nav-item me-3">
             <a class="nav-link position-relative" href="#">
               <i class="bi bi-bell"></i>
-              <span class="badge bg-danger rounded-circle position-absolute top-0 start-100 translate-middle">
-                <!-- optional notification count -->
-              </span>
             </a>
           </li>
           <li class="nav-item dropdown">

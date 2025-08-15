@@ -9,9 +9,7 @@ from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-# ——————————————————————————————————————————
-# Config (tweak if you like)
-# ——————————————————————————————————————————
+#VERSION = "1.0.0"  # version of this module
 EVENT_WEIGHTS = {"view": 1.0, "save": 3.0, "apply": 6.0, "dismiss": -2.0}
 DECAY_LAMBDA = 0.02         # ~35-day half-life
 WINDOW_DAYS = 90            # collaborative lookback

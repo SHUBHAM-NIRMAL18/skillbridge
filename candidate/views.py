@@ -12,6 +12,7 @@ from .forms import (
     CertificateFormSet, SocialLinkFormSet, DocumentUploadForm
 )
 from .models import Profile
+from django.utils import timezone
 
 
 
@@ -394,13 +395,48 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import render
 from recommendations.simple_hybrid import recommend_jobs_for_candidate
+from django.utils import timezone
 
 @login_required
 def recommended_demo(request):
+    """
+    Build a list of recommendation items with safe defaults so the template
+    can render without relying on filters like default:[] for lists.
+    """
     recs = recommend_jobs_for_candidate(request.user, limit=20)
+
     items = []
+    today = timezone.now().date()
+
     for r in recs:
         ct = ContentType.objects.get_for_id(r.ct_id)
         obj = ct.get_object_for_this_type(id=r.obj_id)  # JobPost or InternshipPost
-        items.append({"obj": obj, "score": r.score, "why": r.why, "ct_id": r.ct_id})
-    return render(request, "candidate/recommended_demo.html", {"recommended_jobs": items})
+
+        # Try to use existing days_left; if missing, compute from application_deadline
+        obj_days_left = getattr(obj, "days_left", None)
+        deadline = getattr(obj, "application_deadline", None)
+
+        if obj_days_left is None and deadline:
+            try:
+                computed_days_left = (deadline - today).days
+            except Exception:
+                computed_days_left = None
+        else:
+            computed_days_left = obj_days_left
+
+        items.append({
+            "obj": obj,
+            "score": getattr(r, "score", None),
+            "why": getattr(r, "why", ""),
+            "ct_id": r.ct_id,
+            # May be None → template handles that gracefully
+            "matched_skills": getattr(r, "matched_skills", None),
+            "missing_skills": getattr(r, "missing_skills", None),
+            "days_left": computed_days_left,
+        })
+
+    return render(
+        request,
+        "candidate/recommended_demo.html",
+        {"recommended_jobs": items}
+    )
