@@ -57,6 +57,11 @@
       </a>
     </li>
     <li class="nav-item">
+      <a class="nav-link {% if tab == 'interview' %}active{% endif %}" href="?tab=interview&type={{ typ }}">Interview
+        <span class="badge bg-secondary ms-1">{{ counts.interview|default:0 }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
       <a class="nav-link {% if tab == 'offered' %}active{% endif %}" href="?tab=offered&type={{ typ }}">Offered
         <span class="badge bg-secondary ms-1">{{ counts.offered|default:0 }}</span>
       </a>
@@ -90,140 +95,14 @@
       </thead>
       <tbody>
 
-        {# JOB ROWS #}
         {% for a in apps %}
           {% if a.is_job %}
-            {% with post=a.job_post %}
-            <tr>
-              <td>
-                <div class="fw-semibold">{{ post.title }}</div>
-                <div class="small text-muted">Job</div>
-              </td>
-              <td class="text-nowrap">
-                <div class="d-flex align-items-center">
-                  {% if a.company.logo %}
-                    <img src="{{ a.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
-                  {% else %}
-                    <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
-                  {% endif %}
-                  <span>{{ a.company.first_name }} {{ a.company.last_name }}</span>
-                </div>
-              </td>
-              <td>
-                {% with s=a.status %}
-                  <span class="badge
-                    {% if s == 'applied' %} bg-secondary
-                    {% elif s == 'under_review' %} bg-info text-dark
-                    {% elif s == 'shortlisted' %} bg-success
-                    {% elif s == 'offered' %} bg-primary
-                    {% elif s == 'rejected' %} bg-danger
-                    {% elif s == 'withdrawn' %} bg-dark
-                    {% else %} bg-light text-dark border{% endif %}
-                  ">{{ a.get_status_display }}</span>
-                {% endwith %}
-              </td>
-              <td class="text-nowrap">{{ post.city }}</td>
-              <td>{{ post.openings }}</td>
-              <td class="text-nowrap">{{ a.applied_at|date:"F j, Y" }}</td>
-              <td class="text-end">
-                <a href="{% url 'website:job_detail' post.id %}" class="text-decoration-none">See Details →</a>
-              </td>
-              <td class="text-end">
-                {% if a.status == 'applied' or a.status == 'under_review' %}
-                  <button type="button"
-                          class="btn btn-outline-danger btn-sm js-withdraw-btn"
-                          data-action="{% url 'applications:withdraw' a.id %}"
-                          data-title="{{ post.title }}">
-                    Withdraw
-                  </button>
-                {% elif a.status == 'withdrawn' or a.status == 'rejected' %}
-                  {% if a.target_is_open %}
-                    <button type="button"
-                            class="btn btn-danger btn-sm js-apply-btn"
-                            data-type="job"
-                            data-id="{{ post.id }}"
-                            data-auth="1"
-                            data-login="{% url 'accounts:login' %}"
-                            data-next="{% url 'website:job_detail' post.id %}">
-                      Apply Again
-                    </button>
-                  {% else %}
-                    <span class="badge bg-secondary">Closed</span>
-                  {% endif %}
-                {% else %}
-                  <span class="text-muted small">—</span>
-                {% endif %}
-              </td>
-            </tr>
+            {% with post=a.job_post detail_url="website:job_detail" %}
+              {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="job" %}
             {% endwith %}
-          {% endif %}
-        {% endfor %}
-
-        {# INTERNSHIP ROWS #}
-        {% for a in apps %}
-          {% if not a.is_job %}
-            {% with post=a.internship_post %}
-            <tr>
-              <td>
-                <div class="fw-semibold">{{ post.title }}</div>
-                <div class="small text-muted">Internship</div>
-              </td>
-              <td class="text-nowrap">
-                <div class="d-flex align-items-center">
-                  {% if a.company.logo %}
-                    <img src="{{ a.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
-                  {% else %}
-                    <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
-                  {% endif %}
-                  <span>{{ a.company.first_name }} {{ a.company.last_name }}</span>
-                </div>
-              </td>
-              <td>
-                {% with s=a.status %}
-                  <span class="badge
-                    {% if s == 'applied' %} bg-secondary
-                    {% elif s == 'under_review' %} bg-info text-dark
-                    {% elif s == 'shortlisted' %} bg-success
-                    {% elif s == 'offered' %} bg-primary
-                    {% elif s == 'rejected' %} bg-danger
-                    {% elif s == 'withdrawn' %} bg-dark
-                    {% else %} bg-light text-dark border{% endif %}
-                  ">{{ a.get_status_display }}</span>
-                {% endwith %}
-              </td>
-              <td class="text-nowrap">{{ post.city }}</td>
-              <td>{{ post.openings }}</td>
-              <td class="text-nowrap">{{ a.applied_at|date:"F j, Y" }}</td>
-              <td class="text-end">
-                <a href="{% url 'website:internship_detail' post.id %}" class="text-decoration-none">See Details →</a>
-              </td>
-              <td class="text-end">
-                {% if a.status == 'applied' or a.status == 'under_review' %}
-                  <button type="button"
-                          class="btn btn-outline-danger btn-sm js-withdraw-btn"
-                          data-action="{% url 'applications:withdraw' a.id %}"
-                          data-title="{{ post.title }}">
-                    Withdraw
-                  </button>
-                {% elif a.status == 'withdrawn' or a.status == 'rejected' %}
-                  {% if a.target_is_open %}
-                    <button type="button"
-                            class="btn btn-danger btn-sm js-apply-btn"
-                            data-type="intern"
-                            data-id="{{ post.id }}"
-                            data-auth="1"
-                            data-login="{% url 'accounts:login' %}"
-                            data-next="{% url 'website:internship_detail' post.id %}">
-                      Apply Again
-                    </button>
-                  {% else %}
-                    <span class="badge bg-secondary">Closed</span>
-                  {% endif %}
-                {% else %}
-                  <span class="text-muted small">—</span>
-                {% endif %}
-              </td>
-            </tr>
+          {% else %}
+            {% with post=a.internship_post detail_url="website:internship_detail" %}
+              {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="intern" %}
             {% endwith %}
           {% endif %}
         {% endfor %}
@@ -283,13 +162,72 @@
   </div>
 </div>
 
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-3">
+      <form id="deleteForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Delete application?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">
+            You're about to permanently delete your application for
+            <strong id="deleteTitle">this posting</strong>.
+          </p>
+          <div class="alert alert-warning small mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            <strong>Warning:</strong> This action cannot be undone. All application data including your cover letter and resume will be permanently removed.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button id="deleteConfirmBtn" type="submit" class="btn btn-danger">Yes, delete permanently</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Application Detail Modal -->
+<div class="modal fade" id="applicationDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title">Application Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="applicationDetailContent">
+        <!-- Content will be loaded via AJAX -->
+        <div class="text-center py-4">
+          <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const modalEl = document.getElementById('withdrawConfirmModal');
-  const titleEl = document.getElementById('withdrawTitle');
-  const formEl = document.getElementById('withdrawForm');
+  const withdrawModalEl = document.getElementById('withdrawConfirmModal');
+  const deleteModalEl = document.getElementById('deleteConfirmModal');
+  const detailModalEl = document.getElementById('applicationDetailModal');
+  
+  const withdrawTitleEl = document.getElementById('withdrawTitle');
+  const deleteTitleEl = document.getElementById('deleteTitle');
+  const detailContentEl = document.getElementById('applicationDetailContent');
+  
+  const withdrawFormEl = document.getElementById('withdrawForm');
+  const deleteFormEl = document.getElementById('deleteForm');
 
-  // Delegate clicks from any Withdraw button in the table
+  // Handle withdraw button clicks
   document.body.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-withdraw-btn');
     if (!btn) return;
@@ -298,19 +236,79 @@ document.addEventListener('DOMContentLoaded', function () {
     const action = btn.getAttribute('data-action');
     const title = btn.getAttribute('data-title') || 'this posting';
 
-    formEl.setAttribute('action', action);
-    titleEl.textContent = title;
+    withdrawFormEl.setAttribute('action', action);
+    withdrawTitleEl.textContent = title;
 
-    const modal = new bootstrap.Modal(modalEl);
+    const modal = new bootstrap.Modal(withdrawModalEl);
     modal.show();
   });
 
-  // Optional: disable confirm while submitting
-  formEl.addEventListener('submit', function () {
+  // Handle delete button clicks
+  document.body.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-delete-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    const action = btn.getAttribute('data-action');
+    const title = btn.getAttribute('data-title') || 'this posting';
+
+    deleteFormEl.setAttribute('action', action);
+    deleteTitleEl.textContent = title;
+
+    const modal = new bootstrap.Modal(deleteModalEl);
+    modal.show();
+  });
+
+  // Handle view details button clicks
+  document.body.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-detail-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    const url = btn.getAttribute('data-url');
+    
+    // Reset content
+    detailContentEl.innerHTML = `
+      <div class="text-center py-4">
+        <div class="spinner-border text-danger" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    `;
+
+    const modal = new bootstrap.Modal(detailModalEl);
+    modal.show();
+
+    // Load content via AJAX
+    fetch(url)
+      .then(response => response.text())
+      .then(html => {
+        detailContentEl.innerHTML = html;
+      })
+      .catch(error => {
+        detailContentEl.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Failed to load application details. Please try again.
+          </div>
+        `;
+      });
+  });
+
+  // Disable buttons while submitting
+  withdrawFormEl.addEventListener('submit', function () {
     const confirmBtn = document.getElementById('withdrawConfirmBtn');
     if (confirmBtn) {
       confirmBtn.disabled = true;
       confirmBtn.innerText = 'Withdrawing...';
+    }
+  });
+
+  deleteFormEl.addEventListener('submit', function () {
+    const confirmBtn = document.getElementById('deleteConfirmBtn');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = 'Deleting...';
     }
   });
 });

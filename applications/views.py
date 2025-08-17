@@ -41,12 +41,31 @@ def apply_preview(request):
     if post is None:
         return HttpResponseBadRequest("Invalid target.")
 
+    # prevent companies from applying
+    if hasattr(request.user, "company_profile"):
+        return render(request, "applications/_apply_modal.html", {
+            "company_cannot_apply": True, 
+            "post": post, 
+            "kind": kind, 
+            "next_url": next_url,
+        })
+
     # candidate profile
     try:
         profile = Profile.objects.select_related("user").get(user=request.user)
     except Profile.DoesNotExist:
         return render(request, "applications/_apply_modal.html", {
             "need_profile": True, "next_url": next_url, "kind": kind, "post": post,
+        })
+
+    # ADD THIS CHECK - validate profile completeness
+    if not profile.resume:
+        return render(request, "applications/_apply_modal.html", {
+            "incomplete_profile": True, 
+            "missing": "resume",
+            "post": post, 
+            "kind": kind, 
+            "next_url": next_url,
         })
 
     # closed?
@@ -260,3 +279,29 @@ def my_applications(request):
         "counts": counts, "total_all": total_all, "total_job": total_job, "total_int": total_int,
     }
     return render(request, "applications/candidate_table.html", ctx)
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def delete_application(request, pk: int):
+    app = get_object_or_404(Application.objects.select_related("candidate__user"), pk=pk)
+    # owner only
+    if app.candidate.user_id != request.user.id:
+        return HttpResponseForbidden("Not allowed.")
+    
+    app.delete()
+    messages.success(request, f"Application for '{app.target_title}' deleted permanently.")
+    return redirect("applications:my_applications")
+
+
+@login_required(login_url="accounts:login")
+def application_detail(request, pk: int):
+    app = get_object_or_404(
+        Application.objects.select_related("candidate__user", "company", "job_post", "internship_post"), 
+        pk=pk
+    )
+    # owner only
+    if app.candidate.user_id != request.user.id:
+        return HttpResponseForbidden("Not allowed.")
+    
+    return render(request, "applications/_application_detail.html", {"app": app})

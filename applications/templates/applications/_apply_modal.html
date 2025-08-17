@@ -259,14 +259,19 @@
         <div class="alert alert-success">
             You already applied to <strong>{{ post.title }}</strong>. Check <a href="{% url 'applications:my_applications' %}">My Applications</a>.
         </div>
-        {% elif not profile %}
+        {% comment %} {% elif not profile %}
           <div class="alert alert-warning">
             <i class="bi bi-lightbulb-fill me-2"></i>
             You need to create a profile first. Please fill out your profile details.
           </div>
           <a href="{% url 'candidate:profile' 'basic' %}" class="btn btn-danger">
             Create Profile
-          </a>
+          </a> {% endcomment %}
+          {% elif company_cannot_apply %}
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Companies cannot apply to job postings. Only candidates can apply.
+          </div>
         {% else %}
           <div class="alert alert-warning">
             <i class="bi bi-lightbulb-fill me-2"></i>

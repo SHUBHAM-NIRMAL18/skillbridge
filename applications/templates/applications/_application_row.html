@@ -1,0 +1,94 @@
+{% load static %}
+<!-- applications/_application_row.html -->
+<tr>
+  <td>
+    <div class="fw-semibold">{{ post.title }}</div>
+    <div class="small text-muted">{% if type == "job" %}Job{% else %}Internship{% endif %}</div>
+  </td>
+  <td class="text-nowrap">
+    <div class="d-flex align-items-center">
+      {% if application.company.logo %}
+        <img src="{{ application.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
+      {% else %}
+        <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
+      {% endif %}
+      <span>{{ application.company.first_name }} {{ application.company.last_name }}</span>
+    </div>
+  </td>
+  <td>
+    {% with s=application.status %}
+      <span class="badge
+        {% if s == 'applied' %} bg-secondary
+        {% elif s == 'under_review' %} bg-info text-dark
+        {% elif s == 'shortlisted' %} bg-success
+        {% elif s == 'interview' %} bg-warning text-dark
+        {% elif s == 'offered' %} bg-primary
+        {% elif s == 'rejected' %} bg-danger
+        {% elif s == 'withdrawn' %} bg-dark
+        {% else %} bg-light text-dark border{% endif %}
+      ">{{ application.get_status_display }}</span>
+    {% endwith %}
+  </td>
+  <td class="text-nowrap">{{ post.city }}</td>
+  <td>{{ post.openings }}</td>
+  <td class="text-nowrap">{{ application.applied_at|date:"F j, Y" }}</td>
+  <td class="text-end">
+    <a href="{% url detail_url post.id %}" class="text-decoration-none small">See Details →</a>
+  </td>
+  <td class="text-end">
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Actions
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <!-- View Details -->
+        <li>
+          <button type="button" 
+                  class="dropdown-item js-detail-btn"
+                  data-url="{% url 'applications:detail' application.id %}">
+            <i class="bi bi-eye me-2"></i>View Details
+          </button>
+        </li>
+        
+        <!-- Status-specific actions -->
+        {% if application.status == 'applied' or application.status == 'under_review' %}
+          <li>
+            <button type="button"
+                    class="dropdown-item text-warning js-withdraw-btn"
+                    data-action="{% url 'applications:withdraw' application.id %}"
+                    data-title="{{ post.title }}">
+              <i class="bi bi-arrow-left-circle me-2"></i>Withdraw
+            </button>
+          </li>
+        {% endif %}
+        
+        {% if application.status == 'withdrawn' or application.status == 'rejected' %}
+          {% if application.target_is_open %}
+            <li>
+              <button type="button"
+                      class="dropdown-item text-success js-apply-btn"
+                      data-type="{{ type }}"
+                      data-id="{{ post.id }}"
+                      data-auth="1"
+                      data-login="{% url 'accounts:login' %}"
+                      data-next="{% url detail_url post.id %}">
+                <i class="bi bi-arrow-repeat me-2"></i>Apply Again
+              </button>
+            </li>
+          {% endif %}
+        {% endif %}
+        
+        <!-- Delete action (available for all statuses) -->
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <button type="button"
+                  class="dropdown-item text-danger js-delete-btn"
+                  data-action="{% url 'applications:delete' application.id %}"
+                  data-title="{{ post.title }}">
+            <i class="bi bi-trash me-2"></i>Delete Permanently
+          </button>
+        </li>
+      </ul>
+    </div>
+  </td>
+</tr>

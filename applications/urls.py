@@ -9,4 +9,6 @@ urlpatterns = [
 
     path("my/",            views.my_applications,     name="my_applications"),
     path("<int:pk>/withdraw/", views.withdraw_application, name="withdraw"),
+    path("<int:pk>/delete/", views.delete_application, name="delete"),  # NEW
+    path("<int:pk>/detail/", views.application_detail, name="detail"),  # NEW
 ]

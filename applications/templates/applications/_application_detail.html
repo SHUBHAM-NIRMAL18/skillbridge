@@ -1,0 +1,223 @@
+{% load static humanize %}
+<!-- applications/_application_detail.html -->
+
+<div class="row g-4">
+  <!-- Left Column - Application Info -->
+  <div class="col-md-8">
+    <!-- Job/Internship Details -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3 mb-3">
+          {% if app.company.logo %}
+            <img src="{{ app.company.logo.url }}" class="rounded" style="width:48px;height:48px;object-fit:cover;">
+          {% else %}
+            <img src="{% static 'icons/employee.svg' %}" class="rounded" style="width:48px;height:48px;">
+          {% endif %}
+          <div class="flex-grow-1">
+            <h5 class="mb-1">{{ app.target_title }}</h5>
+            <div class="text-muted small">
+              {{ app.company.first_name }} {{ app.company.last_name }} • 
+              {% if app.is_job %}Job{% else %}Internship{% endif %} • 
+              {{ app.target_deadline|date:"M j, Y" }}
+            </div>
+          </div>
+          <div>
+            {% with s=app.status %}
+              <span class="badge fs-6
+                {% if s == 'applied' %} bg-secondary
+                {% elif s == 'under_review' %} bg-info text-dark
+                {% elif s == 'shortlisted' %} bg-success
+                {% elif s == 'interview' %} bg-warning text-dark
+                {% elif s == 'offered' %} bg-primary
+                {% elif s == 'rejected' %} bg-danger
+                {% elif s == 'withdrawn' %} bg-dark
+                {% else %} bg-light text-dark border{% endif %}
+              ">{{ app.get_status_display }}</span>
+            {% endwith %}
+          </div>
+        </div>
+        
+        <!-- Application Timeline -->
+        <div class="row text-center small text-muted">
+          <div class="col">
+            <i class="bi bi-calendar-event d-block mb-1"></i>
+            <div class="fw-semibold">Applied</div>
+            <div>{{ app.applied_at|date:"M j, Y" }}</div>
+            <div class="text-muted">{{ app.applied_at|naturaltime }}</div>
+          </div>
+          <div class="col">
+            <i class="bi bi-clock-history d-block mb-1"></i>
+            <div class="fw-semibold">Last Updated</div>
+            <div>{{ app.updated_at|date:"M j, Y" }}</div>
+            <div class="text-muted">{{ app.updated_at|naturaltime }}</div>
+          </div>
+          <div class="col">
+            <i class="bi bi-calendar-x d-block mb-1"></i>
+            <div class="fw-semibold">Deadline</div>
+            <div>{{ app.target_deadline|date:"M j, Y" }}</div>
+            <div class="{% if app.target_is_open %}text-success{% else %}text-danger{% endif %}">
+              {% if app.target_is_open %}Still Open{% else %}Closed{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cover Letter -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white">
+        <h6 class="mb-0">
+          <i class="bi bi-file-text me-2"></i>Cover Letter
+        </h6>
+      </div>
+      <div class="card-body">
+        {% if app.cover_letter %}
+          <div class="bg-light p-3 rounded">
+            <p class="mb-0" style="white-space: pre-wrap;">{{ app.cover_letter }}</p>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0 fst-italic">No cover letter submitted.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="d-flex gap-2 flex-wrap">
+      {% if app.status == 'applied' or app.status == 'under_review' %}
+        <button type="button"
+                class="btn btn-outline-warning btn-sm js-withdraw-btn"
+                data-action="{% url 'applications:withdraw' app.id %}"
+                data-title="{{ app.target_title }}">
+          <i class="bi bi-arrow-left-circle me-1"></i>Withdraw Application
+        </button>
+      {% endif %}
+
+      {% if app.status == 'withdrawn' or app.status == 'rejected' %}
+        {% if app.target_is_open %}
+          <button type="button"
+                  class="btn btn-success btn-sm js-apply-btn"
+                  data-type="{% if app.is_job %}job{% else %}intern{% endif %}"
+                  data-id="{{ app.job_post.id|default:app.internship_post.id }}"
+                  data-auth="1"
+                  data-login="{% url 'accounts:login' %}"
+                  data-next="{% if app.is_job %}{% url 'website:job_detail' app.job_post.id %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}">
+            <i class="bi bi-arrow-repeat me-1"></i>Apply Again
+          </button>
+        {% endif %}
+      {% endif %}
+
+      <button type="button"
+              class="btn btn-outline-danger btn-sm js-delete-btn"
+              data-action="{% url 'applications:delete' app.id %}"
+              data-title="{{ app.target_title }}">
+        <i class="bi bi-trash me-1"></i>Delete Permanently
+      </button>
+
+      <a href="{% if app.is_job %}{% url 'website:job_detail' app.job_post.id %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}" 
+         class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-eye me-1"></i>View Job Posting
+      </a>
+    </div>
+  </div>
+
+  <!-- Right Column - Resume & Info -->
+  <div class="col-md-4">
+    <!-- Resume -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white">
+        <h6 class="mb-0">
+          <i class="bi bi-file-earmark-pdf me-2"></i>Resume Submitted
+        </h6>
+      </div>
+      <div class="card-body">
+        {% if app.resume_file %}
+                      <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-file-earmark-pdf text-danger"></i>
+            <div class="flex-grow-1">
+              <div class="small fw-semibold">Resume File</div>
+              <div class="text-muted small">
+                Uploaded: {{ app.applied_at|date:"M j, Y" }}
+              </div>
+            </div>
+          </div>
+          <a href="{{ app.resume_file.url }}" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-download me-1"></i>Download Resume
+          </a>
+        {% else %}
+          <p class="text-muted mb-0 small fst-italic">No resume file found.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Application Stats -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white">
+        <h6 class="mb-0">
+          <i class="bi bi-graph-up me-2"></i>Application Info
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 small">
+          <div class="col-6">
+            <div class="text-muted">Type</div>
+            <div class="fw-semibold">{% if app.is_job %}Job{% else %}Internship{% endif %}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Status</div>
+            <div class="fw-semibold">{{ app.get_status_display }}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Applied</div>
+            <div class="fw-semibold">{{ app.applied_at|naturaltime }}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Updated</div>
+            <div class="fw-semibold">{{ app.updated_at|naturaltime }}</div>
+          </div>
+          {% if app.is_job %}
+            <div class="col-6">
+              <div class="text-muted">Openings</div>
+              <div class="fw-semibold">{{ app.job_post.openings }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted">Location</div>
+              <div class="fw-semibold">{{ app.job_post.city|default:"—" }}</div>
+            </div>
+          {% else %}
+            <div class="col-6">
+              <div class="text-muted">Openings</div>
+              <div class="fw-semibold">{{ app.internship_post.openings }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted">Location</div>
+              <div class="fw-semibold">{{ app.internship_post.city|default:"—" }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.card {
+  transition: all 0.2s ease;
+}
+
+.badge.fs-6 {
+  font-size: 0.875rem !important;
+  padding: 0.375rem 0.75rem;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.btn-sm {
+  font-size: 0.8rem;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+</style>
