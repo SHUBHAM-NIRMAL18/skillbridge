@@ -30,6 +30,16 @@ class CompanyProfileForm(forms.ModelForm):
             'province', 'city', 'postal_code', 'current_address',
             'social_link','logo',
         ]
+        labels = {
+            'first_name': 'Company First Name',
+            'last_name': 'Company Last Name',
+            'industry': 'Business Industry',
+            'founded_date': 'Date Established',
+            'company_size': 'Number of Employees',
+            'about_company': 'Company Description',
+            'website_url': 'Company Website',
+            'social_link': 'Social Media Profile',
+        }
         widgets = {
             'first_name':      forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
