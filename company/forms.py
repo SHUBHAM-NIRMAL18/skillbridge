@@ -1,11 +1,25 @@
 from django import forms
-from .models import CompanyProfile, InternshipPost, JobPost, PROVINCE_CHOICES
+from .models import CompanyProfile, InternshipPost, JobPost, PROVINCE_CHOICES, Sector
 from django.utils import timezone
 from datetime import timedelta
 import re
 from ckeditor.widgets import CKEditorWidget
 from taggit.forms import TagWidget
 from django.contrib.auth.forms import PasswordChangeForm
+
+
+# ---- helpers: dynamic sector choices with safe fallback ----
+DEFAULT_JOB_SECTORS = ["IT", "Finance", "Marketing", "Design", "Data", "Healthcare", "Education"]
+DEFAULT_INTERNSHIP_SECTORS = ["Web Development", "UI/UX", "Marketing", "Data Science"]
+
+def sector_choices_or_fallback(default_names):
+    # Read active sectors from DB; if none exist, fall back to defaults
+    names = list(Sector.objects.filter(is_active=True).order_by("display_order", "name").values_list("name", flat=True))
+    if not names:
+        names = default_names
+    # Include an empty prompt; field is required, so empty will fail validation if submitted
+    return [("", "Select sector")] + [(n, n) for n in names]
+
 
 class CompanyProfileForm(forms.ModelForm):
     class Meta:
@@ -22,9 +36,7 @@ class CompanyProfileForm(forms.ModelForm):
             'industry':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Industry'}),
             'founded_date':    forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'company_size':    forms.Select(attrs={'class': 'form-select'}),
-            'about_company':   forms.Textarea(attrs={
-                'class': 'form-control', 'rows': 4, 'placeholder': 'Tell us about your company…'
-            }),
+            'about_company':   forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tell us about your company…'}),
             'logo':            forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'phone':           forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
             'website_url':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
@@ -40,7 +52,7 @@ class CompanyProfileForm(forms.ModelForm):
         if not phone.isdigit():
             raise forms.ValidationError("Phone number must contain only digits.")
         return phone
-    
+
 
 class BasicDetailsForm(forms.ModelForm):
     class Meta:
@@ -51,7 +63,6 @@ class BasicDetailsForm(forms.ModelForm):
             'openings', 'comp_min', 'comp_max', 'comp_frequency',
         ]
         widgets = {
-            # same widgets as before for two‑column layout…
             'title':               forms.TextInput(attrs={'class':'form-control', 'placeholder':'Internship Title'}),
             'city':                forms.TextInput(attrs={'class':'form-control', 'placeholder':'City'}),
             'location':            forms.Select(attrs={'class':'form-select'}),
@@ -65,9 +76,18 @@ class BasicDetailsForm(forms.ModelForm):
             'comp_frequency':      forms.Select(attrs={'class':'form-select'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Rebind as ChoiceField to enforce validation against dynamic list
+        self.fields['sector'] = forms.ChoiceField(
+            choices=sector_choices_or_fallback(DEFAULT_INTERNSHIP_SECTORS),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Sector"
+        )
+
     def clean(self):
         cleaned = super().clean()
-
         # — Strip and validate title —
         title = cleaned.get('title', '')
         if title:
@@ -91,7 +111,6 @@ class BasicDetailsForm(forms.ModelForm):
             if min_sal > max_sal:
                 self.add_error('comp_min', "Min must not exceed max.")
                 self.add_error('comp_max', "Max must be ≥ min.")
-            # enforce a floor, e.g. at least 100
             if min_sal < 100:
                 self.add_error('comp_min', "Minimum stipend must be at least 100.")
 
@@ -125,7 +144,6 @@ class SkillsRequirementsForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Change the label from “Tags” to “Skills”
         self.fields['skills'].label = "Skills"
 
 
@@ -137,13 +155,12 @@ class ReviewForm(forms.Form):
 class InternshipPostForm(forms.ModelForm):
     class Meta:
         model = InternshipPost
-        # include everything you want editable
         fields = [
             'title', 'city', 'location', 'sector',
             'application_deadline', 'type', 'level',
             'openings', 'comp_min', 'comp_max', 'comp_frequency',
             'skills', 'responsibilities', 'qualifications', 'benefits',
-            'is_active',   # allow toggling active/inactive
+            'is_active',
         ]
         widgets = {
             'title':               forms.TextInput(attrs={'class':'form-control'}),
@@ -164,6 +181,16 @@ class InternshipPostForm(forms.ModelForm):
             'is_active':           forms.CheckboxInput(attrs={'class':'form-check-input'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['sector'] = forms.ChoiceField(
+            choices=sector_choices_or_fallback(DEFAULT_INTERNSHIP_SECTORS),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Sector"
+        )
+
+
 class JobBasicDetailsForm(forms.ModelForm):
     class Meta:
         model = JobPost
@@ -175,42 +202,30 @@ class JobBasicDetailsForm(forms.ModelForm):
             'openings', 'salary_min', 'salary_max', 'salary_period',
         ]
         widgets = {
-            'title':               forms.TextInput(attrs={
-                                       'class': 'form-control',
-                                       'placeholder': 'Job title (min 5 chars)'
-                                   }),
+            'title':               forms.TextInput(attrs={'class': 'form-control','placeholder': 'Job title (min 5 chars)'}),
             'province':            forms.Select(attrs={'class': 'form-select'}),
-            'city':                forms.TextInput(attrs={
-                                       'class': 'form-control',
-                                       'placeholder': 'City'
-                                   }),
+            'city':                forms.TextInput(attrs={'class': 'form-control','placeholder': 'City'}),
             'location_type':       forms.Select(attrs={'class': 'form-select'}),
             'sector':              forms.Select(attrs={'class': 'form-select'}),
-            'application_deadline':forms.DateInput(attrs={
-                                       'type': 'date',
-                                       'class': 'form-control'
-                                   }),
+            'application_deadline':forms.DateInput(attrs={'type': 'date','class': 'form-control'}),
             'job_type':            forms.Select(attrs={'class': 'form-select'}),
             'job_level':           forms.Select(attrs={'class': 'form-select'}),
-            'experience_required': forms.NumberInput(attrs={
-                                       'class': 'form-control',
-                                       'min': 0
-                                   }),
+            'experience_required': forms.NumberInput(attrs={'class': 'form-control','min': 0}),
             'experience_unit':     forms.Select(attrs={'class': 'form-select'}),
-            'openings':            forms.NumberInput(attrs={
-                                       'class': 'form-control',
-                                       'min': 1
-                                   }),
-            'salary_min':          forms.NumberInput(attrs={
-                                       'class': 'form-control',
-                                       'placeholder': 'Min salary'
-                                   }),
-            'salary_max':          forms.NumberInput(attrs={
-                                       'class': 'form-control',
-                                       'placeholder': 'Max salary'
-                                   }),
+            'openings':            forms.NumberInput(attrs={'class': 'form-control','min': 1}),
+            'salary_min':          forms.NumberInput(attrs={'class': 'form-control','placeholder': 'Min salary'}),
+            'salary_max':          forms.NumberInput(attrs={'class': 'form-control','placeholder': 'Max salary'}),
             'salary_period':       forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['sector'] = forms.ChoiceField(
+            choices=sector_choices_or_fallback(DEFAULT_JOB_SECTORS),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Sector"
+        )
 
     def clean(self):
         cleaned = super().clean()
@@ -266,10 +281,7 @@ class JobSkillsRequirementsForm(forms.ModelForm):
         model = JobPost
         fields = ['skills', 'responsibilities', 'qualifications', 'benefits']
         widgets = {
-            'skills':          TagWidget(attrs={
-                                    'class': 'form-control',
-                                    'placeholder': 'e.g. Python, Django'
-                                }),
+            'skills':          TagWidget(attrs={'class': 'form-control','placeholder': 'e.g. Python, Django'}),
             'responsibilities':CKEditorWidget(),
             'qualifications':  CKEditorWidget(),
             'benefits':        CKEditorWidget(),
@@ -321,6 +333,16 @@ class JobPostForm(forms.ModelForm):
             'is_active':           forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['sector'] = forms.ChoiceField(
+            choices=sector_choices_or_fallback(DEFAULT_JOB_SECTORS),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+            required=True,
+            label="Sector"
+        )
+
+
 class NotificationSettingsForm(forms.ModelForm):
     class Meta:
         model = CompanyProfile
@@ -335,6 +357,7 @@ class NotificationSettingsForm(forms.ModelForm):
             'notify_on_message':     "Notify me when someone messages",
             'notify_on_application': "Notify me when someone applies",
         }
+
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):

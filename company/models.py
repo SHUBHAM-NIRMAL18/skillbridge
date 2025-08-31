@@ -5,9 +5,6 @@ from django.utils import timezone
 
 User = get_user_model()
 
-# Create your models here.
-
-
 PROVINCE_CHOICES = [
     ("Koshi",        "Koshi (Province No.1)"),
     ("Madhesh",      "Madhesh (Province No.2)"),
@@ -27,6 +24,21 @@ COMPANY_SIZE_CHOICES = [
     ("1001+",  "1001+ employees"),
 ]
 
+
+# NEW: Admin-managed sectors used by both JobPost & InternshipPost
+class Sector(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("display_order", "name")
+
+    def __str__(self):
+        return self.name
+
+
 class CompanyProfile(models.Model):
     logo = models.ImageField(
         upload_to='company_logos/',
@@ -44,9 +56,7 @@ class CompanyProfile(models.Model):
     phone           = models.CharField("Phone Number", max_length=20)
     website_url     = models.URLField("Website URL", blank=True, null=True)
 
-    # now a dropdown of 7 provinces:
     province        = models.CharField(max_length=20, choices=PROVINCE_CHOICES)
-    # free‐text city:
     city            = models.CharField("City", max_length=100)
 
     postal_code     = models.CharField(max_length=20)
@@ -71,7 +81,7 @@ class CompanyProfile(models.Model):
     @property
     def email(self):
         return self.user.email
-    
+
     def save(self, *args, **kwargs):
         # keep the real user.is_active in sync
         if self.user and self.user.is_active != self.is_active:
@@ -80,17 +90,15 @@ class CompanyProfile(models.Model):
         super().save(*args, **kwargs)
 
 
-
 class InternshipPost(models.Model):
-    
     LOCATION_CHOICES = [
         ("Onsite",  "Onsite"),
         ("Remote",  "Remote"),
         ("Hybrid",  "Hybrid"),
     ]
     TYPE_CHOICES = [
-        ("Full‑Time", "Full‑Time"),
-        ("Part‑Time", "Part‑Time"),
+        ("Full-Time", "Full-Time"),
+        ("Part-Time", "Part-Time"),
         ("Contract",  "Contract"),
     ]
     LEVEL_CHOICES = [
@@ -103,13 +111,6 @@ class InternshipPost(models.Model):
         ("Daily",   "Daily"),
         ("Monthly", "Monthly"),
     ]
-    SECTOR_CHOICES = [
-        ("Web Development", "Web Development"),
-        ("UI/UX",           "UI/UX"),
-        ("Marketing",       "Marketing"),
-        ("Data Science",    "Data Science"),
-        # …add as needed…
-    ]
 
     company               = models.ForeignKey(
         "company.CompanyProfile",
@@ -120,7 +121,10 @@ class InternshipPost(models.Model):
     title                 = models.CharField(max_length=100)
     city                  = models.CharField(max_length=100)
     location              = models.CharField(max_length=10, choices=LOCATION_CHOICES)
-    sector                = models.CharField(max_length=50, choices=SECTOR_CHOICES)
+
+    # CHANGED: keep field name 'sector' but remove static choices -> dynamic via forms
+    sector                = models.CharField(max_length=50, help_text="Select from admin-managed sectors")
+
     application_deadline  = models.DateField()
     type                  = models.CharField(max_length=20, choices=TYPE_CHOICES)
     level                 = models.CharField(max_length=20, choices=LEVEL_CHOICES, blank=True)
@@ -138,25 +142,26 @@ class InternshipPost(models.Model):
     responsibilities      = models.TextField(blank=True)
     qualifications        = models.TextField(blank=True)
     benefits              = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active             = models.BooleanField(default=True)
     created_at            = models.DateTimeField(auto_now_add=True)
     updated_at            = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} at {self.company}"
-    
+
     @property
     def status(self):
         if not self.is_active:
-           return "Inactive"
+            return "Inactive"
         return "Active" if self.application_deadline >= timezone.now().date() else "Closed"
-    
+
     @property
     def days_left(self):
         """How many days remain until the deadline."""
         delta = self.application_deadline - timezone.localdate()
         return max(delta.days, 0)
-    
+
+
 class JobPost(models.Model):
     LOCATION_CHOICES = [
         ("Onsite",  "Onsite"),
@@ -183,16 +188,6 @@ class JobPost(models.Model):
         ("Monthly", "Monthly"),
         ("Yearly",  "Yearly"),
     ]
-    SECTOR_CHOICES = [
-        ("IT",         "IT"),
-        ("Finance",    "Finance"),
-        ("Marketing",  "Marketing"),
-        ("Design",     "Design"),
-        ("Data",       "Data"),
-        ("Healthcare", "Healthcare"),
-        ("Education",  "Education"),
-
-    ]
 
     company              = models.ForeignKey(
         CompanyProfile,
@@ -203,9 +198,11 @@ class JobPost(models.Model):
     province             = models.CharField(max_length=20, choices=PROVINCE_CHOICES)
     city                 = models.CharField(max_length=100)
     location_type        = models.CharField(max_length=10, choices=LOCATION_CHOICES)
-    sector               = models.CharField(max_length=50, choices=SECTOR_CHOICES)
-    application_deadline = models.DateField()
 
+    # CHANGED: keep field name 'sector' but remove static choices -> dynamic via forms
+    sector               = models.CharField(max_length=50, help_text="Select from admin-managed sectors")
+
+    application_deadline = models.DateField()
     job_type             = models.CharField(max_length=20, choices=TYPE_CHOICES)
     job_level            = models.CharField(max_length=20, choices=LEVEL_CHOICES)
     experience_required  = models.PositiveIntegerField()
@@ -214,7 +211,6 @@ class JobPost(models.Model):
     salary_min           = models.DecimalField(max_digits=10, decimal_places=2)
     salary_max           = models.DecimalField(max_digits=10, decimal_places=2)
     salary_period        = models.CharField(max_length=10, choices=SALARY_PERIOD_CHOICES)
-
 
     responsibilities     = models.TextField(blank=True)
     skills               = TaggableManager(blank=True)
