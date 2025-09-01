@@ -24,6 +24,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("company/", include("company.urls", namespace="company")),
+    path('company/membership/', include(('membership.urls', 'membership'), namespace='membership')),
     path("candidate/", include("candidate.urls", namespace="candidate")),
     path("", include("accounts.urls")),
     path("", include(("website.urls", "website"), namespace="website")),

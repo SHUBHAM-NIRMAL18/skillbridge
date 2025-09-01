@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "candidate.apps.CandidateConfig",
     'recommendations',
     'applications',
+    "membership.apps.MembershipConfig",
     'bootstrap5',
     'formtools',
     'ckeditor',
@@ -87,6 +88,17 @@ SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
 
 LOGIN_REDIRECT_URL = "index"  # Redirect to the index page after login
 LOGOUT_REDIRECT_URL = "index"  # Redirect to the index page after logout
+
+# --- Credits (Company app) ---
+CREDITS_SIGNUP_BONUS = 50      # new company default
+CREDITS_JOB_POST = 10          # cost per job post
+
+# Pricing (for your Buy Credits UI)
+CREDITS_UNIT_PRICE_RUPEES = 10
+VAT_PERCENT = 13
+CREDIT_DISCOUNTS = {              # % discount by volume
+    50: 0, 200: 5, 500: 10, 1000: 12, 5000: 15, 10000: 18,
+}
 
 TEMPLATES = [
     {

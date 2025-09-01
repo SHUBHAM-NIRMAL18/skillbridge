@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from taggit.managers import TaggableManager
 from django.utils import timezone
+from django.db import transaction
+from django.db.models import F
 
 User = get_user_model()
 
@@ -71,6 +73,11 @@ class CompanyProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    credits_balance = models.PositiveIntegerField(
+        default=50, 
+        help_text="Prepaid credits for job posting"
+    )
+
     class Meta:
         verbose_name = "Company Profile"
         verbose_name_plural = "Company Profiles"
@@ -88,6 +95,29 @@ class CompanyProfile(models.Model):
             self.user.is_active = self.is_active
             self.user.save()
         super().save(*args, **kwargs)
+    
+    def can_spend_credits(self, amount: int) -> bool:
+        return self.credits_balance >= max(0, amount)
+
+    def spend_credits(self, amount: int) -> int:
+        """
+        Atomically deduct `amount` credits from this company.
+        Returns the remaining balance.
+        Raises ValueError('INSUFFICIENT_CREDITS') if not enough.
+        """
+        if amount <= 0:
+            return self.credits_balance
+        with transaction.atomic():
+            # lock the row
+            locked = CompanyProfile.objects.select_for_update().get(pk=self.pk)
+            if locked.credits_balance < amount:
+                raise ValueError("INSUFFICIENT_CREDITS")
+            CompanyProfile.objects.filter(pk=self.pk).update(
+                credits_balance=F("credits_balance") - amount
+            )
+            locked.refresh_from_db(fields=["credits_balance"])
+            return locked.credits_balance
+
 
 
 class InternshipPost(models.Model):

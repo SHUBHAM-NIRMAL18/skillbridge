@@ -97,22 +97,45 @@
           </li>
 
         <!-- Membership (with collapse) -->
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="collapse" href="#collapseMembership" role="button" aria-expanded="false" aria-controls="collapseMembership">
-            <i class="bi bi-card-checklist"></i> Membership
-            <i class="bi bi-chevron-down float-end"></i>
-          </a>
-          <div class="collapse ps-4" id="collapseMembership">
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link" href="#">Plans &amp; Pricing</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Payment History</a>
-              </li>
-            </ul>
-          </div>
-        </li>
+<li class="nav-item">
+  <a class="nav-link {% if request.resolver_match.namespace == 'membership' %}active{% endif %}"
+     data-bs-toggle="collapse"
+     href="#collapseMembership"
+     role="button"
+     aria-expanded="{% if request.resolver_match.namespace == 'membership' %}true{% else %}false{% endif %}"
+     aria-controls="collapseMembership">
+    <i class="bi bi-card-checklist me-2"></i> Membership
+    {% if wallet_balance is not None %}
+      <span class="badge bg-primary-subtle text-primary border ms-2">{{ wallet_balance|default:0 }}</span>
+    {% endif %}
+    <i class="bi bi-chevron-down float-end"></i>
+  </a>
+
+  <div class="collapse ps-4 {% if request.resolver_match.namespace == 'membership' %}show{% endif %}" id="collapseMembership">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.namespace == 'membership' and request.resolver_match.url_name == 'home' %}active{% endif %}"
+           href="{% url 'membership:home' %}">
+          Credits
+        </a>
+      </li>
+      <li class="nav-item">
+        <!-- Jumps to the Usage section on the same Membership Home page -->
+        <a class="nav-link" href="{% url 'membership:home' %}#usage">
+          Credits Usage
+        </a>
+      </li>
+      <!-- optional: direct link to buy -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.namespace == 'membership' and request.resolver_match.url_name == 'select' %}active{% endif %}"
+           href="{% url 'membership:select' %}">
+          Buy Credits
+        </a>
+      </li>
+    </ul>
+  </div>
+</li>
+
         <!-- Contact Us (with collapse) -->
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="collapse" href="#collapseContact" role="button" aria-expanded="false" aria-controls="collapseContact">

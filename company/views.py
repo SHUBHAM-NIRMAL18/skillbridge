@@ -1,49 +1,87 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash, logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import PasswordChangeForm
-from django.views.generic import ListView, UpdateView, DeleteView, DetailView, TemplateView
+from django.views.generic import UpdateView, DeleteView, DetailView, TemplateView
 from django.urls import reverse_lazy, reverse
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
-from django.shortcuts import redirect
 from formtools.wizard.views import SessionWizardView
-from django.views.generic import TemplateView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.conf import settings
+from django.db import transaction
 
-
-from .forms import CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm, InternshipPostForm,JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm, JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
+from .forms import (
+    CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm,
+    InternshipPostForm, JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm,
+    JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
+)
 from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
 from candidate.models import Profile
 
+# Membership wallet helpers
+from membership.services import spend_credits, get_spendable_balance
 
+
+# ---------------------------
+# Guards / Mixins
+# ---------------------------
+
+class RequireCompanyProfileMixin(LoginRequiredMixin):
+    """
+    Ensures the user is a company and has a CompanyProfile row.
+    Redirects to the Company Profile page with a message if missing.
+    """
+    def dispatch(self, request, *args, **kwargs):
+        # must be a company user
+        if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company"):
+            messages.error(request, "Please sign in with a company account.")
+            return redirect("accounts:login")
+
+        # must have completed company profile
+        if not hasattr(request.user, "company_profile"):
+            messages.info(request, "Please complete your company profile before accessing this page.")
+            return redirect("company:profile")
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+# ---------------------------
+# Dashboard
+# ---------------------------
 
 @login_required
 def company_dashboard(request):
-    # (Optional) Enforce role-matching:
-    if request.user.role != request.user.ROLE_COMPANY:
+    if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company"):
         return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        messages.info(request, "Please complete your company profile before accessing the dashboard.")
+        return redirect('company:profile')
     return render(request, 'company/dashboard.html')
 
-class CompanyPostListView(LoginRequiredMixin, TemplateView):
+
+# ---------------------------
+# Company Posts List
+# ---------------------------
+
+class CompanyPostListView(RequireCompanyProfileMixin, TemplateView):
     template_name = "company/all_jobs.html"
     paginate_by = 10  # Number of posts per page
-    
+
     def get_context_data(self, **kwargs):
-        ctx     = super().get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
         company = self.request.user.company_profile
 
         # 1) Base querysets
         internships_qs = company.internships.all()
-        jobs_qs        = company.job_posts.all()
+        jobs_qs = company.job_posts.all()
 
         # 2) Type filter
         t = self.request.GET.get("type_filter", "")
@@ -56,7 +94,7 @@ class CompanyPostListView(LoginRequiredMixin, TemplateView):
         q = self.request.GET.get("search", "").strip()
         if q:
             internships_qs = internships_qs.filter(title__icontains=q)
-            jobs_qs        = jobs_qs.filter(title__icontains=q)
+            jobs_qs = jobs_qs.filter(title__icontains=q)
 
         # 4) Convert to lists & tag each
         internships = list(internships_qs)
@@ -80,7 +118,7 @@ class CompanyPostListView(LoginRequiredMixin, TemplateView):
         # 6) Pagination
         paginator = Paginator(posts, self.paginate_by)
         page_number = self.request.GET.get('page')
-        
+
         try:
             page_obj = paginator.page(page_number)
         except PageNotAnInteger:
@@ -94,10 +132,15 @@ class CompanyPostListView(LoginRequiredMixin, TemplateView):
         ctx["page_obj"] = page_obj
         ctx["paginator"] = paginator
         ctx["is_paginated"] = page_obj.has_other_pages()
-        
+
         return ctx
 
-class InternshipPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+
+# ---------------------------
+# Internship: Update / Delete / Detail
+# ---------------------------
+
+class InternshipPostUpdateView(RequireCompanyProfileMixin, SuccessMessageMixin, UpdateView):
     model = InternshipPost
     form_class = InternshipPostForm
     template_name = 'company/internship_edit.html'
@@ -108,25 +151,41 @@ class InternshipPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateVi
         return self.request.user.company_profile.internships.all()
 
 
-
-class InternshipPostDeleteView(LoginRequiredMixin, DeleteView):
+class InternshipPostDeleteView(RequireCompanyProfileMixin, DeleteView):
     model = InternshipPost
     success_url = reverse_lazy('company:company_all_jobs')
 
     def get_queryset(self):
         return self.request.user.company_profile.internships.all()
 
+    # Ensure message for both POST and DELETE
+    def post(self, request, *args, **kwargs):
+        messages.success(request, "Internship deleted successfully.")
+        return super().delete(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Internship deleted successfully.")
         return super().delete(request, *args, **kwargs)
 
 
+class InternshipPostDetailView(RequireCompanyProfileMixin, DetailView):
+    model = InternshipPost
+    template_name = 'company/internship_detail.html'
+    context_object_name = 'post'
 
-class JobPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    model         = JobPost
-    form_class    = JobPostForm
+    def get_queryset(self):
+        return self.request.user.company_profile.internships.all()
+
+
+# ---------------------------
+# Job: Update / Delete / Detail
+# ---------------------------
+
+class JobPostUpdateView(RequireCompanyProfileMixin, SuccessMessageMixin, UpdateView):
+    model = JobPost
+    form_class = JobPostForm
     template_name = 'company/job_edit.html'
-    success_url   = reverse_lazy('company:company_all_jobs')
+    success_url = reverse_lazy('company:company_all_jobs')
     success_message = "Job updated successfully."
 
     def get_queryset(self):
@@ -134,45 +193,41 @@ class JobPostUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         return self.request.user.company_profile.job_posts.all()
 
 
-
-class JobPostDeleteView(LoginRequiredMixin, DeleteView):
-    model         = JobPost
+class JobPostDeleteView(RequireCompanyProfileMixin, DeleteView):
+    model = JobPost
     template_name = 'company/job_confirm_delete.html'
-    success_url   = reverse_lazy('company:company_all_jobs')
+    success_url = reverse_lazy('company:company_all_jobs')
 
     def get_queryset(self):
         # only allow deleting your own posts
         return self.request.user.company_profile.job_posts.all()
+
+    # Ensure message for both POST and DELETE
+    def post(self, request, *args, **kwargs):
+        messages.success(request, "Job deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Job deleted successfully.")
         return super().delete(request, *args, **kwargs)
 
 
-
-class InternshipPostDetailView(LoginRequiredMixin, DetailView):
-    model = InternshipPost
-    template_name = 'company/internship_detail.html'
-    context_object_name = 'post'
-    def get_queryset(self):
-        return self.request.user.company_profile.internships.all()
-
-
-
-class JobPostDetailView(LoginRequiredMixin, DetailView):
+class JobPostDetailView(RequireCompanyProfileMixin, DetailView):
     model = JobPost
     template_name = 'company/job_detail.html'
     context_object_name = 'post'
+
     def get_queryset(self):
         return self.request.user.company_profile.job_posts.all()
 
 
+# ---------------------------
+# Misc Company pages
+# ---------------------------
 
 @login_required
 def post_choice_view(request):
     return render(request, 'company/post_choice.html')
-
-
 
 
 @login_required
@@ -201,7 +256,9 @@ def company_profile(request):
     })
 
 
-
+# ---------------------------
+# Internship Wizard
+# ---------------------------
 
 FORMS = [
     ('basic', BasicDetailsForm),
@@ -210,7 +267,7 @@ FORMS = [
 ]
 
 INTERNSHIP_TEMPLATES = {
-    'basic':  'company/internship_wizard_basic.html',
+    'basic': 'company/internship_wizard_basic.html',
     'skills': 'company/internship_wizard_skills.html',
     'review': 'company/internship_wizard_review.html',
 }
@@ -218,22 +275,21 @@ INTERNSHIP_TEMPLATES = {
 class InternshipWizard(SessionWizardView):
     form_list = FORMS
     url_name = 'company:internship_step'
-    done_step_name = 'review' 
+    done_step_name = 'review'
     template_name = None
 
     def get_template_names(self):
         return [INTERNSHIP_TEMPLATES[self.steps.current]]
-    
+
     def get_context_data(self, form, **kwargs):
         """
-        Inject the cleaned_data for steps 'basic' & 'skills' 
+        Inject the cleaned_data for steps 'basic' & 'skills'
         so templates can just use {{ basic_data }} & {{ skills_data }}.
         """
         context = super().get_context_data(form=form, **kwargs)
-        context['basic_data']  = self.get_cleaned_data_for_step('basic')  or {}
+        context['basic_data'] = self.get_cleaned_data_for_step('basic') or {}
         context['skills_data'] = self.get_cleaned_data_for_step('skills') or {}
         return context
-
 
     def done(self, form_list, **kwargs):
         data = self.get_all_cleaned_data()
@@ -259,72 +315,115 @@ class InternshipWizard(SessionWizardView):
         return redirect('company:company_all_jobs')
 
 
+# ---------------------------
+# Job Wizard (charges credits)
+# ---------------------------
 
 FORMS = [
-    ('basic',   JobBasicDetailsForm),
+    ('basic', JobBasicDetailsForm),
     ('details', JobSkillsRequirementsForm),
-    ('review',  JobReviewForm),
+    ('review', JobReviewForm),
 ]
 
 TEMPLATES = {
-    'basic':   'company/job_wizard_basic.html',
+    'basic': 'company/job_wizard_basic.html',
     'details': 'company/job_wizard_details.html',
-    'review':  'company/job_wizard_review.html',
+    'review': 'company/job_wizard_review.html',
 }
 
 @method_decorator(login_required, name='dispatch')
-class JobWizard(SessionWizardView):
-    form_list      = FORMS
-    url_name       = 'company:job_step'
+class JobWizard(RequireCompanyProfileMixin, SessionWizardView):
+    form_list = FORMS
+    url_name = 'company:job_step'
     done_step_name = 'review'
-    template_name  = None
+    template_name = None
 
     def get_template_names(self):
         return [TEMPLATES[self.steps.current]]
 
     def get_context_data(self, form, **kwargs):
         ctx = super().get_context_data(form=form, **kwargs)
-        ctx['basic_data']   = self.get_cleaned_data_for_step('basic')   or {}
+        ctx['basic_data'] = self.get_cleaned_data_for_step('basic') or {}
         ctx['details_data'] = self.get_cleaned_data_for_step('details') or {}
         return ctx
 
     def done(self, form_list, **kwargs):
+        # 1) collect wizard data
         data = {}
         for f in form_list:
             data.update(f.cleaned_data)
 
-        job = JobPost.objects.create(
-            company              = self.request.user.company_profile,
-            title                = data['title'],
-            province             = data['province'],
-            city                 = data['city'],
-            location_type        = data['location_type'],
-            sector               = data['sector'],
-            application_deadline = data['application_deadline'],
-            job_type             = data['job_type'],
-            job_level            = data['job_level'],
-            experience_required  = data['experience_required'],
-            experience_unit      = data['experience_unit'],
-            openings             = data['openings'],
-            salary_min           = data['salary_min'],
-            salary_max           = data['salary_max'],
-            salary_period        = data['salary_period'],
-            responsibilities     = data['responsibilities'],
-            qualifications       = data['qualifications'],
-            benefits             = data['benefits'],
-        )
-        job.skills.set(data.get('skills', []))
-        messages.success(self.request, "Job posted successfully!")
-        return redirect(reverse('company:company_all_jobs'))
-    
+        company = self.request.user.company_profile
+        cost = getattr(settings, "CREDITS_JOB_POST", 10)
 
+        try:
+            with transaction.atomic():
+                # 2) charge credits first (atomic; uses wallet/ledger/batches)
+                #    NOTE: raises ValueError("INSUFFICIENT_CREDITS:...") if not enough
+                spend_credits(
+                    company,
+                    amount=cost,
+                    reason="JOB_POST_CREATE",
+                    meta={"flow": "wizard"}
+                )
+
+                # 3) create the job (posted immediately)
+                job = JobPost.objects.create(
+                    company=company,
+                    title=data['title'],
+                    province=data['province'],
+                    city=data['city'],
+                    location_type=data['location_type'],
+                    sector=data['sector'],
+                    application_deadline=data['application_deadline'],
+                    job_type=data['job_type'],
+                    job_level=data['job_level'],
+                    experience_required=data['experience_required'],
+                    experience_unit=data['experience_unit'],
+                    openings=data['openings'],
+                    salary_min=data['salary_min'],
+                    salary_max=data['salary_max'],
+                    salary_period=data['salary_period'],
+                    responsibilities=data['responsibilities'],
+                    qualifications=data['qualifications'],
+                    benefits=data['benefits'],
+                )
+                job.skills.set(data.get('skills', []))
+
+            # 4) success banner with fresh balance from wallet
+            remaining = get_spendable_balance(company)
+            messages.success(
+                self.request,
+                f"Job posted successfully. {cost} credits used. Remaining balance: {remaining}."
+            )
+            return redirect(reverse('company:company_all_jobs'))
+
+        except ValueError as e:
+            # Insufficient credits: spend_credits raises ValueError starting with "INSUFFICIENT_CREDITS"
+            if str(e).startswith("INSUFFICIENT_CREDITS"):
+                available = get_spendable_balance(company)
+                messages.error(
+                    self.request,
+                    f"Not enough credits to post a job. You need {cost} credits, you have {available}."
+                )
+                # nudge to buy credits
+                return redirect(reverse('membership:select'))
+
+            # Any other issue
+            messages.error(self.request, "Could not post the job right now. Please try again.")
+            return redirect(reverse('company:company_all_jobs'))
+
+
+# ---------------------------
+# Settings / Account
+# ---------------------------
 
 @login_required
 def company_settings(request):
-    pw_form    = CustomPasswordChangeForm(request.user, data=request.POST or None)
+    pw_form = CustomPasswordChangeForm(request.user, data=request.POST or None)
     notif_form = NotificationSettingsForm(
         request.POST or None,
-        instance=request.user.company_profile
+        instance=getattr(request.user, "company_profile", None)
     )
 
     if request.method == 'POST':
@@ -334,13 +433,13 @@ def company_settings(request):
             messages.success(request, "Your password has been updated.")
             return redirect('company:company_settings')
 
-        if 'notify_submit' in request.POST and notif_form.is_valid():
+        if 'notify_submit' in request.POST and notif_form and notif_form.is_valid():
             notif_form.save()
             messages.success(request, "Notification settings updated.")
             return redirect('company:company_settings')
 
     return render(request, 'company/settings.html', {
-        'pw_form':    pw_form,
+        'pw_form': pw_form,
         'notif_form': notif_form,
     })
 
@@ -356,8 +455,13 @@ def deactivate_account(request):
     return redirect('index')
 
 
+# ---------------------------
+# Applicants (lists / ajax updates / detail partial)
+# ---------------------------
+
 def _require_company_profile(user):
     return hasattr(user, "company_profile") and user.company_profile is not None
+
 
 @login_required(login_url="accounts:login")
 def applicants_list(request, pk=None, status=None):
@@ -400,9 +504,9 @@ def applicants_list(request, pk=None, status=None):
         qs = qs.filter(status=status)
 
     # Querystring filters
-    typ  = request.GET.get("type", "all")      # all|job|intern
-    q    = request.GET.get("q", "").strip()
-    sort = request.GET.get("sort", "newest")   # newest|oldest
+    typ = request.GET.get("type", "all")      # all|job|intern
+    q = request.GET.get("q", "").strip()
+    sort = request.GET.get("sort", "newest")  # newest|oldest
 
     if typ == "job":
         qs = qs.filter(job_post__isnull=False)
@@ -448,6 +552,7 @@ def applicants_list(request, pk=None, status=None):
         "posting_type": posting_type,
     })
 
+
 @login_required(login_url="accounts:login")
 def applicant_update_status(request, pk):
     """
@@ -473,17 +578,16 @@ def applicant_update_status(request, pk):
 
     # Return the new badge HTML so the row can update without reload
     label = dict(Application.STATUS_CHOICES)[new_status]
-    # Very small badge template for client-side swap:
     badge_html = (
         f'<span class="badge '
         f'{"bg-secondary" if new_status=="applied" else ""}'
         f'{" bg-info text-dark" if new_status=="under_review" else ""}'
         f'{" bg-success" if new_status=="shortlisted" else ""}'
-        f'{" bg-primary" if new_status=="interview" or new_status=="offered" else ""}'
+        f'{" bg-primary" if new_status in ["interview","offered"] else ""}'
         f'{" bg-danger" if new_status=="rejected" else ""}'
         f'{" bg-dark" if new_status=="withdrawn" else ""}'
-        f'{" bg-light text-dark border" if new_status not in ["applied","under_review","shortlisted","interview","offered","rejected","withdrawn"] else ""}'
-        f'">{label}</span>'
+        f'{" bg-light text-dark border" if new_status not in ["applied","under_review","shortlisted","interview","offered","rejected","withdrawn"] else ""}">'
+        f'{label}</span>'
     )
 
     return JsonResponse({"ok": True, "badge": badge_html, "status": new_status})

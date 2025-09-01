@@ -1,0 +1,102 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <div class="col-lg-8">
+
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Select a payment method</h5>
+
+          <form method="post" action="{% url 'membership:checkout' %}" id="payForm">
+            {% csrf_token %}
+            <!-- Expect qty carried from select; fallback default -->
+            <input type="hidden" name="qty" value="{{ request.GET.qty|default:'200' }}">
+
+            <!-- Khalti -->
+            <div class="form-check border rounded p-3 mb-2">
+              <input class="form-check-input" type="radio" name="method" id="mKhalti" value="KHALTI">
+              <label class="form-check-label d-block" for="mKhalti">
+                <strong>Khalti</strong>
+                <div class="small text-muted">
+                  You’ll be redirected to Khalti to complete payment. Don’t close the window until you return here.
+                </div>
+              </label>
+            </div>
+
+            <!-- eSewa -->
+            <div class="form-check border rounded p-3 mb-2">
+              <input class="form-check-input" type="radio" name="method" id="mEsewa" value="ESEWA">
+              <label class="form-check-label d-block" for="mEsewa">
+                <strong>eSewa</strong>
+                <div class="small text-muted">
+                  You’ll be redirected to eSewa. Login, confirm amount, enter OTP, and you’ll come back automatically.
+                </div>
+              </label>
+            </div>
+
+            <!-- Bank Transfer (static details) -->
+            <div class="form-check border rounded p-3 mb-2">
+              <input class="form-check-input" type="radio" name="method" id="mBank" value="BANK">
+              <label class="form-check-label d-block" for="mBank">
+                <strong>Bank Transfer</strong>
+                <div class="small">
+                  <div><span class="text-muted">Bank:</span> <strong>Your Bank Name</strong></div>
+                  <div><span class="text-muted">Account Name:</span> <strong>Your Company Pvt. Ltd.</strong></div>
+                  <div><span class="text-muted">Account Number:</span> <strong>00123456789012</strong></div>
+                  <div><span class="text-muted">Branch:</span> <strong>Kathmandu</strong></div>
+                  <div><span class="text-muted">SWIFT/BIC:</span> <strong>XXXXNPKA</strong></div>
+                  <div class="text-muted mt-1">Use your <strong>Order Code</strong> in the remarks.</div>
+                </div>
+              </label>
+              <div class="mt-2">
+                <a href="{% url 'membership:upload_receipt' %}" class="btn btn-outline-secondary btn-sm">Upload Receipt</a>
+              </div>
+            </div>
+
+            <!-- QR Payment -->
+            <div class="form-check border rounded p-3">
+              <input class="form-check-input" type="radio" name="method" id="mQR" value="QR">
+              <label class="form-check-label d-block" for="mQR">
+                <strong>QR Payment</strong>
+                <div class="d-flex align-items-center gap-3 mt-2">
+                  <img src="{% static 'img/payment-qr.png' %}" alt="Skill Bridge Payment QR" style="width: 200px; height: 200px; object-fit: contain; background:#fff; border:1px solid #eee;">
+                  <div class="small text-muted">
+                    <div>Scan using your bank or wallet app:</div>
+                    <div class="mt-1">fonepay • NepalPay • SmartQR</div>
+                    <ol class="mt-2 mb-0 ps-3">
+                      <li>Open your app and choose <em>Scan to Pay</em>.</li>
+                      <li>Enter the exact payable amount.</li>
+                      <li>Complete the payment and save the receipt.</li>
+                    </ol>
+                    <a href="{% url 'membership:upload_receipt' %}" class="btn btn-outline-secondary btn-sm mt-2">Upload Receipt</a>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <div class="mt-3">
+              <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+      <p class="small text-muted">
+        Orders remain <strong>Pending</strong> until we receive confirmation from the gateway or verify your receipt.
+        All totals include <strong>13% VAT</strong>. Credits are added instantly after successful confirmation.
+      </p>
+    </div>
+
+    <!-- You can also add a summary card here if you prefer -->
+    <div class="col-lg-4">
+      <!-- optional: show qty & total again -->
+    </div>
+  </div>
+</div>
+{% endblock %}
