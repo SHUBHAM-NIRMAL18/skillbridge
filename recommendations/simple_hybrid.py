@@ -8,15 +8,13 @@ import re
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from .skill_normalization import SKILL_SYNONYMS
 
 #VERSION = "1.0.0"  # version of this module
 EVENT_WEIGHTS = {"view": 1.0, "save": 3.0, "apply": 6.0, "dismiss": -2.0}
 DECAY_LAMBDA = 0.02         # ~35-day half-life
 WINDOW_DAYS = 90            # collaborative lookback
-SKILL_SYNONYMS = {          # small normalizer for skills
-    "js": "javascript", "reactjs": "react", "react.js": "react", "node": "nodejs",
-    "drf": "django rest framework", "ps": "photoshop"
-}
+
 
 # ——————————————————————————————————————————
 # Lazy model getters (adjust app labels if different)
