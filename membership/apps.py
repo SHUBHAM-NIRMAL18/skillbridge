@@ -5,4 +5,4 @@ class MembershipConfig(AppConfig):
     name = "membership"
 
     def ready(self):
-        from . import signals  # noqa
+        from . import signals  

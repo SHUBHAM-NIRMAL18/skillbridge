@@ -92,7 +92,7 @@ class Payment(models.Model):
     status = models.CharField(max_length=12, choices=PaymentStatus.choices, default=PaymentStatus.INITIATED)
     requested_amount_paisa = models.IntegerField()
     verified_amount_paisa = models.IntegerField(null=True, blank=True)
-    provider_ref = models.CharField(max_length=80, null=True, blank=True)  # Khalti pidx / eSewa txn uuid
+    provider_ref = models.CharField(max_length=80, null=True, blank=True, db_index=True)  # Khalti pidx / eSewa txn uuid
     provider_txn_id = models.CharField(max_length=80, null=True, blank=True)  # e.g., eSewa refId
     raw_payload = models.JSONField(default=dict, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)

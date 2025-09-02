@@ -1,0 +1,71 @@
+{% extends "company/base.html" %}
+{% load humanize static %}
+
+{% block title %}Bank / QR Payment{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Bank / QR Payment</h2>
+    <a href="{% url 'membership:home' %}" class="btn btn-outline-secondary btn-sm">Back to Membership</a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Order -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1">Order #{{ order.code }}</h5>
+          <p class="text-muted small mb-3">Pay the amount below and upload your receipt for verification.</p>
+
+          <div class="d-flex justify-content-between">
+            <span>Credits</span>
+            <strong>{{ order.credits_qty|intcomma }}</strong>
+          </div>
+          <div class="d-flex justify-content-between border-top pt-2 mt-2">
+            <span class="fw-semibold">Amount Payable</span>
+            <strong class="h5 mb-0">Rs {{ amount_rupees|intcomma }}</strong>
+          </div>
+
+          <div class="alert alert-info mt-3 mb-0 small">
+            Note: Your order will remain pending until we verify your receipt. You’ll receive credits automatically after approval.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Static Bank/QR details -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title mb-1">Payment Details</h5>
+          <div class="small text-muted mb-3">Use any bank app or QR scanner.</div>
+
+          <div class="border rounded p-3">
+            <div class="d-flex justify-content-between"><span>Bank</span><strong>Your Bank Ltd.</strong></div>
+            <div class="d-flex justify-content-between"><span>Account Name</span><strong>Skill Bridge Pvt. Ltd.</strong></div>
+            <div class="d-flex justify-content-between"><span>Account No.</span><strong>00123456789</strong></div>
+            <div class="d-flex justify-content-between"><span>Branch</span><strong>Kathmandu Main</strong></div>
+          </div>
+
+          <!-- Optional QR image: place a file at static/membership/img/qr.png -->
+          <div class="text-center mt-3">
+            <img src="{% static 'membership/img/qr.png' %}" alt="QR Code" class="img-fluid" style="max-height:200px;"
+                 onerror="this.style.display='none'">
+            <div class="small text-muted mt-1">Scan to pay (preferred)</div>
+          </div>
+
+          <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-outline-secondary" href="{% url 'membership:home' %}">Done, Go Back</a>
+            <a class="btn btn-primary" href="{% url 'membership:upload_receipt' %}">Upload Receipt</a>
+          </div>
+
+          <div class="small text-muted mt-3">
+            Need help? Email <a href="mailto:support@skillbridge.com">support@skillbridge.com</a> with your order code and receipt.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

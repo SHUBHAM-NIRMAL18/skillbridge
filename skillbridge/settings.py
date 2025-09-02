@@ -99,6 +99,13 @@ VAT_PERCENT = 13
 CREDIT_DISCOUNTS = {              # % discount by volume
     50: 0, 200: 5, 500: 10, 1000: 12, 5000: 15, 10000: 18,
 }
+# Membership credit packs (quantities)
+CREDIT_PACKS = [50, 200, 500, 1000, 5000, 10000]
+
+#--for Khalti Payment Gateway--
+SITE_BASE_URL = env("SITE_BASE_URL")  
+KHALTI_BASE_URL = env("KHALTI_BASE_URL")
+KHALTI_SECRET_KEY = env("KHALTI_SECRET_KEY")
 
 TEMPLATES = [
     {
@@ -157,7 +164,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kathmandu"
 
 USE_I18N = True
 
