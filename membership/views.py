@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.http import HttpResponseBadRequest
 from django.urls import reverse
 from django.conf import settings
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.templatetags.static import static
 
 from .models import CompanyWallet, WalletTransaction, OrderStatus, PayMethod, Order, Payment, PaymentStatus
 from .services import (
@@ -218,3 +221,51 @@ def bank_order(request, code: str):
 def upload_receipt(request):
     messages.info(request, "Receipt upload coming soon. For now, email support with your proof of payment.")
     return redirect(reverse("membership:home"))
+
+
+
+# ------------------------
+# Receipt PDF generation (simple HTML to PDF via browser)  
+# ------------------------
+@login_required
+def receipt_pdf(request, code: str):
+    order = get_object_or_404(Order, code=code, company=request.user.company_profile)
+    if order.status != OrderStatus.PAID:
+        messages.error(request, "Receipt is available only after payment is confirmed.")
+        return redirect("membership:home")
+
+    logo_url = request.build_absolute_uri(static("icons/sb-logo.png"))
+
+    unit_rupees = order.unit_price_paisa // 100
+    base_rupees = (order.credits_qty * order.unit_price_paisa) // 100
+    subtotal_rupees = order.subtotal_paisa // 100            # after discount, before VAT
+    discount_rupees = base_rupees - subtotal_rupees          # discount amount
+    vat_rupees = (order.total_paisa - order.subtotal_paisa) // 100
+    total_rupees = order.total_paisa // 100
+
+    ctx = {
+        "order": order,
+        "company_display": getattr(order.company, "name", "")
+                           or f"{getattr(order.company, 'first_name', '')} {getattr(order.company, 'last_name','')}".strip()
+                           or "Your Company",
+        "logo_url": logo_url,
+        "unit_rupees": unit_rupees,
+        "base_rupees": base_rupees,
+        "subtotal_rupees": subtotal_rupees,
+        "discount_rupees": discount_rupees,
+        "vat_rupees": vat_rupees,
+        "total_rupees": total_rupees,
+        "vat_percent": order.vat_percent,
+        "discount_percent": order.discount_percent,
+        "paid_at": order.paid_at,
+    }
+
+    html = render_to_string("membership/receipt.html", ctx)
+    try:
+        from weasyprint import HTML
+        pdf_bytes = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        resp = HttpResponse(pdf_bytes, content_type="application/pdf")
+        resp["Content-Disposition"] = f'attachment; filename="Receipt-{order.code}.pdf"'
+        return resp
+    except Exception:
+        return HttpResponse(html)

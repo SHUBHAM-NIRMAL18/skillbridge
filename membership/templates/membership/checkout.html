@@ -5,170 +5,494 @@
 
 {% block content %}
 <style>
-  /* ——— Tiny, scoped styling for a richer UI ——— */
+  /* Enhanced Checkout Styling */
+  .checkout-header {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(108, 117, 125, 0.03));
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(13, 110, 253, 0.1);
+  }
+
+  .progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .step.completed {
+    background: #d1edff;
+    color: #0d6efd;
+  }
+
+  .step.active {
+    background: linear-gradient(135deg, #0d6efd, #6610f2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+  }
+
+  .step.upcoming {
+    background: #f8f9fa;
+    color: #6c757d;
+  }
+
   .sb-surface {
     background: linear-gradient(135deg, rgba(13,110,253,0.06), rgba(13,110,253,0.02));
     border: 1px solid rgba(13,110,253,0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
+
+  .summary-card {
+    position: sticky;
+    top: 2rem;
+  }
+
   .method-card {
-    transition: all .18s ease;
-    border: 1px solid #e6e9ef;
+    transition: all 0.25s ease;
+    border: 2px solid #e6e9ef;
+    border-radius: 16px;
+    cursor: pointer;
+    background: white;
+    overflow: hidden;
+    position: relative;
   }
-  .btn-check:checked + .method-card,
+
+  .btn-check:checked + .method-card {
+    border-color: #0d6efd !important;
+    box-shadow: 0 8px 30px rgba(13,110,253,0.2);
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.02), rgba(13, 110, 253, 0.01));
+  }
+
   .method-card:hover {
     border-color: #0d6efd !important;
-    box-shadow: 0 0.25rem 1rem rgba(13,110,253,.15);
-    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(13,110,253,0.15);
+    transform: translateY(-2px);
   }
+
+  .method-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    transition: all 0.25s ease;
+  }
+
+  .btn-check:checked + .method-card::before {
+    background: linear-gradient(90deg, #0d6efd, #6610f2, #d63384);
+  }
+
   .logo {
-    display: block; max-height: 28px; width: auto;
-    filter: saturate(1.15);
+    display: block;
+    max-height: 40px;
+    width: auto;
+    filter: saturate(1.2) brightness(1.1);
+    transition: transform 0.2s ease;
   }
-  .summary-line { display:flex; justify-content:space-between; margin:.25rem 0; }
-  .summary-line + .summary-line { margin-top:.35rem; }
-  .summary-divider { border-top:1px dashed #e6e9ef; margin:.6rem 0 .8rem; }
-  .trust-badges img { height:20px; opacity:.9 }
+
+  .method-card:hover .logo {
+    transform: scale(1.05);
+  }
+
+  .summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.4rem 0;
+    padding: 0.25rem 0;
+  }
+
+  .summary-line + .summary-line {
+    margin-top: 0.4rem;
+  }
+
+  .summary-divider {
+    border-top: 2px dashed rgba(13, 110, 253, 0.2);
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  .summary-divider::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 2px dashed rgba(13, 110, 253, 0.2);
+    border-radius: 50%;
+  }
+
+  .trust-badges {
+    background: rgba(40, 167, 69, 0.05);
+    border: 1px solid rgba(40, 167, 69, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .trust-badges img {
+    height: 24px;
+    opacity: 0.9;
+  }
+
+  .payment-methods-header {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(13, 110, 253, 0.02));
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .recommended-badge {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  }
+
+  .coming-soon-badge {
+    background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .verification-badge {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .checkout-actions {
+    background: rgba(248, 249, 250, 0.8);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border: 1px solid #e9ecef;
+  }
+
+  .pay-button {
+    background: linear-gradient(135deg, #0d6efd, #6610f2) !important;
+    border: none !important;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .pay-button:hover {
+    background: linear-gradient(135deg, #0b5ed7, #5a0fc8) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+  }
+
+  .back-button {
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .back-button:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+    transform: translateX(-2px);
+  }
+
+  .security-info {
+    background: rgba(13, 110, 253, 0.05);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .progress-steps {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .checkout-header {
+      padding: 1rem;
+    }
+    
+    .summary-card {
+      position: static;
+    }
+  }
 </style>
 
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="h5 mb-1">Checkout</h2>
-      <div class="text-muted small">Review your order and choose how you’d like to pay.</div>
+  <!-- Enhanced Header with Progress -->
+  <div class="checkout-header">
+    <div class="progress-steps">
+      <div class="step completed">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Select Package</span>
+      </div>
+      <i class="bi bi-chevron-right text-muted"></i>
+      <div class="step active">
+        <i class="bi bi-credit-card"></i>
+        <span>Checkout</span>
+      </div>
+      <i class="bi bi-chevron-right text-muted"></i>
+      <div class="step upcoming">
+        <i class="bi bi-check-circle"></i>
+        <span>Complete</span>
+      </div>
     </div>
-    <a href="{% url 'membership:select' %}?qty={{ qty }}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-arrow-left"></i> Back to Packs
-    </a>
+    
+    <div class="text-center">
+      <h2 class="h4 mb-2 fw-bold text-dark">💳 Secure Checkout</h2>
+      <p class="text-muted mb-0">Review your order and choose your preferred payment method</p>
+    </div>
+    
+    <div class="text-end mt-3">
+      <a href="{% url 'membership:select' %}?qty={{ qty }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Packages
+      </a>
+    </div>
   </div>
 
   <div class="row g-4">
-    <!-- Summary -->
+    <!-- Enhanced Order Summary -->
     <div class="col-lg-5">
-      <div class="card shadow-sm sb-surface">
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-receipt-cutoff text-primary"></i>
-            <h5 class="card-title mb-0">Order Summary</h5>
-          </div>
-          <div class="text-muted small mb-3">Double-check your totals before proceeding.</div>
+      <div class="summary-card">
+        <div class="card border-0 shadow-lg sb-surface">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="summary-icon">
+                <i class="bi bi-receipt-cutoff"></i>
+              </div>
+              <div>
+                <h5 class="card-title mb-1 fw-bold">📋 Order Summary</h5>
+                <p class="text-muted small mb-0">Review your purchase details</p>
+              </div>
+            </div>
 
-          <div class="summary-line"><span>Credits</span><strong>{{ qty|intcomma }}</strong></div>
-          <div class="summary-line"><span>Unit Price</span><strong>Rs {{ unit_rupees|intcomma }}</strong></div>
-          <div class="summary-line"><span>Subtotal</span><strong>Rs {{ base_rupees|intcomma }}</strong></div>
-          <div class="summary-line">
-            <span>Discount ({{ pricing.discount_percent }}%)</span>
-            <strong class="text-success">− Rs {{ discount_rupees|intcomma }}</strong>
-          </div>
-          <div class="summary-divider"></div>
-          <div class="summary-line"><span>VAT ({{ pricing.vat_percent }}%)</span><strong>Rs {{ vat_rupees|intcomma }}</strong></div>
-          <div class="summary-divider"></div>
-          <div class="summary-line">
-            <span class="fw-semibold">Total Payable</span>
-            <strong class="h5 mb-0">Rs {{ total_rupees|intcomma }}</strong>
-          </div>
+            <div class="order-details">
+              <div class="summary-line">
+                <span class="text-muted">Credits Package</span>
+                <strong class="text-primary">{{ qty|intcomma }} credits</strong>
+              </div>
+              <div class="summary-line">
+                <span class="text-muted">Unit Price</span>
+                <strong>Rs {{ unit_rupees|intcomma }}</strong>
+              </div>
+              <div class="summary-line">
+                <span class="text-muted">Subtotal</span>
+                <strong>Rs {{ base_rupees|intcomma }}</strong>
+              </div>
+              {% if discount_rupees > 0 %}
+              <div class="summary-line">
+                <span class="text-muted d-flex align-items-center">
+                  <i class="bi bi-tag me-1"></i>Discount ({{ pricing.discount_percent }}%)
+                </span>
+                <strong class="text-success">− Rs {{ discount_rupees|intcomma }}</strong>
+              </div>
+              {% endif %}
+              
+              <div class="summary-divider"></div>
+              
+              <div class="summary-line">
+                <span class="text-muted">VAT ({{ pricing.vat_percent }}%)</span>
+                <strong>Rs {{ vat_rupees|intcomma }}</strong>
+              </div>
+              
+              <div class="summary-divider"></div>
+              
+              <div class="summary-line total-line">
+                <span class="fw-bold fs-5">💰 Total Payable</span>
+                <strong class="h4 mb-0 text-success">Rs {{ total_rupees|intcomma }}</strong>
+              </div>
+            </div>
 
-          <div class="small text-muted mt-3">
-            You’ll receive <strong>{{ qty|intcomma }}</strong> credits instantly after a successful online payment.
-            1 job publish = <strong>{{ job_cost }}</strong> credits.
-          </div>
+            <div class="credit-info">
+              <div class="alert alert-info border-0 bg-info-subtle mt-3">
+                <div class="d-flex align-items-start gap-2">
+                  <i class="bi bi-info-circle text-info mt-1"></i>
+                  <div class="small">
+                    <strong>Instant Credit Delivery:</strong> You'll receive <strong class="text-info">{{ qty|intcomma }} credits</strong> immediately after successful payment.
+                    <br><span class="text-muted">1 job publish = {{ job_cost }} credits</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <div class="mt-3 trust-badges d-flex align-items-center gap-2 text-muted small">
-            <span>Secured by</span>
-            <img src="{% static 'membership/img/lock.svg' %}" alt="" onerror="this.style.display='none'">
-            <span>SSL · PCI DSS gateways</span>
+            <div class="trust-badges">
+              <div class="d-flex align-items-center justify-content-center gap-3 text-success">
+                <i class="bi bi-shield-fill-check fs-5"></i>
+                <div class="small fw-semibold">
+                  <div>🔒 SSL Encrypted</div>
+                  <div class="text-muted">PCI DSS Compliant</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Payment methods -->
+    <!-- Enhanced Payment Methods -->
     <div class="col-lg-7">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-credit-card-2-front text-primary"></i>
-            <h5 class="card-title mb-0">Choose Payment Method</h5>
+      <div class="card border-0 shadow-lg">
+        <div class="card-body p-4">
+          <div class="payment-methods-header">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="payment-icon">
+                <i class="bi bi-credit-card-2-front text-primary fs-4"></i>
+              </div>
+              <div>
+                <h5 class="card-title mb-1 fw-bold">💳 Choose Payment Method</h5>
+                <p class="text-muted small mb-0">Select how you'd like to complete your purchase</p>
+              </div>
+            </div>
           </div>
-          <p class="text-muted small mb-3">Online gateways confirm automatically after you return; Bank/QR needs receipt verification.</p>
 
           <form method="post" action="{% url 'membership:checkout' %}">
             {% csrf_token %}
             <input type="hidden" name="qty" value="{{ qty }}">
 
-            <div class="row g-3">
+            <div class="payment-options">
               <!-- Khalti -->
-              <div class="col-12">
+              <div class="mb-3">
                 <input class="btn-check" type="radio" name="method" value="KHALTI" id="pay_khalti" checked>
-                <label class="method-card card btn w-100 text-start" for="pay_khalti">
-                  <div class="card-body d-flex align-items-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                      <!-- SVG with PNG fallback -->
-                      <img
-                        class="logo"
-                        src="{% static 'membership/img/khalti.svg' %}"
-                        data-fallback="{% static 'membership/img/khalti.png' %}"
-                        alt="Khalti"
-                        onerror="this.onerror=null;this.src=this.dataset.fallback;">
-                      <div>
-                        <div class="fw-semibold">Khalti</div>
-                        <div class="small text-muted">Instant confirmation (sandbox)</div>
+                <label class="method-card card btn w-100 text-start p-0" for="pay_khalti">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-3">
+                        <img
+                          class="logo"
+                          src="{% static 'membership/img/khalti.svg' %}"
+                          data-fallback="{% static 'membership/img/khalti.png' %}"
+                          alt="Khalti"
+                          onerror="this.onerror=null;this.src=this.dataset.fallback;">
+                        <div>
+                          <div class="fw-bold fs-6">Khalti Digital Wallet</div>
+                          <div class="small text-muted d-flex align-items-center gap-1">
+                            <i class="bi bi-lightning-charge text-warning"></i>
+                            Instant confirmation (sandbox)
+                          </div>
+                        </div>
                       </div>
+                      <span class="recommended-badge">
+                        <i class="bi bi-star-fill me-1"></i>Recommended
+                      </span>
                     </div>
-                    <span class="badge text-bg-primary-subtle border">Recommended</span>
                   </div>
                 </label>
               </div>
 
               <!-- eSewa -->
-              <div class="col-12">
+              <div class="mb-3">
                 <input class="btn-check" type="radio" name="method" value="ESEWA" id="pay_esewa">
-                <label class="method-card card btn w-100 text-start" for="pay_esewa">
-                  <div class="card-body d-flex align-items-center gap-3">
-                    <img
-                      class="logo"
-                      src="{% static 'membership/img/esewa.svg' %}"
-                      data-fallback="{% static 'membership/img/esewa1.png' %}"
-                      alt="eSewa"
-                      onerror="this.onerror=null;this.src=this.dataset.fallback;">
-                    <div>
-                      <div class="fw-semibold">eSewa</div>
-                      <div class="small text-muted">Instant confirmation (coming soon)</div>
+                <label class="method-card card btn w-100 text-start p-0" for="pay_esewa">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-3">
+                        <img
+                          class="logo"
+                          src="{% static 'membership/img/esewa.svg' %}"
+                          data-fallback="{% static 'membership/img/esewa1.png' %}"
+                          alt="eSewa"
+                          onerror="this.onerror=null;this.src=this.dataset.fallback;">
+                        <div>
+                          <div class="fw-bold fs-6">eSewa Digital Payment</div>
+                          <div class="small text-muted d-flex align-items-center gap-1">
+                            <i class="bi bi-clock text-warning"></i>
+                            Instant confirmation (coming soon)
+                          </div>
+                        </div>
+                      </div>
+                      <span class="coming-soon-badge">
+                        <i class="bi bi-hourglass-split me-1"></i>Coming Soon
+                      </span>
                     </div>
                   </div>
                 </label>
               </div>
 
               <!-- Bank / QR -->
-              <div class="col-12">
+              <div class="mb-3">
                 <input class="btn-check" type="radio" name="method" value="BANK" id="pay_bank">
-                <label class="method-card card btn w-100 text-start" for="pay_bank">
-                  <div class="card-body d-flex align-items-center gap-3">
-                    <img
-                      class="logo"
-                      src="{% static 'membership/img/bank.svg' %}"
-                      data-fallback="{% static 'membership/img/bank.png' %}"
-                      alt="Bank / QR"
-                      onerror="this.onerror=null;this.src=this.dataset.fallback;">
-                    <div>
-                      <div class="fw-semibold">Bank / QR</div>
-                      <div class="small text-muted">Upload receipt • verified within 24–48h</div>
+                <label class="method-card card btn w-100 text-start p-0" for="pay_bank">
+                  <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-3">
+                        <img
+                          class="logo"
+                          src="{% static 'membership/img/bank.svg' %}"
+                          data-fallback="{% static 'membership/img/bank.png' %}"
+                          alt="Bank / QR"
+                          onerror="this.onerror=null;this.src=this.dataset.fallback;">
+                        <div>
+                          <div class="fw-bold fs-6">Bank Transfer / QR Code</div>
+                          <div class="small text-muted d-flex align-items-center gap-1">
+                            <i class="bi bi-upload text-info"></i>
+                            Upload receipt • verified within 24–48h
+                          </div>
+                        </div>
+                      </div>
+                      <span class="verification-badge">
+                        <i class="bi bi-person-check me-1"></i>Manual Verify
+                      </span>
                     </div>
                   </div>
                 </label>
               </div>
             </div>
 
-            <div class="d-flex flex-wrap gap-2 mt-3">
-              <a class="btn btn-light" href="{% url 'membership:select' %}?qty={{ qty }}">
-                <i class="bi bi-arrow-left"></i> Back
-              </a>
-              <button id="payCta" class="btn btn-primary" type="submit">
-                Pay with Khalti
-              </button>
+            <div class="checkout-actions">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <a class="btn back-button" href="{% url 'membership:select' %}?qty={{ qty }}">
+                  <i class="bi bi-arrow-left me-2"></i>Back to Packages
+                </a>
+                <button id="payCta" class="btn btn-primary pay-button" type="submit">
+                  <i class="bi bi-credit-card me-2"></i>Pay with Khalti
+                  <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+              </div>
             </div>
 
-            <div class="small text-muted mt-3">
-              By continuing, you agree that failed/canceled transactions won’t be charged; successful payments are non-refundable.
+            <div class="security-info">
+              <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-shield-check text-primary mt-1"></i>
+                <div class="small text-muted">
+                  <strong>Security Promise:</strong> By continuing, you agree that failed/canceled transactions won't be charged. 
+                  All successful payments are processed securely and are non-refundable.
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -177,8 +501,40 @@
   </div>
 </div>
 
+<style>
+.summary-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.payment-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.total-line {
+  background: rgba(40, 167, 69, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  border: 1px solid rgba(40, 167, 69, 0.1);
+}
+</style>
+
 <script>
-  // Swap CTA label based on selected method
+  // Enhanced CTA label swapping with icons
   (function () {
     const form = document.querySelector('form[action$="{% url "membership:checkout" %}"]');
     if (!form) return;
@@ -187,9 +543,13 @@
 
     function setLabel() {
       const v = form.querySelector('input[name="method"]:checked')?.value || 'KHALTI';
-      if (v === 'KHALTI') cta.textContent = 'Pay with Khalti';
-      else if (v === 'ESEWA') cta.textContent = 'Continue (eSewa coming soon)';
-      else cta.textContent = 'Place Bank/QR Order';
+      if (v === 'KHALTI') {
+        cta.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay with Khalti<i class="bi bi-arrow-right ms-2"></i>';
+      } else if (v === 'ESEWA') {
+        cta.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Continue (eSewa coming soon)<i class="bi bi-arrow-right ms-2"></i>';
+      } else {
+        cta.innerHTML = '<i class="bi bi-bank me-2"></i>Place Bank/QR Order<i class="bi bi-arrow-right ms-2"></i>';
+      }
     }
     radios.forEach(r => r.addEventListener('change', setLabel));
     setLabel(); // initial

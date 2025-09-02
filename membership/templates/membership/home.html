@@ -6,170 +6,465 @@
 {% block content %}
 <div class="container py-4">
 
-  <!-- Page header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <nav aria-label="breadcrumb" class="small mb-1">
-        <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><a href="{% url 'company:dashboard' %}">Dashboard</a></li>
-          <li class="breadcrumb-item active">Membership</li>
-        </ol>
-      </nav>
-      <h2 class="h4 mb-0">Membership / Credits</h2>
+  <!-- Enhanced Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <nav aria-label="breadcrumb" class="small mb-2">
+          <ol class="breadcrumb mb-0 enhanced-breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="{% url 'company:dashboard' %}" class="text-decoration-none">
+                <i class="bi bi-house-door me-1"></i>Dashboard
+              </a>
+            </li>
+            <li class="breadcrumb-item active fw-medium">Membership</li>
+          </ol>
+        </nav>
+        <h2 class="h3 mb-1 fw-bold text-dark">💎 Membership & Credits</h2>
+        <p class="text-muted small mb-0">Manage your credits and view billing history</p>
+      </div>
+      <a href="{% url 'membership:select' %}" class="btn btn-primary btn-lg px-4 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-plus-circle me-2"></i>Buy Credits
+        <i class="bi bi-arrow-right ms-1"></i>
+      </a>
     </div>
-    <a href="{% url 'membership:select' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i> Buy Credits
-    </a>
   </div>
 
-  <!-- Hero balance strip -->
-  <div class="card border-0 shadow-sm mb-4"
-       style="background: linear-gradient(135deg, rgba(25,118,210,.10), rgba(25,118,210,.03));">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-             style="width:48px;height:48px;background:#0d6efd1a;">
-          <i class="bi bi-gem fs-4 text-primary"></i>
-        </div>
-        <div>
-          <div class="text-muted small">Your Available Credit</div>
-          <div class="d-flex align-items-baseline gap-2">
-            <div class="display-6 fw-bold mb-0">{{ balance|intcomma }}</div>
-            <span class="text-muted">credits</span>
+  <!-- Enhanced Hero Balance Card -->
+  <div class="hero-balance-card mb-4">
+    <div class="card border-0 shadow-lg overflow-hidden">
+      <div class="card-body p-4 position-relative">
+        <div class="balance-gradient"></div>
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center gap-4">
+              <div class="balance-icon">
+                <i class="bi bi-gem"></i>
+              </div>
+              <div>
+                <div class="text-muted small mb-1">💰 Your Available Credits</div>
+                <div class="d-flex align-items-baseline gap-2 mb-2">
+                  <div class="display-4 fw-bold text-primary mb-0">{{ balance|intcomma }}</div>
+                  <span class="text-muted fs-5">credits</span>
+                </div>
+                <div class="small text-muted d-flex align-items-center">
+                  <i class="bi bi-info-circle me-1"></i>
+                  1 job publish = {{ job_cost }} credits
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="small text-muted">1 job publish = {{ job_cost }} credits</div>
+          <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="d-flex flex-column gap-2">
+              <span class="badge bg-primary text-white px-3 py-2 rounded-pill fs-6">
+                <i class="bi bi-credit-card me-1"></i>PREPAID ACCOUNT
+              </span>
+              <span class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill">
+                <i class="bi bi-check-circle me-1"></i>No charges for CV/Contact viewing
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="text-end">
-        <span class="badge bg-primary-subtle text-primary border border-primary me-2">PREPAID</span>
-        <span class="badge bg-light text-dark border">No charges for viewing CV/Email/Contact</span>
       </div>
     </div>
   </div>
 
-  <!-- Two-column content -->
-  <div class="row g-3">
+  <!-- Enhanced Two-column Content -->
+  <div class="row g-4">
 
-    <!-- Usage Details -->
-    <div class="col-lg-6">
-      <div class="card shadow-sm h-100" id="usage">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="card-title mb-0">Usage Details</h5>
-            <span class="small text-muted">
+    <!-- Enhanced Usage Details -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100 usage-card" id="usage">
+        <div class="card-header bg-white border-0 pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+              <i class="bi bi-bar-chart-line me-2 text-primary"></i>Usage Details
+            </h5>
+            <span class="badge bg-light text-muted border">
               {% with used=transactions|length %}{{ used }} entries{% endwith %}
             </span>
           </div>
+        </div>
+        <div class="card-body pt-3">
+          <div class="usage-items">
+            <!-- Job Listing -->
+            <div class="usage-item">
+              <div class="usage-item-header">
+                <div class="usage-icon bg-primary">
+                  <i class="bi bi-briefcase"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold text-dark">Job Listing Publish</div>
+                  <div class="small text-muted">{{ job_cost }} credits per publish</div>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2">{{ job_cost }}</span>
+              </div>
+              <div class="usage-description">
+                <i class="bi bi-info-circle me-1"></i>
+                Credits are charged only when you publish a job (drafts are free).
+              </div>
+            </div>
 
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex justify-content-between align-items-start">
-              <div class="pe-3">
-                <strong>Job Listing Publish</strong>
-                <span class="text-muted"> — {{ job_cost }} credits per publish</span>
-                <div class="small text-muted">Credits are charged only when you publish a job (drafts are free).</div>
+            <!-- Resume Viewing -->
+            <div class="usage-item">
+              <div class="usage-item-header">
+                <div class="usage-icon bg-success">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold text-dark">Viewing Resume</div>
+                  <div class="small text-muted">No cost involved</div>
+                </div>
+                <span class="badge bg-success text-white px-3 py-2">FREE</span>
               </div>
-              <span class="badge bg-light text-dark border align-self-center">{{ job_cost }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-start">
-              <div class="pe-3">
-                <strong>Viewing Resume</strong> <span class="text-muted">— Free</span>
-                <div class="small text-muted">Browsing resumes doesn’t consume credits.</div>
+              <div class="usage-description">
+                <i class="bi bi-info-circle me-1"></i>
+                Browsing resumes doesn't consume credits.
               </div>
-              <span class="badge bg-success align-self-center">Free</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-start">
-              <div class="pe-3">
-                <strong>Viewing Contact/Email</strong> <span class="text-muted">— Free</span>
-                <div class="small text-muted">Revealing phone numbers and emails is free.</div>
-              </div>
-              <span class="badge bg-success align-self-center">Free</span>
-            </li>
-          </ul>
+            </div>
 
-          <div class="small text-muted mt-3">
-            Edits to published jobs are free. Closing or unpublishing a job does not refund credits.
+            <!-- Contact Viewing -->
+            <div class="usage-item">
+              <div class="usage-item-header">
+                <div class="usage-icon bg-success">
+                  <i class="bi bi-person-lines-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold text-dark">Viewing Contact/Email</div>
+                  <div class="small text-muted">No cost involved</div>
+                </div>
+                <span class="badge bg-success text-white px-3 py-2">FREE</span>
+              </div>
+              <div class="usage-description">
+                <i class="bi bi-info-circle me-1"></i>
+                Revealing phone numbers and emails is free.
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info border-0 mt-4 bg-info-subtle">
+            <i class="bi bi-lightbulb me-2"></i>
+            <small>Edits to published jobs are free. Closing or unpublishing a job does not refund credits.</small>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Billing History -->
-    <div class="col-lg-6">
-      <div class="card shadow-sm h-100" id="history">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="card-title mb-0">Billing History</h5>
+    <!-- Enhanced Billing History -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100 history-card" id="history">
+        <div class="card-header bg-white border-0 pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0 fw-bold text-dark">
+              <i class="bi bi-receipt me-2 text-primary"></i>Billing History
+            </h5>
             {% if transactions %}
-              <a href="#" class="small text-decoration-none">Download CSV</a>
+              <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="bi bi-download me-1"></i>Download CSV
+              </a>
             {% endif %}
           </div>
-
+        </div>
+        <div class="card-body pt-3">
           {% if transactions %}
             <div class="table-responsive">
-              <table class="table align-middle">
+              <table class="table table-hover align-middle enhanced-table">
                 <thead class="table-light">
                   <tr>
-                    <th style="width: 25%;">Date</th>
-                    <th style="width: 18%;">Type</th>
-                    <th style="width: 30%;">Reason</th>
-                    <th class="text-end">Δ Credits</th>
-                    <th class="text-end">Balance</th>
+                    <th class="fw-semibold border-0" style="width: 22%;">
+                      <i class="bi bi-calendar3 me-1"></i>Date
+                    </th>
+                    <th class="fw-semibold border-0" style="width: 14%;">
+                      <i class="bi bi-tag me-1"></i>Type
+                    </th>
+                    <th class="fw-semibold border-0">
+                      <i class="bi bi-card-text me-1"></i>Reason
+                    </th>
+                    <th class="text-end fw-semibold border-0" style="width: 14%;">
+                      <i class="bi bi-arrow-up-down me-1"></i>Credits
+                    </th>
+                    <th class="text-end fw-semibold border-0" style="width: 14%;">
+                      <i class="bi bi-wallet2 me-1"></i>Balance
+                    </th>
+                    <th class="text-end fw-semibold border-0" style="width: 16%;">
+                      <i class="bi bi-receipt-cutoff me-1"></i>Receipt
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for t in transactions %}
-                    <tr>
-                      <td class="small text-muted">{{ t.created_at|date:"Y-m-d H:i" }}</td>
+                    <tr class="transaction-row">
                       <td>
-                        {% if t.txn_type == "GRANT" %}<span class="badge bg-success">Grant</span>{% endif %}
-                        {% if t.txn_type == "DEBIT" %}<span class="badge bg-danger">Debit</span>{% endif %}
-                        {% if t.txn_type == "REFUND" %}<span class="badge bg-info text-dark">Refund</span>{% endif %}
+                        <div class="small fw-medium">{{ t.created_at|date:"M d, Y" }}</div>
+                        <div class="small text-muted">{{ t.created_at|date:"H:i" }}</div>
                       </td>
-                      <td class="small">{{ t.reason }}</td>
-                      <td class="text-end fw-semibold {% if t.credits_delta < 0 %}text-danger{% else %}text-success{% endif %}">
-                        {{ t.credits_delta }}
+                      <td>
+                        {% if t.txn_type == "GRANT" %}
+                          <span class="badge bg-success-gradient text-white px-3 py-2 rounded-pill">
+                            <i class="bi bi-plus-circle me-1"></i>Grant
+                          </span>
+                        {% endif %}
+                        {% if t.txn_type == "DEBIT" %}
+                          <span class="badge bg-danger-gradient text-white px-3 py-2 rounded-pill">
+                            <i class="bi bi-dash-circle me-1"></i>Debit
+                          </span>
+                        {% endif %}
+                        {% if t.txn_type == "REFUND" %}
+                          <span class="badge bg-info-gradient text-white px-3 py-2 rounded-pill">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Refund
+                          </span>
+                        {% endif %}
                       </td>
-                      <td class="text-end">{{ t.balance_after }}</td>
+                      <td class="small fw-medium">{{ t.reason }}</td>
+                      <td class="text-end">
+                        <span class="fw-bold {% if t.credits_delta < 0 %}text-danger{% else %}text-success{% endif %}">
+                          {% if t.credits_delta > 0 %}+{% endif %}{{ t.credits_delta|intcomma }}
+                        </span>
+                      </td>
+                      <td class="text-end fw-semibold">{{ t.balance_after|intcomma }}</td>
+                      <td class="text-end">
+                        {% if t.txn_type == "GRANT" and "Order " in t.reason %}
+                          {% with code=t.reason|cut:"Order " %}
+                            <a class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                              href="{% url 'membership:receipt_pdf' code %}">
+                              <i class="bi bi-file-earmark-pdf me-1"></i>Receipt
+                            </a>
+                          {% endwith %}
+                        {% else %}
+                          <span class="text-muted small">—</span>
+                        {% endif %}
+                      </td>
                     </tr>
                   {% endfor %}
                 </tbody>
               </table>
             </div>
           {% else %}
-            <div class="d-flex align-items-center gap-3 p-3 border rounded">
-              <i class="bi bi-receipt text-muted fs-4"></i>
-              <div class="text-muted">
-                No transactions yet. Your current credits are complimentary.
+            <div class="empty-state">
+              <div class="text-center py-5">
+                <div class="empty-icon mb-3">
+                  <i class="bi bi-receipt"></i>
+                </div>
+                <h6 class="fw-semibold mb-2">No transactions yet</h6>
+                <p class="text-muted mb-0">Your current credits are complimentary. Start by purchasing your first credit package!</p>
               </div>
             </div>
           {% endif %}
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- Help card -->
-  <div class="row g-3 mt-1">
-    <div class="col-lg-12">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-          <div class="d-flex align-items-start gap-3">
-            <i class="bi bi-info-circle text-primary fs-4"></i>
-            <div>
-              <h6 class="mb-1">Need help?</h6>
-              <p class="text-muted small mb-0">
-                Already paid via Bank/QR or facing an issue? Upload your receipt and we’ll verify.
-              </p>
+  <!-- Enhanced Help Card -->
+  <div class="row g-3 mt-2">
+    <div class="col-12">
+      <div class="help-card">
+        <div class="card border-0 shadow-sm bg-gradient">
+          <div class="card-body p-4">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="help-icon">
+                    <i class="bi bi-question-circle"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-2 text-dark">
+                      <i class="bi bi-headset me-1"></i>Need assistance?
+                    </h6>
+                    <p class="text-muted mb-0">
+                      Already paid via Bank/QR or facing an issue? Upload your payment receipt and we'll verify it for you.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a class="btn btn-outline-primary rounded-pill px-4 py-2" 
+                   href="{% url 'membership:upload_receipt' %}">
+                  <i class="bi bi-cloud-upload me-2"></i>Upload Receipt
+                </a>
+              </div>
             </div>
           </div>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'membership:upload_receipt' %}">
-            Upload Receipt
-          </a>
         </div>
       </div>
     </div>
   </div>
-
 </div>
+
+<style>
+/* Enhanced UI Styles */
+.page-header {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(108, 117, 125, 0.02));
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.enhanced-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  font-weight: bold;
+  color: #6c757d;
+}
+
+.hero-balance-card .card {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0d6efd, #6610f2, #d63384, #dc3545, #fd7e14, #ffc107, #198754, #20c997, #0dcaf0);
+}
+
+.balance-icon {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: white;
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+}
+
+.usage-card, .history-card {
+  border: none;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.usage-card:hover, .history-card:hover {
+  transform: translateY(-2px);
+}
+
+.usage-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.usage-item {
+  padding: 1rem;
+  background: rgba(13, 110, 253, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(13, 110, 253, 0.1);
+  transition: all 0.2s ease;
+}
+
+.usage-item:hover {
+  background: rgba(13, 110, 253, 0.05);
+  border-color: rgba(13, 110, 253, 0.2);
+}
+
+.usage-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.usage-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.usage-description {
+  font-size: 0.8rem;
+  color: #6c757d;
+  padding-left: 44px;
+}
+
+.enhanced-table {
+  border: none;
+}
+
+.enhanced-table thead th {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  color: #495057;
+  font-weight: 600;
+  padding: 1rem 0.75rem;
+}
+
+.transaction-row {
+  transition: all 0.2s ease;
+}
+
+.transaction-row:hover {
+  background: rgba(13, 110, 253, 0.03);
+  transform: translateX(2px);
+}
+
+.bg-success-gradient {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.bg-danger-gradient {
+  background: linear-gradient(135deg, #dc3545, #e83e8c) !important;
+}
+
+.bg-info-gradient {
+  background: linear-gradient(135deg, #17a2b8, #6f42c1) !important;
+}
+
+.empty-state .empty-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #6c757d;
+}
+
+.help-card .card {
+  background: linear-gradient(135deg, rgba(32, 201, 151, 0.05), rgba(13, 110, 253, 0.05));
+  border: 1px solid rgba(32, 201, 151, 0.1);
+}
+
+.help-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #20c997, #0dcaf0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 15px rgba(32, 201, 151, 0.3);
+}
+
+@media (max-width: 768px) {
+  .balance-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+  
+  .usage-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .usage-description {
+    padding-left: 0;
+  }
+}
+</style>
 {% endblock %}

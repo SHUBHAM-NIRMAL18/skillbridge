@@ -1,0 +1,136 @@
+{% load humanize %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Receipt {{ order.code }}</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; color:#1f2937; margin:0; }
+    .wrap { padding:32px; max-width:760px; margin:0 auto; }
+    .head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand img { height:40px; }
+    .title { font-size:22px; font-weight:700; margin:0; }
+    .meta { color:#6b7280; font-size:12px; }
+    .card { border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin-top:12px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:14px; }
+    th, td { padding:10px; border-bottom:1px solid #edf0f3; text-align:left; }
+    th { background:#f8fafc; font-weight:600; }
+    .right { text-align:right; }
+    .totals td { border:none; }
+    .muted { color:#6b7280; }
+    .foot { margin-top:24px; font-size:12px; color:#6b7280; }
+    
+    /* Print button styles */
+    .print-btn { 
+      position: fixed; 
+      top: 20px; 
+      right: 20px; 
+      background: #3b82f6; 
+      color: white; 
+      border: none; 
+      padding: 12px 24px; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.2s;
+    }
+    .print-btn:hover { background: #2563eb; }
+    
+    /* Print-specific styles */
+    @media print {
+      .print-btn { display: none; }
+      body { margin: 0; }
+      .wrap { padding: 20px; max-width: none; }
+      .card { border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Print Button -->
+  <button class="print-btn" onclick="window.print()">🖨️ Print Receipt</button>
+  
+  <div class="wrap">
+    <div class="head">
+      <div class="brand">
+        <img src="{{ logo_url }}" alt="Company Logo" onerror="this.style.display='none'">
+        <div>
+          <div class="title">Payment Receipt</div>
+          <div class="meta">Receipt #{{ order.code }}</div>
+        </div>
+      </div>
+      <div class="meta right">
+        <div><strong>Paid:</strong> {{ paid_at|date:"Y-m-d H:i" }}</div>
+        <div><strong>Billed To:</strong> {{ company_display }}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="muted">Order Code</div>
+          <div><strong>{{ order.code }}</strong></div>
+        </div>
+        <div>
+          <div class="muted">Payment Method</div>
+          <div><strong>{{ order.get_method_display }}</strong></div>
+        </div>
+        <div>
+          <div class="muted">Credits</div>
+          <div><strong>{{ order.credits_qty }}</strong></div>
+        </div>
+        <div>
+          <div class="muted">Status</div>
+          <div><strong>{{ order.get_status_display }}</strong></div>
+        </div>
+      </div>
+
+      <table>
+            <thead>
+                <tr>
+                <th>Description</th>
+                <th class="right">Qty</th>
+                <th class="right">Unit (Rs)</th>
+                <th class="right">Amount (Rs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                <td>Credits Top-up</td>
+                <td class="right">{{ order.credits_qty }}</td>
+                <td class="right">{{ unit_rupees|intcomma }}</td>
+                <td class="right">{{ base_rupees|intcomma }}</td>
+                </tr>
+            </tbody>
+            <tbody class="totals">
+                <tr>
+                <td colspan="3" class="right muted">Discount ({{ discount_percent }}%)</td>
+                <td class="right">- {{ discount_rupees|intcomma }}</td>
+                </tr>
+                <tr>
+                <td colspan="3" class="right muted">Subtotal</td>
+                <td class="right">{{ subtotal_rupees|intcomma }}</td>
+                </tr>
+                <tr>
+                <td colspan="3" class="right muted">VAT ({{ vat_percent }}%)</td>
+                <td class="right">{{ vat_rupees|intcomma }}</td>
+                </tr>
+                <tr>
+                <td colspan="3" class="right"><strong>Total Paid</strong></td>
+                <td class="right"><strong>{{ total_rupees|intcomma }}</strong></td>
+                </tr>
+            </tbody>
+            </table>
+
+      <div class="muted" style="margin-top:8px;">All amounts are in Nepalese Rupees (NPR).</div>
+    </div>
+
+    <div class="foot">
+      Thank you for your purchase. This is a system-generated receipt.
+    </div>
+  </div>
+</body>
+</html>

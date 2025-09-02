@@ -4,49 +4,235 @@
 
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h5 mb-0">Buy Credits</h2>
-    <a href="{% url 'membership:home' %}" class="btn btn-outline-secondary btn-sm">Back to Membership</a>
+  <!-- Header Section -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 mb-1 fw-bold text-dark">💳 Buy Credits</h2>
+      <p class="text-muted small mb-0">Choose the perfect credit package for your hiring needs</p>
+    </div>
+    <a href="{% url 'membership:home' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+      <i class="fas fa-arrow-left me-1"></i>Back to Membership
+    </a>
   </div>
 
-  <div class="row g-3">
+  <!-- Credit Options Grid -->
+  <div class="row g-4 mb-4">
     {% for opt in options %}
-      <div class="col-md-4 col-lg-3">
-        <div class="card h-100 shadow-sm {% if opt.qty == qty %}border-primary{% endif %}">
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title mb-1">{{ opt.qty|intcomma }} Credits</h5>
-            {% if opt.discount_percent %}
-              <span class="badge bg-success-subtle text-success border align-self-start mb-2">{{ opt.discount_percent }}% off</span>
-            {% endif %}
-            <div class="mt-auto">
-              <div class="h5 mb-0">Rs {{ opt.total_rupees|intcomma }}</div>
-              <div class="small text-muted">Includes {{ opt.vat_percent }}% VAT</div>
-              <form method="get" action="{% url 'membership:select' %}" class="mt-2">
-                <input type="hidden" name="qty" value="{{ opt.qty }}">
-                <button class="btn btn-sm {% if opt.qty == qty %}btn-primary{% else %}btn-outline-primary{% endif %}" type="submit">
-                  {% if opt.qty == qty %}Selected{% else %}Choose{% endif %}
-                </button>
-              </form>
+      <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="credit-card position-relative h-100 {% if opt.qty == qty %}selected-card{% endif %}">
+          {% if opt.discount_percent %}
+            <div class="discount-badge">
+              <span class="badge bg-gradient text-white rounded-pill px-3 py-2">
+                🎉 {{ opt.discount_percent }}% OFF
+              </span>
             </div>
+          {% endif %}
+          
+          <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden">
+            <div class="card-body p-4 d-flex flex-column text-center">
+              <!-- Credit Amount -->
+              <div class="credit-amount mb-3">
+                <div class="display-6 fw-bold text-primary mb-1">{{ opt.qty|intcomma }}</div>
+                <div class="text-muted small">Credits</div>
+              </div>
+
+              <!-- Price -->
+              <div class="price-section mb-3">
+                <div class="h4 fw-bold text-dark mb-1">Rs {{ opt.total_rupees|intcomma }}</div>
+                <div class="small text-muted">Includes {{ opt.vat_percent }}% VAT</div>
+              </div>
+
+              <!-- Selection Button -->
+              <div class="mt-auto">
+                <form method="get" action="{% url 'membership:select' %}">
+                  <input type="hidden" name="qty" value="{{ opt.qty }}">
+                  <button class="btn w-100 py-2 fw-semibold {% if opt.qty == qty %}btn-primary selected-btn{% else %}btn-outline-primary{% endif %}" type="submit">
+                    {% if opt.qty == qty %}
+                      <i class="fas fa-check me-2"></i>Selected
+                    {% else %}
+                      Choose Package
+                    {% endif %}
+                  </button>
+                </form>
+              </div>
+            </div>
+            
+            <!-- Selected Card Indicator -->
+            {% if opt.qty == qty %}
+              <div class="selected-indicator"></div>
+            {% endif %}
           </div>
         </div>
       </div>
     {% endfor %}
   </div>
 
-  <div class="card shadow-sm mt-4">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-      <div>
-        <div class="text-muted small">Selected pack</div>
-        <div class="h5 mb-0">{{ qty|intcomma }} credits • Rs {{ selected_total_rupees|intcomma }}</div>
-        <div class="small text-muted">1 job publish = {{ job_cost }} credits</div>
+  <!-- Checkout Summary Card -->
+  <div class="checkout-summary-card">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body p-4">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+              <div class="summary-icon me-3">
+                <i class="fas fa-coins text-warning"></i>
+              </div>
+              <div>
+                <div class="small text-muted mb-1">Selected Package</div>
+                <div class="h5 fw-bold mb-0 text-dark">{{ qty|intcomma }} Credits</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="pricing-info">
+                <span class="h5 fw-bold text-success me-3">Rs {{ selected_total_rupees|intcomma }}</span>
+                <span class="small text-muted">• 1 job publish = {{ job_cost }} credits</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <form method="get" action="{% url 'membership:checkout' %}">
+              <input type="hidden" name="qty" value="{{ qty }}">
+              <button class="btn btn-success btn-lg px-4 py-2 fw-semibold rounded-pill shadow-sm">
+                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                <i class="fas fa-arrow-right ms-2"></i>
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
-      <!-- Go to Step 2 (Review & Pay) via GET -->
-      <form method="get" action="{% url 'membership:checkout' %}">
-        <input type="hidden" name="qty" value="{{ qty }}">
-        <button class="btn btn-primary">Proceed to Checkout</button>
-      </form>
     </div>
   </div>
 </div>
+
+<style>
+/* Custom Styles for Enhanced UI */
+.credit-card {
+  transition: all 0.3s ease;
+}
+
+.credit-card:hover {
+  transform: translateY(-2px);
+}
+
+.credit-card.selected-card {
+  transform: translateY(-4px);
+}
+
+.credit-card .card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent !important;
+}
+
+.credit-card.selected-card .card {
+  border: 2px solid #0d6efd !important;
+  box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15) !important;
+}
+
+.discount-badge {
+  position: absolute;
+  top: -8px;
+  right: 15px;
+  z-index: 10;
+}
+
+.discount-badge .badge {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.credit-amount {
+  position: relative;
+}
+
+.credit-amount::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #0d6efd, #6c757d);
+  border-radius: 2px;
+}
+
+.selected-btn {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.selected-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 30px solid #0d6efd;
+  border-left: 30px solid transparent;
+}
+
+.selected-indicator::after {
+  content: '✓';
+  position: absolute;
+  top: -25px;
+  right: 5px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.checkout-summary-card {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(108, 117, 125, 0.05));
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.checkout-summary-card .card {
+  border-radius: 8px !important;
+  backdrop-filter: blur(10px);
+}
+
+.summary-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.pricing-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  border: none !important;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #218838, #1ea688) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  .pricing-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pricing-info .h5 {
+    margin-bottom: 0.25rem !important;
+  }
+}
+</style>
 {% endblock %}
