@@ -119,12 +119,6 @@
           Credits
         </a>
       </li>
-      <li class="nav-item">
-        <!-- Jumps to the Usage section on the same Membership Home page -->
-        <a class="nav-link" href="{% url 'membership:home' %}#usage">
-          Credits Usage
-        </a>
-      </li>
       <!-- optional: direct link to buy -->
       <li class="nav-item">
         <a class="nav-link {% if request.resolver_match.namespace == 'membership' and request.resolver_match.url_name == 'select' %}active{% endif %}"

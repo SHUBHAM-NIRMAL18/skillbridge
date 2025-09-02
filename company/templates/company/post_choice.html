@@ -1,30 +1,324 @@
 {% extends "company/base.html" %}
 {% load static %}
 {% block content %}
+<style>
+/* Enhanced Post Selection Styles */
+.center-wrapper {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(108, 117, 125, 0.02));
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  margin: 2rem auto;
+  max-width: 900px;
+  position: relative;
+  overflow: hidden;
+}
+
+.center-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0d6efd, #6610f2, #d63384, #dc3545, #fd7e14, #ffc107, #198754, #20c997);
+  border-radius: 20px 20px 0 0;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  color: #6c757d;
+  margin-bottom: 2.5rem;
+  font-weight: 500;
+}
+
+.post-card {
+  border: 2px solid #e9ecef;
+  border-radius: 20px;
+  background: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  height: 100%;
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.post-card:hover {
+  border-color: #0d6efd;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(13, 110, 253, 0.2);
+}
+
+.post-card:hover::before {
+  background: linear-gradient(90deg, #0d6efd, #6610f2);
+}
+
+.internship-card:hover::before {
+  background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.internship-card:hover {
+  border-color: #28a745;
+  box-shadow: 0 15px 40px rgba(40, 167, 69, 0.2);
+}
+
+.job-card:hover::before {
+  background: linear-gradient(90deg, #0d6efd, #6610f2);
+}
+
+.job-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 15px 40px rgba(13, 110, 253, 0.2);
+}
+
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.internship-icon {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(32, 201, 151, 0.05));
+  border: 2px solid rgba(40, 167, 69, 0.2);
+}
+
+.job-icon {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(102, 16, 242, 0.05));
+  border: 2px solid rgba(13, 110, 253, 0.2);
+}
+
+.post-card:hover .icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.icon-wrapper img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.post-card:hover .icon-wrapper img {
+  transform: scale(1.1);
+}
+
+.card-title-enhanced {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.card-description {
+  color: #6c757d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  min-height: 3rem;
+}
+
+.post-btn {
+  border: 2px solid #e9ecef;
+  border-radius: 25px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.internship-btn {
+  color: #28a745;
+  border-color: rgba(40, 167, 69, 0.3);
+  background: rgba(40, 167, 69, 0.05);
+}
+
+.internship-btn:hover {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border-color: #28a745;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+}
+
+.job-btn {
+  color: #0d6efd;
+  border-color: rgba(13, 110, 253, 0.3);
+  background: rgba(13, 110, 253, 0.05);
+}
+
+.job-btn:hover {
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  color: white;
+  border-color: #0d6efd;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+}
+
+.floating-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floating-elements::before,
+.floating-elements::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(13, 110, 253, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-elements::before {
+  width: 100px;
+  height: 100px;
+  top: -20px;
+  right: -30px;
+  animation-delay: -3s;
+}
+
+.floating-elements::after {
+  width: 60px;
+  height: 60px;
+  bottom: -10px;
+  left: -20px;
+  background: rgba(40, 167, 69, 0.1);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+.post-type-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.internship-badge {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.job-badge {
+  background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+@media (max-width: 768px) {
+  .center-wrapper {
+    padding: 2rem 1rem;
+    margin: 1rem auto;
+  }
+  
+  .icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .icon-wrapper img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .post-card {
+    margin-bottom: 1.5rem;
+  }
+}
+</style>
+
 <div class="center-wrapper">
-  <h4 class="text-center mb-4 small">Choose what you want to post</h4>
-  <div class="row justify-content-center gx-3">
-    <!-- Internship Post Card -->
-    <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card h-100 text-center p-3">
-        <div class="mb-2">
-          <img src="{% static 'company/icons/intern.png' %}" alt="Internship" width="40" />
+  <div class="floating-elements"></div>
+  
+  <div class="text-center mb-4">
+    <h4 class="page-title">🚀 Choose Your Posting Type</h4>
+    <p class="page-subtitle">Select what you want to post to attract the best talent</p>
+  </div>
+  
+  <div class="row justify-content-center gx-4">
+    <!-- Enhanced Internship Post Card -->
+    <div class="col-sm-6 col-md-5 mb-4">
+      <div class="card post-card internship-card h-100 text-center p-4 position-relative">
+        <div class="post-type-badge internship-badge">Internship</div>
+        
+        <div class="icon-wrapper internship-icon">
+          <img src="{% static 'company/icons/intern.png' %}" alt="Internship" />
         </div>
-        <h6 class="card-title small mb-1">Create an Internship Post</h6>
-        <p class="card-text text-muted small">Create an engaging internship post to attract talented students and graduates.</p>
-        <a href="{% url 'company:internship_create'%}" class="btn btn-outline-primary btn-sm mt-auto small">Post Internship &rarr;</a>
+        
+        <h6 class="card-title-enhanced">🎓 Create an Internship Post</h6>
+        <p class="card-description">Create an engaging internship opportunity to attract talented students and fresh graduates ready to learn and grow.</p>
+        
+        <div class="mt-auto">
+          <a href="{% url 'company:internship_create'%}" class="post-btn internship-btn">
+            <i class="bi bi-plus-circle me-2"></i>Post Internship
+            <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
       </div>
     </div>
 
-    <!-- Job Post Card -->
-    <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card h-100 text-center p-3">
-        <div class="mb-2">
-          <img src="{% static 'company/icons/job.jpg' %}" alt="Job" width="40" />
+    <!-- Enhanced Job Post Card -->
+    <div class="col-sm-6 col-md-5 mb-4">
+      <div class="card post-card job-card h-100 text-center p-4 position-relative">
+        <div class="post-type-badge job-badge">Full-time</div>
+        
+        <div class="icon-wrapper job-icon">
+          <img src="{% static 'company/icons/job.jpg' %}" alt="Job" />
         </div>
-        <h6 class="card-title small mb-1">Create a Job Post</h6>
-        <p class="card-text text-muted small">Post a job opportunity and connect with skilled professionals seeking employment.</p>
-        <a href="{% url 'company:job_step' %}" class="btn btn-outline-primary btn-sm mt-auto small">Post Job &rarr;</a>
+        
+        <h6 class="card-title-enhanced">💼 Create a Job Post</h6>
+        <p class="card-description">Post a full-time job opportunity and connect with skilled professionals seeking meaningful employment.</p>
+        
+        <div class="mt-auto">
+          <a href="{% url 'company:job_step' %}" class="post-btn job-btn">
+            <i class="bi bi-plus-circle me-2"></i>Post Job
+            <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
       </div>
     </div>
   </div>
