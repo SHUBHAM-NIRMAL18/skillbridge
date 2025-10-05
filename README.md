@@ -1,6 +1,6 @@
 # SkillBridge - Recruitment Management System
 
-![tech-stack](https://skillicons.dev/icons?i=python,django,vscode,postgres)
+![tech-stack](https://skillicons.dev/icons?i=python,django,vscode,postgres,html,css,bootstrap)
 
 ![SkillBridge Logo](static/icons/sb-logo.png)
 
