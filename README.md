@@ -2,6 +2,8 @@
 
 ![tech-stack](https://skillicons.dev/icons?i=python,django,vscode,postgres)
 
+![SkillBridge Logo](static/icons/sb-logo.png)
+
 ## Description
 
 SkillBridge is a comprehensive Recruitment Management System designed to streamline the internship and job placement process for both candidates and employers. This platform provides an intelligent, feature-rich environment for discovering opportunities, managing applications, and facilitating efficient communication between job seekers and recruiters.
