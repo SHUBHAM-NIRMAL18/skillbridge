@@ -2,7 +2,7 @@
 
 ![tech-stack](https://skillicons.dev/icons?i=python,django,vscode,postgres,html,css,bootstrap)
 
-![SkillBridge Logo](static/icons/sb-logo.png)
+![SkillBridge Logo](static/icons/sb-logo.svg)
 
 ## Description
 
