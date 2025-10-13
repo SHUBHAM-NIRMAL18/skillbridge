@@ -219,8 +219,8 @@ class BasicDetailsForm(forms.ModelForm):
             if min_sal > max_sal:
                 self.add_error('comp_min', "Min must not exceed max.")
                 self.add_error('comp_max', "Max must be ≥ min.")
-            if min_sal < 100:
-                self.add_error('comp_min', "Minimum stipend must be at least 100.")
+            if min_sal < 1000:
+                self.add_error('comp_min', "Minimum stipend must be at least 1000.")
 
         # — Deadline: not in past, not more than 1 year out —
         dl = cleaned.get('application_deadline')
