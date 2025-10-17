@@ -7,11 +7,13 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.templatetags.static import static
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
 
 from .models import CompanyWallet, WalletTransaction, OrderStatus, PayMethod, Order, Payment, PaymentStatus
 from .services import (
     create_order, finalize_paid_order, _compute_totals, get_spendable_balance,
-    khalti_initiate, khalti_lookup,
+    khalti_initiate, khalti_lookup, esewa_prepare, esewa_handle_success, esewa_handle_failure
 )
 
 
@@ -133,10 +135,25 @@ def checkout(request):
             return redirect(reverse("membership:select"))
 
     # eSewa → (placeholder for now)
+    # eSewa → build form + auto-post to eSewa
     if method == PayMethod.ESEWA:
-        messages.info(request, "eSewa checkout is coming soon. Choose Khalti or Bank/QR for now.")
-        # Keep order pending
-        return redirect(f"{reverse('membership:checkout')}?qty={qty}")
+        try:
+            success_url = settings.SITE_BASE_URL.rstrip("/") + reverse("membership:esewa_success")
+            failure_url = settings.SITE_BASE_URL.rstrip("/") + reverse("membership:esewa_failure")
+
+            ctx = esewa_prepare(order, success_url=success_url, failure_url=failure_url)
+            # ctx = {"action": ..., "method": "POST", "fields": {...}}
+            return render(request, "membership/esewa_autopost.html", ctx)
+
+        except Exception as e:
+            order.status = OrderStatus.FAILED
+            order.save(update_fields=["status"])
+            msg = "Could not initiate eSewa payment."
+            if getattr(settings, "DEBUG", False):
+                msg += f" Details: {e}"
+            messages.error(request, msg)
+            return redirect(reverse("membership:select"))
+
 
     # Bank/QR → show instructions page (no redirect to gateway)
     # Treat QR as Bank for manual verification
@@ -269,3 +286,64 @@ def receipt_pdf(request, code: str):
         return resp
     except Exception:
         return HttpResponse(html)
+    
+
+@csrf_exempt
+@transaction.atomic
+def esewa_success(request):
+    """
+    eSewa may redirect with:
+      - GET  .../esewa/success/?data=<base64>
+      - POST body containing the base64 string
+      - POST form field 'data' containing the base64 string
+    Accept all variants.
+    """
+    # Prefer explicit 'data' parameter if present
+    encoded = None
+    if request.method == "GET":
+        encoded = request.GET.get("data")
+    elif request.method == "POST":
+        encoded = request.POST.get("data") or (request.body.decode("utf-8") if request.body else None)
+    else:
+        return HttpResponseBadRequest("Invalid method")
+
+    if not encoded:
+        return HttpResponseBadRequest("Missing data")
+
+    try:
+        # services.esewa_handle_success expects raw bytes of the base64 string
+        order = esewa_handle_success(encoded.encode("utf-8"))
+
+        if order.status == OrderStatus.PAID:
+            messages.success(request, f"Payment received. {order.credits_qty} credits added.")
+        else:
+            messages.warning(
+                request,
+                "Payment is not complete yet. If an amount was deducted, it will auto-reconcile shortly."
+            )
+    except Exception as e:
+        msg = "Payment verification failed."
+        if getattr(settings, "DEBUG", False):
+            msg += f" Details: {e}"
+        messages.error(request, msg)
+
+    return redirect(reverse("membership:home"))
+
+
+@csrf_exempt
+def esewa_failure(request):
+    """
+    Failure/cancel landing from eSewa. Accept GET or POST.
+    """
+    try:
+        body = None
+        if request.method == "GET":
+            body = (request.GET.get("data") or "").encode("utf-8") if request.GET.get("data") else None
+        elif request.method == "POST":
+            body = request.POST.get("data").encode("utf-8") if request.POST.get("data") else (request.body or None)
+        esewa_handle_failure(body)
+    except Exception:
+        pass
+
+    messages.error(request, "Payment was canceled or failed. Please try again or choose another method.")
+    return redirect(reverse("membership:select"))

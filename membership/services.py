@@ -277,3 +277,147 @@ def khalti_lookup(pidx: str) -> dict:
         raise RuntimeError(f"KHALTI_LOOKUP_HTTP_{resp.status_code}: {resp.text}")
 
     return resp.json()
+
+
+# ------------------------
+# eSewa Integration
+# ------------------------
+import base64, hmac, hashlib
+from decimal import Decimal
+
+def _esewa_signature(secret_key: str, message: str) -> str:
+    digest = hmac.new(secret_key.encode("utf-8"), message.encode("utf-8"), hashlib.sha256).digest()
+    return base64.b64encode(digest).decode("utf-8")
+
+
+def _esewa_sign_request(total_amount: str, transaction_uuid: str, product_code: str, secret_key: str):
+    """
+    Per eSewa docs: signed_field_names must be exactly:
+    total_amount,transaction_uuid,product_code
+    """
+    sfn = "total_amount,transaction_uuid,product_code"
+    message = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
+    signature = _esewa_signature(secret_key, message)
+    return sfn, signature
+
+
+def esewa_prepare(order, *, success_url: str, failure_url: str):
+    """
+    Build form data for eSewa redirect.
+    Converts order.total_paisa to rupees (string) for signature.
+    """
+    env = getattr(settings, "ESEWA_ENV", "UAT").upper()
+    form_url = getattr(settings, "ESEWA_FORM_URL", "").strip() or (
+        "https://epay.esewa.com.np/api/epay/main/v2/form"
+        if env == "PROD"
+        else "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+    )
+
+    product_code = getattr(settings, "ESEWA_PRODUCT_CODE")
+    secret_key = getattr(settings, "ESEWA_SECRET_KEY")
+
+    # convert paisa to rupees
+    total_amount = f"{(Decimal(order.total_paisa) / Decimal(100)).normalize()}"
+    amount = total_amount
+    transaction_uuid = order.code
+
+    signed_field_names, signature = _esewa_sign_request(
+        total_amount, transaction_uuid, product_code, secret_key
+    )
+
+    Payment.objects.update_or_create(
+        order=order,
+        defaults={
+            "method": PayMethod.ESEWA,
+            "status": PaymentStatus.INITIATED,
+            "requested_amount_paisa": order.total_paisa,
+            "provider_ref": transaction_uuid,
+            "raw_payload": {"prepared_at": timezone.now().isoformat(), "env": env},
+        },
+    )
+
+    fields = {
+        "amount": amount,
+        "tax_amount": "0",
+        "product_service_charge": "0",
+        "product_delivery_charge": "0",
+        "total_amount": total_amount,
+        "transaction_uuid": transaction_uuid,
+        "product_code": product_code,
+        "success_url": success_url,
+        "failure_url": failure_url,
+        "signed_field_names": signed_field_names,
+        "signature": signature,
+    }
+
+    return {"action": form_url, "method": "POST", "fields": fields}
+
+
+def esewa_handle_success(encoded_body: bytes):
+    """
+    Decode Base64 JSON, verify signature, finalize order if COMPLETE.
+    """
+    try:
+        payload = json.loads(base64.b64decode(encoded_body.decode("utf-8")).decode("utf-8"))
+    except Exception as e:
+        raise ValueError("ESEWA_BAD_PAYLOAD") from e
+
+    sfn = payload.get("signed_field_names")
+    if not sfn:
+        raise ValueError("ESEWA_MISSING_SFN")
+
+    message = ",".join(f"{k}={payload.get(k)}" for k in sfn.split(","))
+    expected = _esewa_signature(getattr(settings, "ESEWA_SECRET_KEY"), message)
+    if expected != payload.get("signature"):
+        raise ValueError("ESEWA_BAD_SIGNATURE")
+
+    status = (payload.get("status") or "").upper()
+    txn_uuid = payload.get("transaction_uuid") or ""
+    product_code = payload.get("product_code") or ""
+    total_amount_rupees = payload.get("total_amount") or "0"
+    txn_code = payload.get("transaction_code") or ""
+
+    if not txn_uuid:
+        raise ValueError("ESEWA_NO_TXN_UUID")
+
+    try:
+        order = Order.objects.select_for_update().get(code=txn_uuid)
+    except Order.DoesNotExist:
+        raise ValueError("ORDER_NOT_FOUND")
+
+    amount_paisa = int(Decimal(total_amount_rupees) * 100)
+
+    payment, _ = Payment.objects.get_or_create(
+        order=order,
+        defaults={"method": PayMethod.ESEWA, "requested_amount_paisa": order.total_paisa},
+    )
+    payment.raw_payload = payload
+    payment.provider_txn_id = txn_code or payment.provider_txn_id
+    payment.save(update_fields=["raw_payload", "provider_txn_id"])
+
+    if status == "COMPLETE":
+        return finalize_paid_order(
+            order,
+            provider_ref=txn_uuid,
+            amount_paisa=amount_paisa,
+            payload=payload,
+        )
+
+    # Not complete: mark appropriately
+    if status in {"PENDING", "AMBIGUOUS"}:
+        payment.status = PaymentStatus.INITIATED
+    else:
+        payment.status = PaymentStatus.FAILED
+    payment.verified_at = timezone.now()
+    payment.save(update_fields=["status", "verified_at"])
+    return order
+
+
+def esewa_handle_failure(request_body: bytes | None = None):
+    """Optional logging for failure callback."""
+    if request_body:
+        try:
+            logger.warning("eSewa failure: %s", request_body.decode("utf-8")[:1000])
+        except Exception:
+            logger.warning("eSewa failure (binary body)")
+

@@ -430,18 +430,17 @@
                         <div>
                           <div class="fw-bold fs-6">eSewa Digital Payment</div>
                           <div class="small text-muted d-flex align-items-center gap-1">
-                            <i class="bi bi-clock text-warning"></i>
-                            Instant confirmation (coming soon)
+                            <i class="bi bi-lightning-charge text-warning"></i>
+                            Instant confirmation (sandbox)
                           </div>
                         </div>
                       </div>
-                      <span class="coming-soon-badge">
-                        <i class="bi bi-hourglass-split me-1"></i>Coming Soon
-                      </span>
+                      <!-- No badge for now -->
                     </div>
                   </div>
                 </label>
               </div>
+
 
               <!-- Bank / QR -->
               <div class="mb-3">
@@ -546,7 +545,7 @@
       if (v === 'KHALTI') {
         cta.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay with Khalti<i class="bi bi-arrow-right ms-2"></i>';
       } else if (v === 'ESEWA') {
-        cta.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Continue (eSewa coming soon)<i class="bi bi-arrow-right ms-2"></i>';
+        cta.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay with eSewa<i class="bi bi-arrow-right ms-2"></i>';
       } else {
         cta.innerHTML = '<i class="bi bi-bank me-2"></i>Place Bank/QR Order<i class="bi bi-arrow-right ms-2"></i>';
       }
@@ -554,5 +553,6 @@
     radios.forEach(r => r.addEventListener('change', setLabel));
     setLabel(); // initial
   })();
+
 </script>
 {% endblock %}

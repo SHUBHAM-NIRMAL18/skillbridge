@@ -107,6 +107,13 @@ SITE_BASE_URL = env("SITE_BASE_URL")
 KHALTI_BASE_URL = env("KHALTI_BASE_URL")
 KHALTI_SECRET_KEY = env("KHALTI_SECRET_KEY")
 
+# --- eSewa (payment gateway) ---
+ESEWA_ENV = env("ESEWA_ENV", default="UAT")
+ESEWA_PRODUCT_CODE = env("ESEWA_PRODUCT_CODE", default="EPAYTEST")
+ESEWA_SECRET_KEY = env("ESEWA_SECRET_KEY", default="8gBm/:&EnhH.1/q")
+ESEWA_FORM_URL = env("ESEWA_FORM_URL", default="")
+ESEWA_STATUS_URL = env("ESEWA_STATUS_URL", default="")
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
