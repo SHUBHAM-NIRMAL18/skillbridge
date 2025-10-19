@@ -59,35 +59,66 @@ INSTALLED_APPS = [
     'formtools',
     'ckeditor',
     'taggit',
+
+    # Allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     
 ]
+
+ACCOUNT_ADAPTER = "accounts.adapters.RoleRedirectAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.CandidateOnlySocialAdapter"
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    
 ]
 
 ROOT_URLCONF = "skillbridge.urls"
-
+SITE_ID = 1
 AUTH_USER_MODEL = "accounts.User"
 
+
 AUTHENTICATION_BACKENDS = [
+    "allauth.account.auth_backends.AuthenticationBackend", 
     "accounts.backends.EmailBackend",  # Custom backend for email authentication
     "django.contrib.auth.backends.ModelBackend",  # Default backend
 ]
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": ["openid", "email", "profile"],
+        "AUTH_PARAMS": {"prompt": "select_account"},
+        "APP": {
+            "client_id": os.environ["GOOGLE_CLIENT_ID"],
+            "secret": os.environ["GOOGLE_CLIENT_SECRET"],
+            "key": "",
+        },
+    }
+}
+
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE   = True  
-CSRF_COOKIE_SECURE      = True
+# SESSION_COOKIE_SECURE   = True  
+# CSRF_COOKIE_SECURE      = True
 SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
 
-LOGIN_REDIRECT_URL = "index"  # Redirect to the index page after login
-LOGOUT_REDIRECT_URL = "index"  # Redirect to the index page after logout
+
+LOGIN_REDIRECT_URL = "/"          # send users to your home page
+LOGOUT_REDIRECT_URL = "/login/"   # back to login after logout
+
+# (Optional if you use allauth logout)
+ACCOUNT_LOGOUT_REDIRECT_URL = "/login/"
+
 
 # --- Credits (Company app) ---
 CREDITS_SIGNUP_BONUS = 50      # new company default

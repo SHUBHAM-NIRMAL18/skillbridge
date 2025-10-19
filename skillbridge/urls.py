@@ -23,6 +23,7 @@ urlpatterns = [
     path("company/", include("company.urls", namespace="company")),
     path('company/membership/', include(('membership.urls', 'membership'), namespace='membership')),
     path("candidate/", include("candidate.urls", namespace="candidate")),
+    path("accounts/", include("allauth.urls")),
     path("", include("accounts.urls")),
     path("", include(("website.urls", "website"), namespace="website")),
     path("applications/", include(("applications.urls", "applications"), namespace="applications")),

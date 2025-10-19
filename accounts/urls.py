@@ -4,6 +4,7 @@ from .views import (
     register_candidate,
     CustomLoginView,
     CustomLogoutView,
+    google_login_start,
     
 )
 
@@ -14,5 +15,7 @@ urlpatterns = [
     path("register/candidate/",  register_candidate, name="register_candidate"),
     path("login/",  CustomLoginView.as_view(),  name="login"),
     path("logout/", CustomLogoutView.as_view(), name="logout"),
+
+    path("accounts/google/start/", google_login_start, name="google_start"),
 
 ]

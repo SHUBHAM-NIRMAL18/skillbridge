@@ -4,7 +4,7 @@ from website import views
 app = 'website'
 
 urlpatterns = [
-    path('index/', views.home_view, name='index'),
+    path('', views.home_view, name='index'),
     #path('login/', views.login_view, name='login'),
     path('privacy/', views.privacy_policy_view, name='privacy'),
     path('terms/', views.termcondition_view, name='terms'),
