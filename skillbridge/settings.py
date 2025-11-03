@@ -91,8 +91,8 @@ AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend", 
-    "accounts.backends.EmailBackend",  # Custom backend for email authentication
-    "django.contrib.auth.backends.ModelBackend",  # Default backend
+    "accounts.backends.EmailBackend", 
+    "django.contrib.auth.backends.ModelBackend", 
 ]
 
 SOCIALACCOUNT_PROVIDERS = {

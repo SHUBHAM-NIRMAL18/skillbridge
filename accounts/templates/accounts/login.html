@@ -60,14 +60,14 @@
           {% endfor %}
         </div>
 
-        {# Non‑field errors (e.g. invalid login) #}
+        {# Non-field errors #}
         {% if form.non_field_errors %}
           {% for err in form.non_field_errors %}
             <div class="invalid-feedback d-block mb-3">{{ err }}</div>
           {% endfor %}
         {% endif %}
 
-        {# Remember‑me checkbox and forgot‑password link #}
+        {# Remember-me and forgot-password #}
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="form-check">
             <input
@@ -81,21 +81,27 @@
               {{ form.remember_me.label }}
             </label>
           </div>
-          <a href="#" class="text-danger small">
-            Forgot Password?
-          </a>
+          <a href="#" class="text-danger small">Forgot Password?</a>
         </div>
 
         <button type="submit" class="btn btn-danger w-100 mb-3">Sign in</button>
 
         <div class="text-center text-muted mb-3">or login with</div>
+
+        {# Authentic Google Sign-In Button (Candidates) #}
         <a
           href="{% url 'accounts:google_start' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
-          class="btn btn-outline-secondary w-100 mb-2"
+          class="google-btn w-100 mb-2"
         >
-          <i class="bi bi-google me-2"></i> Continue with Google (candidates)
+          <div class="google-icon-wrapper">
+            <img
+              class="google-icon"
+              src="https://developers.google.com/identity/images/g-logo.png"
+              alt="Google logo"
+            >
+          </div>
+          <span class="btn-text">Sign in with Google <small>(candidates)</small></span>
         </a>
-
       </form>
 
       <p class="text-center mt-4 text-muted small">
@@ -107,4 +113,54 @@
     </div>
   </div>
 </div>
+
+<style>
+  /* Authentic Google Sign-In Button Styling */
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    color: #3c4043;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 10px 16px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .google-btn:hover {
+    background-color: #f7f8f8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    color: #202124;
+  }
+
+  .google-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    height: 24px;
+    width: 24px;
+    margin-right: 10px;
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-text {
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  /* Optional: rounded corners to match your Bootstrap theme */
+  .google-btn {
+    border-radius: 0.5rem;
+  }
+</style>
 {% endblock %}

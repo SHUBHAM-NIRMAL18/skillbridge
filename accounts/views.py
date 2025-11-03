@@ -70,21 +70,26 @@ class CustomLogoutView(LogoutView):
         return redirect("accounts:login")
     
 
+from django.middleware.csrf import get_token
+from django.http import HttpResponse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.shortcuts import redirect
 
 def google_login_start(request):
-    """
-    Kicks off Google OAuth for candidates from the single /login page:
-    - mark intended_role=candidate (so only candidate emails can use Google)
-    - preserve a safe `next` for post-login redirect
-    - send to allauth's /accounts/google/login/
-    """
     request.session["intended_role"] = "candidate"
 
     next_url = request.GET.get("next")
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
         request.session["login_next"] = next_url
 
-    return redirect("/accounts/google/login/")
+    csrf_token = get_token(request)
+    html = f"""
+    <html><body>
+      <form id="go" action="/accounts/google/login/" method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+        <input type="hidden" name="process" value="login">
+      </form>
+      <script>document.getElementById('go').submit();</script>
+    </body></html>
+    """
+    return HttpResponse(html)
 
