@@ -107,11 +107,18 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-SESSION_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_SECURE   = True  
-# CSRF_COOKIE_SECURE      = True
-SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
+# SESSION_COOKIE_HTTPONLY = True
+# # SESSION_COOKIE_SECURE   = True  
+# # CSRF_COOKIE_SECURE      = True
+# SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
 
+# Local dev cookie sanity (so the session sticks)
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE    = False
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_DOMAIN = None
+
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  
 
 LOGIN_REDIRECT_URL = "/"          # send users to your home page
 LOGOUT_REDIRECT_URL = "/login/"   # back to login after logout

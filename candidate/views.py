@@ -5,6 +5,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
+from accounts.models import User
 
 from .forms import (
     PersonalInfoForm, ProfessionalInfoForm, AddressInfoForm,
@@ -20,9 +21,13 @@ from django.utils import timezone
 
 @login_required
 def candidate_dashboard(request):
-    if getattr(request.user, "role", None) != getattr(request.user, "ROLE_CANDIDATE", None):
-        return redirect('accounts:login')
-    return render(request, 'candidate/dashboard.html')
+    # helpful while debugging – remove when done
+    # print("AUTH:", request.user.is_authenticated, "ID:", request.user.id, "ROLE:", getattr(request.user, "role", None))
+
+    if getattr(request.user, "role", None) != User.ROLE_CANDIDATE:
+        messages.error(request, "Please use a candidate account.")
+        return redirect("company:dashboard")   
+    return render(request, "candidate/dashboard.html")
 
 
 class ProfileWizardView(FormView):
