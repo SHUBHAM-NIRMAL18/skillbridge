@@ -42,6 +42,11 @@ class CompanyProfileForm(forms.ModelForm):
             'website_url': 'Company Website',
             'social_link': 'Social Media Profile',
         }
+        help_texts = {
+            'phone': 'Enter a 10 digit number (digits only).',
+            'website_url': 'Optional. Include https:// (we’ll add it if missing).',
+            'social_link': 'Optional. Your company’s main social profile.',
+        }
         widgets = {
             'first_name':      forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'last_name':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
@@ -49,19 +54,42 @@ class CompanyProfileForm(forms.ModelForm):
             'founded_date':    forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'company_size':    forms.Select(attrs={'class': 'form-select'}),
             'about_company':   forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tell us about your company…'}),
-            'logo':            forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'phone':           forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
-            'website_url':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
+            'logo':            forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'phone':           forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number', 'inputmode': 'numeric', 'maxlength': '10'}),
+            # Normalize URL inputs visually across browsers using inline style.
+            'website_url':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://', 'style': 'appearance:none;-webkit-appearance:none;-moz-appearance:none;'}),
             'province':        forms.Select(attrs={'class': 'form-select'}),
             'city':            forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}),
-            'postal_code':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal Code'}),
+            'postal_code':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal Code', 'inputmode': 'numeric'}),
             'current_address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Current Address'}),
-            'social_link':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
+            'social_link':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://', 'style': 'appearance:none;-webkit-appearance:none;-moz-appearance:none;'}),
         }
 
     # Make URL fields explicitly optional at the form level
     website_url = forms.URLField(required=False)
     social_link = forms.URLField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Ensure every field uses the right base class (text vs select vs file already set above)
+        # and add Bootstrap's invalid class automatically if there are errors.
+        for name, field in self.fields.items():
+            widget = field.widget
+            base_cls = widget.attrs.get('class', '')
+
+            # Choose default class if missing (safety net)
+            if not base_cls:
+                if isinstance(widget, (forms.Select,)):
+                    base_cls = 'form-select'
+                else:
+                    base_cls = 'form-control'
+
+            # Add is-invalid if this field has errors after binding
+            if self.is_bound and name in self.errors:
+                base_cls = f"{base_cls} is-invalid"
+
+            widget.attrs['class'] = base_cls
 
     # ---- helpers ----
     def _clean_optional_url(self, field_name: str):
@@ -165,7 +193,6 @@ class CompanyProfileForm(forms.ModelForm):
             raise forms.ValidationError("Founded date cannot be more than 50 years in the past.")
 
         return founded_date
-
 
 
 
