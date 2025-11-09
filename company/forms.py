@@ -59,38 +59,60 @@ class CompanyProfileForm(forms.ModelForm):
             'social_link':     forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
         }
 
+    # Make URL fields explicitly optional at the form level
+    website_url = forms.URLField(required=False)
+    social_link = forms.URLField(required=False)
+
+    # ---- helpers ----
+    def _clean_optional_url(self, field_name: str):
+        """
+        Normalize optional URL fields:
+        - Treat None/''/whitespace as None
+        - Trim whitespace
+        - If missing scheme, prepend https://
+        """
+        value = self.cleaned_data.get(field_name)
+        if not value:
+            return None
+        value = str(value).strip()
+        if not value:
+            return None
+
+        parsed = urlparse(value)
+        if not parsed.scheme:
+            value = "https://" + value
+            parsed = urlparse(value)
+
+        if not parsed.netloc:
+            raise forms.ValidationError("Enter a valid URL (e.g., https://example.com).")
+
+        return value
+
     # --- Individual field validations ---
     def clean_first_name(self):
-        first_name = self.cleaned_data.get('first_name', '').strip()
+        first_name = (self.cleaned_data.get('first_name') or '').strip()
         if not first_name:
             raise forms.ValidationError("Company first name is required.")
-
-        # Allow letters and spaces only
         if not re.match(r'^[A-Za-z\s]+$', first_name):
             raise forms.ValidationError("First name must contain only letters and spaces.")
-
         return first_name
 
-
     def clean_last_name(self):
-        last_name = self.cleaned_data.get('last_name', '').strip()
+        last_name = (self.cleaned_data.get('last_name') or '').strip()
         if not last_name:
             raise forms.ValidationError("Company last name is required.")
-
-        # Allow letters and spaces only
         if not re.match(r'^[A-Za-z\s]+$', last_name):
             raise forms.ValidationError("Last name must contain only letters and spaces.")
-
         return last_name
 
     def clean_industry(self):
-        industry = self.cleaned_data.get('industry', '').strip()
+        industry = (self.cleaned_data.get('industry') or '').strip()
         if not industry:
             raise forms.ValidationError("Business industry is required.")
         return industry
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip()
+        phone = (self.cleaned_data.get('phone') or '').strip()
         if not phone.isdigit():
             raise forms.ValidationError("Phone number must contain only digits.")
         if len(phone) != 10:
@@ -98,7 +120,7 @@ class CompanyProfileForm(forms.ModelForm):
         return phone
 
     def clean_postal_code(self):
-        postal_code = self.cleaned_data.get('postal_code', '').strip()
+        postal_code = (self.cleaned_data.get('postal_code') or '').strip()
         if not postal_code:
             raise forms.ValidationError("Postal code is required.")
         if not postal_code.isdigit():
@@ -108,23 +130,13 @@ class CompanyProfileForm(forms.ModelForm):
         return postal_code
 
     def clean_website_url(self):
-        website_url = self.cleaned_data.get('website_url', '').strip()
-        if website_url:
-            parsed = urlparse(website_url)
-            if not all([parsed.scheme, parsed.netloc]):
-                raise forms.ValidationError("Enter a valid website URL (e.g., https://example.com).")
-        return website_url
+        return self._clean_optional_url("website_url")
 
     def clean_social_link(self):
-        social_link = self.cleaned_data.get('social_link', '').strip()
-        if social_link:
-            parsed = urlparse(social_link)
-            if not all([parsed.scheme, parsed.netloc]):
-                raise forms.ValidationError("Enter a valid social media link (e.g., https://linkedin.com/company/yourcompany).")
-        return social_link
+        return self._clean_optional_url("social_link")
 
     def clean_city(self):
-        city = self.cleaned_data.get('city', '').strip()
+        city = (self.cleaned_data.get('city') or '').strip()
         if not city:
             raise forms.ValidationError("City is required.")
         if not re.match(r"^[a-zA-Z\s]+$", city):
@@ -132,33 +144,28 @@ class CompanyProfileForm(forms.ModelForm):
         return city
 
     def clean_current_address(self):
-        current_address = self.cleaned_data.get('current_address', '').strip()
+        current_address = (self.cleaned_data.get('current_address') or '').strip()
         if not current_address:
             raise forms.ValidationError("Current address is required.")
         return current_address
-    
+
     def clean_founded_date(self):
         founded_date = self.cleaned_data.get('founded_date')
-
         if not founded_date:
             raise forms.ValidationError("Founded date is required.")
 
         today = date.today()
-
-        # Disallow future dates
         if founded_date > today:
             raise forms.ValidationError("Founded date cannot be in the future.")
-
-        # Disallow today's date
         if founded_date == today:
             raise forms.ValidationError("Founded date cannot be today.")
 
-        # Disallow dates older than 50 years
         fifty_years_ago = today.replace(year=today.year - 50)
         if founded_date < fifty_years_ago:
             raise forms.ValidationError("Founded date cannot be more than 50 years in the past.")
 
         return founded_date
+
 
 
 

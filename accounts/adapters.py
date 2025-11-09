@@ -1,4 +1,3 @@
-# accounts/adapters.py
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse

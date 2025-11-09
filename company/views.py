@@ -16,6 +16,9 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
+from django.db.models.functions import Coalesce
+from django.db.models import Sum
 
 from .forms import (
     CompanyProfileForm, BasicDetailsForm, SkillsRequirementsForm, ReviewForm,
@@ -59,13 +62,100 @@ class RequireCompanyProfileMixin(LoginRequiredMixin):
 
 @login_required
 def company_dashboard(request):
+    # guards
     if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company"):
         return redirect('accounts:login')
     if not hasattr(request.user, "company_profile"):
         messages.info(request, "Please complete your company profile before accessing the dashboard.")
         return redirect('company:profile')
-    return render(request, 'company/dashboard.html')
 
+    company = request.user.company_profile
+    today = timezone.localdate()
+
+    # profile completeness (matches your checklist in the UI)
+    profile_missing = []
+    if not company.logo:
+        profile_missing.append("Upload Company Images")
+    if not company.social_link:
+        profile_missing.append("Add Social Links")
+    total_checks = 2
+    profile_completion_percent = int(round(((total_checks - len(profile_missing)) / max(total_checks, 1)) * 100))
+
+    # posts
+    jobs_qs = JobPost.objects.filter(company=company)
+    interns_qs = InternshipPost.objects.filter(company=company)
+    total_posts = jobs_qs.count() + interns_qs.count()  # used for "Total Jobs" card per your screenshot text
+
+    # applicants
+    apps_qs = (
+        Application.objects
+        .select_related("candidate__user", "job_post", "internship_post")
+        .filter(company=company)
+    )
+    total_applicants = apps_qs.count()
+    shortlisted = apps_qs.filter(status="shortlisted").count()
+
+    # views (sum if fields exist; else 0)
+    try:
+        views_sum = (jobs_qs.aggregate(s=Coalesce(Sum("view_count"), 0))["s"] or 0) + \
+                    (interns_qs.aggregate(s=Coalesce(Sum("view_count"), 0))["s"] or 0)
+    except Exception:
+        views_sum = 0
+
+    metrics = {
+        "total_jobs": total_posts,          # change to jobs_qs.count() if you want only job posts
+        "total_applicants": total_applicants,
+        "shortlisted": shortlisted,
+        "views": views_sum,
+    }
+
+    # new applications (last 7 days, newest first)
+    last_7 = timezone.now() - timezone.timedelta(days=7)
+    new_apps = apps_qs.filter(applied_at__gte=last_7).order_by("-applied_at")
+
+    new_applications = []
+    for a in new_apps[:8]:
+        posting = a.job_post or a.internship_post
+        title = getattr(posting, "title", "—")
+        candidate = getattr(a, "candidate", None)
+        cand_name = (f"{getattr(candidate, 'first_name', '')} {getattr(candidate, 'last_name', '')}").strip() \
+                    or getattr(getattr(candidate, "user", None), "username", "Candidate")
+        new_applications.append({
+            "id": a.id,
+            "candidate_name": cand_name,
+            "job_title": title,
+            "created_at": a.applied_at,
+        })
+
+    # recent activities (last updates on posts)
+    recent_activities = []
+    for j in jobs_qs.values("title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
+        recent_activities.append({"kind": "Job", "title": j["title"], "when": j["updated_at"] or j["created_at"]})
+    for i in interns_qs.values("title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
+        recent_activities.append({"kind": "Internship", "title": i["title"], "when": i["updated_at"] or i["created_at"]})
+    recent_activities.sort(key=lambda x: x["when"], reverse=True)
+    recent_activities = recent_activities[:6]
+
+    # expiring soon (next 7 days)
+    expiring_soon = list(
+        jobs_qs.filter(is_active=True, application_deadline__gte=today, application_deadline__lte=today + timezone.timedelta(days=7))
+               .values("id", "title", "application_deadline")
+    ) + list(
+        interns_qs.filter(is_active=True, application_deadline__gte=today, application_deadline__lte=today + timezone.timedelta(days=7))
+                  .values("id", "title", "application_deadline")
+    )
+
+    context = {
+        "company": company,
+        "metrics": metrics,
+        "is_profile_complete": len(profile_missing) == 0,
+        "profile_missing": profile_missing,
+        "profile_completion_percent": profile_completion_percent,
+        "new_applications": new_applications,
+        "recent_activities": recent_activities,
+        "expiring_soon": expiring_soon,
+    }
+    return render(request, "company/dashboard.html", context)
 
 # ---------------------------
 # Company Posts List

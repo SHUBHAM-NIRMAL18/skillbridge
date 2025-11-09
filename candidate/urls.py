@@ -21,6 +21,5 @@ urlpatterns = [
     # Applications
     path('applications/', my_applications, name='applications'),
 
-    # ✅ Recommended demo (NO extra 'candidate/' here)
     path('recommended-demo/', recommended_demo, name='recommended_demo'),
 ]
