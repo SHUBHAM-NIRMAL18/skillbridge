@@ -4,73 +4,111 @@
 {% block content %}
 <div class="container-fluid px-4">
   <!-- Greeting -->
-  <div class="mb-4">
-    <h2 class="fw-bold">Hey there, {{ user.get_full_name|default:user.username }}</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Hey there, {{ user.get_full_name|default:user.username }}!</h2>
+      <p class="text-muted small mb-0">Welcome back to your workspace. Here is a summary of your career search.</p>
+    </div>
+    <div class="d-none d-md-block">
+      <span class="badge bg-light text-dark border p-2">
+        <i class="bi bi-calendar3 me-2 text-danger"></i>{% now "F d, Y" %}
+      </span>
+    </div>
   </div>
 
-  <!-- Achievements prompt -->
-  <div class="card mb-4 shadow-sm">
-    <div class="card-body d-flex justify-content-between align-items-center">
+  <!-- Achievements/Profile progress prompt -->
+  {% if progress < 100 %}
+  <div class="card mb-4 shadow-sm border-0 bg-light-danger-grad">
+    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
       <div class="d-flex align-items-center">
-        <i class="bi bi-trophy fs-2 text-warning me-3"></i>
+        <div class="bg-danger text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
+          <i class="bi bi-trophy fs-4"></i>
+        </div>
         <div>
-          <h5 class="mb-1">Add your Achievements!</h5>
-          <p class="mb-0 text-muted">Your profile is incomplete. Update your Achievements details.</p>
+          <h5 class="mb-1 fw-bold text-dark">Complete your profile!</h5>
+          <p class="mb-0 text-muted small">Your profile is currently <strong>{{ progress }}%</strong> complete. Update your profile details to unlock personal job recommendations.</p>
         </div>
       </div>
-      <a href="#" class="btn btn-danger">
-        Add Achievements &rarr;
+      <div class="d-flex align-items-center gap-3 flex-grow-1 flex-md-grow-0" style="max-width: 350px; width: 100%;">
+        <div class="progress flex-grow-1" style="height: 10px; background-color: rgba(0,0,0,0.06); border-radius: 10px;">
+          <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ progress }}%; border-radius: 10px;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <a href="{% url 'candidate:profile_index' %}" class="btn btn-danger btn-sm text-nowrap px-3 rounded-pill fw-semibold shadow-sm">
+          Update Profile <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card mb-4 shadow-sm border-0 bg-light-success-grad">
+    <div class="card-body d-flex justify-content-between align-items-center py-3">
+      <div class="d-flex align-items-center">
+        <div class="bg-success text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
+          <i class="bi bi-check-circle-fill fs-4"></i>
+        </div>
+        <div>
+          <h5 class="mb-1 fw-bold text-dark">Your profile is 100% complete!</h5>
+          <p class="mb-0 text-muted small">Fantastic! Your profile is ready for applications. Explore recommended internships and jobs below.</p>
+        </div>
+      </div>
+      <a href="{% url 'candidate:profile_preview' %}" class="btn btn-outline-success btn-sm px-3 rounded-pill fw-semibold">
+        View Profile <i class="bi bi-eye ms-1"></i>
       </a>
     </div>
-    <div class="card-footer text-center">
-      <span class="mx-1 bg-danger rounded-circle" style="width:8px; height:8px; display:inline-block;"></span>
-      <span class="mx-1 bg-secondary rounded-circle" style="width:8px; height:8px; display:inline-block;"></span>
-    </div>
   </div>
+  {% endif %}
 
   <!-- Stats cards -->
-  <div class="row text-center mb-4">
+  <div class="row mb-4">
     <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
+      <div class="card stat-card border-0 border-top-accent-success shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
           <div>
-            <h3 class="mb-0">3</h3>
-            <small class="text-muted">Applied</small>
+            <h3 class="mb-0 fw-bold">{{ stats.applied }}</h3>
+            <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Applied</small>
           </div>
-          <i class="bi bi-briefcase fs-2 text-success"></i>
+          <div class="icon-box bg-light-success text-success rounded-3 p-3">
+            <i class="bi bi-briefcase fs-3"></i>
+          </div>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
+      <div class="card stat-card border-0 border-top-accent-warning shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
           <div>
-            <h3 class="mb-0">159</h3>
-            <small class="text-muted">Alerts</small>
+            <h3 class="mb-0 fw-bold">{{ stats.under_review }}</h3>
+            <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Under Review</small>
           </div>
-          <i class="bi bi-clock fs-2 text-warning"></i>
+          <div class="icon-box bg-light-warning text-warning rounded-3 p-3">
+            <i class="bi bi-clock-history fs-3"></i>
+          </div>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
+      <div class="card stat-card border-0 border-top-accent-purple shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
           <div>
-            <h3 class="mb-0">2</h3>
-            <small class="text-muted">Rejected</small>
+            <h3 class="mb-0 fw-bold">{{ stats.shortlisted }}</h3>
+            <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Shortlisted</small>
           </div>
-          <i class="bi bi-x fs-2 text-danger"></i>
+          <div class="icon-box bg-light-purple text-purple rounded-3 p-3">
+            <i class="bi bi-award fs-3"></i>
+          </div>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-md-3 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
+      <div class="card stat-card border-0 border-top-accent-danger shadow-sm">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
           <div>
-            <h3 class="mb-0">0</h3>
-            <small class="text-muted">Bookmarks</small>
+            <h3 class="mb-0 fw-bold">{{ stats.rejected }}</h3>
+            <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Rejected</small>
           </div>
-          <i class="bi bi-bookmark fs-2 text-primary"></i>
+          <div class="icon-box bg-light-danger text-danger rounded-3 p-3">
+            <i class="bi bi-x-circle fs-3"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -78,75 +116,158 @@
 
   <!-- Two-column section -->
   <div class="row">
-    <!-- Recent Internships -->
+    <!-- Recent Internships / Jobs Applied -->
     <div class="col-lg-7 mb-4">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Internship Applied Recently</h5>
+      <div class="card shadow-sm border-0 rounded-3 h-100">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-check me-2 text-danger"></i>Recent Applications</h5>
+          {% if recent_applications %}
+          <a href="{% url 'applications:my_applications' %}" class="btn btn-link btn-sm text-danger text-decoration-none fw-semibold">View All &rarr;</a>
+          {% endif %}
         </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="mb-1">Content Writing Intern</h6>
-              <small class="text-muted">
-                <i class="bi bi-geo-alt"></i> Kathmandu &nbsp;|&nbsp; <i class="bi bi-clock"></i> Part Time
-              </small>
-            </div>
-            <a href="#" class="text-danger">See Details &rarr;</a>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="mb-1">PHP Developer – ID166</h6>
-              <small class="text-muted">
-                <i class="bi bi-geo-alt"></i> Kathmandu &nbsp;|&nbsp; <i class="bi bi-clock"></i> Full Time
-              </small>
-            </div>
-            <a href="#" class="text-danger">See Details &rarr;</a>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <h6 class="mb-1">Junior-level PHP Developer – ID166</h6>
-              <small class="text-muted">
-                <i class="bi bi-geo-alt"></i> Kirtipur &nbsp;|&nbsp; <i class="bi bi-clock"></i> Full Time
-              </small>
-            </div>
-            <a href="#" class="text-danger">See Details &rarr;</a>
-          </li>
-        </ul>
+        <div class="card-body {% if recent_applications %}p-0{% else %}py-5{% endif %}">
+          {% if recent_applications %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="border-0 px-4">Position</th>
+                  <th class="border-0">Company</th>
+                  <th class="border-0">Date Applied</th>
+                  <th class="border-0">Status</th>
+                  <th class="border-0 text-end px-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for app in recent_applications %}
+                <tr>
+                  <td class="px-4">
+                    <div class="fw-bold text-dark">{{ app.target_title }}</div>
+                    <span class="badge bg-light text-muted" style="font-size: 0.65rem;">
+                      {% if app.is_job %}Job{% else %}Internship{% endif %}
+                    </span>
+                  </td>
+                  <td>{{ app.company.company_name }}</td>
+                  <td>{{ app.applied_at|date:"M d, Y" }}</td>
+                  <td>
+                    {% if app.status == 'applied' %}
+                      <span class="badge bg-light-primary text-primary px-2.5 py-1.5 rounded-pill font-medium text-xs">Applied</span>
+                    {% elif app.status == 'under_review' %}
+                      <span class="badge bg-light-warning text-warning px-2.5 py-1.5 rounded-pill font-medium text-xs">Under Review</span>
+                    {% elif app.status == 'shortlisted' %}
+                      <span class="badge bg-light-purple text-purple px-2.5 py-1.5 rounded-pill font-medium text-xs">Shortlisted</span>
+                    {% elif app.status == 'rejected' %}
+                      <span class="badge bg-light-danger text-danger px-2.5 py-1.5 rounded-pill font-medium text-xs">Rejected</span>
+                    {% else %}
+                      <span class="badge bg-light-secondary text-secondary px-2.5 py-1.5 rounded-pill font-medium text-xs">{{ app.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end px-4">
+                    <a href="{% url 'applications:my_applications' %}" class="btn btn-light btn-sm rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="View Details">
+                      <i class="bi bi-chevron-right text-dark"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-folder2-open fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">No applications submitted yet.</p>
+            <a href="{% url 'website:index' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4 py-1.5 mt-2 fw-semibold">
+              Browse Internships & Jobs
+            </a>
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
 
     <!-- Recent Activities -->
     <div class="col-lg-5 mb-4">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Recent Activities</h5>
+      <div class="card shadow-sm border-0 rounded-3 h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-danger"></i>Recent Activities</h5>
         </div>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item d-flex justify-content-between">
-            <div>
-              <strong>User logged in</strong><br/>
-              <small class="text-muted">Shubham Nirmal | suvamnirmal456@gmail.com</small>
+        <div class="card-body">
+          <div class="timeline-container">
+            {% for act in activities %}
+            <div class="timeline-item d-flex gap-3 mb-3 position-relative">
+              <div class="timeline-icon-wrapper">
+                <div class="timeline-icon {{ act.badge_class }} text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                  <i class="bi {{ act.icon }} fs-6"></i>
+                </div>
+              </div>
+              <div class="timeline-content flex-grow-1 pb-3 border-bottom-dashed">
+                <div class="d-flex justify-content-between align-items-baseline mb-0.5">
+                  <h6 class="fw-bold text-dark mb-0" style="font-size: 0.85rem;">{{ act.title }}</h6>
+                  <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ act.date|timesince }} ago</span>
+                </div>
+                <p class="text-muted small mb-0">{{ act.desc }}</p>
+              </div>
             </div>
-            <small class="text-muted">6 months ago</small>
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div>
-              <strong>Password Reset Successfully</strong><br/>
-              <small class="text-muted">Shubham Nirmal | suvamnirmal456@gmail.com</small>
-            </div>
-            <small class="text-muted">7 months ago</small>
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <div>
-              <strong>Password Reset Successfully</strong><br/>
-              <small class="text-muted">Shubham Nirmal | suvamnirmal456@gmail.com</small>
-            </div>
-            <small class="text-muted">7 months ago</small>
-          </li>
-        </ul>
+            {% empty %}
+            <p class="text-muted small text-center my-4">No activities logged yet.</p>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Recommendations Row -->
+  {% if recommended_jobs %}
+  <div class="row mt-2 mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-magic me-2 text-danger"></i>Recommended Opportunities</h5>
+          <a href="{% url 'candidate:recommended_demo' %}" class="btn btn-link btn-sm text-danger text-decoration-none fw-semibold">View All &rarr;</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="row g-0">
+            {% for rec in recommended_jobs %}
+            <div class="col-md-4 border-end-md">
+              <div class="p-4 h-100 d-flex flex-column justify-content-between rec-card position-relative">
+                <span class="position-absolute top-0 end-0 m-3 badge bg-light-purple text-purple px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                  <i class="bi bi-lightning-fill"></i> {{ rec.score }}% Match
+                </span>
+                <div class="pe-5">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="bg-light rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                      {% if rec.obj.company.logo %}
+                        <img src="{{ rec.obj.company.logo.url }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
+                      {% else %}
+                        <i class="bi bi-building fs-4 text-muted"></i>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0 text-dark text-truncate" style="max-width: 150px; font-size: 0.9rem;" title="{{ rec.obj.title }}">{{ rec.obj.title }}</h6>
+                      <small class="text-muted text-truncate d-block" style="max-width: 150px;">{{ rec.obj.company.company_name }}</small>
+                    </div>
+                  </div>
+                  <p class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;">
+                    {{ rec.why|default:"Matches your skills and location preferences." }}
+                  </p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
+                  <span class="badge bg-light text-dark border-light" style="font-size: 0.7rem;">
+                    {{ rec.obj.get_job_type_display|default:rec.obj.get_internship_type_display|default:"Full-Time" }}
+                  </span>
+                  <a href="{% if rec.is_job %}{% url 'website:job_detail' rec.obj.id %}{% else %}{% url 'website:internship_detail' rec.obj.id %}{% endif %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.75rem;">
+                    Apply Now
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
