@@ -191,3 +191,151 @@ p, li, span, label, a {
   background: #e9ecef !important;
 }
 
+/* ----------------------------------------------------
+   Candidate Dashboard Custom UI Styles
+---------------------------------------------------- */
+.bg-light-danger-grad {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.04) 0%, rgba(255, 255, 255, 1) 100%) !important;
+  border-left: 4px solid #dc3545 !important;
+}
+
+.bg-light-success-grad {
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.04) 0%, rgba(255, 255, 255, 1) 100%) !important;
+  border-left: 4px solid #198754 !important;
+}
+
+/* Stat Cards border-top styling */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  border-radius: 8px !important;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+.border-top-accent-success {
+  border-top: 4px solid #198754 !important;
+}
+
+.border-top-accent-warning {
+  border-top: 4px solid #ffc107 !important;
+}
+
+.border-top-accent-purple {
+  border-top: 4px solid #6f42c1 !important;
+}
+
+.border-top-accent-danger {
+  border-top: 4px solid #dc3545 !important;
+}
+
+/* Icon / Box colors */
+.bg-light-success {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+.bg-light-warning {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+.bg-light-purple {
+  background-color: rgba(111, 66, 193, 0.1) !important;
+}
+.bg-light-danger {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+}
+.bg-light-primary {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+.bg-light-secondary {
+  background-color: rgba(108, 117, 125, 0.1) !important;
+}
+
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.bg-purple {
+  background-color: #6f42c1 !important;
+}
+
+/* Custom badges */
+.badge.bg-light-primary {
+  color: #0d6efd !important;
+}
+
+.badge.bg-light-warning {
+  color: #ffc107 !important;
+}
+
+.badge.bg-light-purple {
+  color: #6f42c1 !important;
+}
+
+.badge.bg-light-danger {
+  color: #dc3545 !important;
+}
+
+.font-medium {
+  font-weight: 500 !important;
+}
+
+.text-xs {
+  font-size: 0.75rem !important;
+}
+
+.xsmall {
+  font-size: 0.75rem !important;
+}
+
+/* Dash borders and margins */
+.border-bottom-dashed {
+  border-bottom: 1px dashed #e9ecef !important;
+}
+
+/* Recommendation card styles */
+.rec-card {
+  transition: background-color 0.2s ease !important;
+}
+
+.rec-card:hover {
+  background-color: #fafbfc !important;
+}
+
+.border-end-md {
+  border-right: 1px solid #f1f3f5 !important;
+}
+
+@media (max-width: 767.98px) {
+  .border-end-md {
+    border-right: none !important;
+    border-bottom: 1px solid #f1f3f5 !important;
+  }
+}
+
+/* Timeline Custom Styles */
+.timeline-container {
+  position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 32px;
+  bottom: -12px;
+  width: 2px;
+  background-color: #f1f3f5;
+  z-index: 1;
+}
+
+.timeline-icon-wrapper {
+  z-index: 2;
+}
+
+.timeline-icon {
+  width: 32px;
+  height: 32px;
+}
+
+
