@@ -19,15 +19,162 @@ from django.utils import timezone
 
 
 
+def calculate_candidate_progress(profile):
+    if not profile:
+        return 0
+    
+    def has_tokens(value):
+        if not value:
+            return False
+        tokens = [t.strip() for t in str(value).split(',')]
+        tokens = [t for t in tokens if t]
+        return len(tokens) > 0
+
+    completion = {
+        'personal': all([
+            bool(profile.first_name),
+            bool(profile.last_name),
+            bool(profile.gender),
+            bool(profile.date_of_birth),
+        ]),
+        'professional': all([
+            bool(profile.designation),
+            bool(profile.experience_level),
+            has_tokens(profile.sectors),
+            has_tokens(profile.skills),
+        ]),
+        'address': all([
+            bool(profile.phone_number),
+            bool(profile.province),
+            bool(profile.city),
+        ]),
+        'education': profile.educations.exists(),
+        'experience': True if profile.experience_level == 'entry' else profile.experiences.exists(),
+        'projects': profile.projects.exists(),
+        'certificates': profile.certificates.exists(),
+        'social': profile.social_links.exists(),
+        'documents': bool(profile.resume)
+    }
+
+    required = ['personal', 'professional', 'address', 'education']
+    if profile.experience_level != 'entry':
+        required.append('experience')
+        
+    completed = sum(1 for step in required if completion.get(step))
+    return int(round((completed / len(required)) * 100))
+
+
 @login_required
 def candidate_dashboard(request):
-    # helpful while debugging – remove when done
-    # print("AUTH:", request.user.is_authenticated, "ID:", request.user.id, "ROLE:", getattr(request.user, "role", None))
-
     if getattr(request.user, "role", None) != User.ROLE_CANDIDATE:
         messages.error(request, "Please use a candidate account.")
         return redirect("company:dashboard")   
-    return render(request, "candidate/dashboard.html")
+
+    profile = getattr(request.user, "profile", None)
+    
+    # Calculate stats
+    stats = {
+        'applied': 0,
+        'under_review': 0,
+        'shortlisted': 0,
+        'rejected': 0,
+    }
+    
+    recent_applications = []
+    progress = 0
+
+    if profile:
+        progress = calculate_candidate_progress(profile)
+        stats['applied'] = profile.applications.count()
+        stats['under_review'] = profile.applications.filter(status='under_review').count()
+        stats['shortlisted'] = profile.applications.filter(status='shortlisted').count()
+        stats['rejected'] = profile.applications.filter(status='rejected').count()
+        
+        recent_applications = profile.applications.select_related('job_post', 'internship_post', 'company').order_by('-applied_at')[:5]
+
+    # Dynamic activities feed
+    activities = []
+    # 1. Join SkillBridge
+    activities.append({
+        'title': 'Joined SkillBridge',
+        'desc': f'Created account with: {request.user.email}',
+        'date': request.user.date_joined,
+        'icon': 'bi-user-plus',
+        'badge_class': 'bg-primary'
+    })
+    
+    if profile:
+        # 2. Profile updated
+        activities.append({
+            'title': 'Profile updated',
+            'desc': 'Modified profile details or document uploads',
+            'date': profile.updated_at,
+            'icon': 'bi-person-check',
+            'badge_class': 'bg-info'
+        })
+        
+        # 3. Application activities
+        for app in profile.applications.select_related('job_post', 'internship_post', 'company').all():
+            target_name = app.job_post.title if app.is_job else app.internship_post.title
+            activities.append({
+                'title': f'Applied to {target_name}',
+                'desc': f'Submitted application to {app.company.company_name}',
+                'date': app.applied_at,
+                'icon': 'bi-send',
+                'badge_class': 'bg-success'
+            })
+            
+            if app.status != 'applied':
+                status_text = app.get_status_display()
+                icon = 'bi-check-circle'
+                badge_class = 'bg-success'
+                if app.status == 'rejected':
+                    icon = 'bi-x-circle'
+                    badge_class = 'bg-danger'
+                elif app.status == 'shortlisted':
+                    icon = 'bi-award'
+                    badge_class = 'bg-purple'
+                
+                activities.append({
+                    'title': f'Application status updated',
+                    'desc': f'Your application for {target_name} is now: {status_text}',
+                    'date': app.updated_at,
+                    'icon': icon,
+                    'badge_class': badge_class
+                })
+                
+    # Sort activities by date descending, take top 5
+    activities.sort(key=lambda x: x['date'], reverse=True)
+    activities = activities[:5]
+
+    # Recommendations
+    recommended_items = []
+    try:
+        from recommendations.simple_hybrid import recommend_jobs_for_candidate
+        from django.contrib.contenttypes.models import ContentType
+        recs = recommend_jobs_for_candidate(request.user, limit=3)
+        for r in recs:
+            ct = ContentType.objects.get_for_id(r.ct_id)
+            obj = ct.get_object_for_this_type(id=r.obj_id)
+            recommended_items.append({
+                'obj': obj,
+                'score': int(r.score * 100) if getattr(r, 'score', None) is not None else None,
+                'why': getattr(r, 'why', ''),
+                'is_job': ct.model == 'jobpost',
+            })
+    except Exception:
+        pass
+
+    context = {
+        'profile': profile,
+        'progress': progress,
+        'stats': stats,
+        'recent_applications': recent_applications,
+        'activities': activities,
+        'recommended_jobs': recommended_items,
+    }
+    return render(request, "candidate/dashboard.html", context)
+
 
 
 class ProfileWizardView(FormView):
