@@ -135,3 +135,51 @@ p, li, span, label, a {
   margin: 0 auto;        /* horizontally center */
   padding: 1rem;         /* breathing room top & bottom */
 }
+
+/* ----------------------------------------------------
+   CKEditor Modern Premium Styling overrides
+---------------------------------------------------- */
+.django-ckeditor-widget {
+  width: 100% !important;
+  display: block;
+}
+
+.cke_chrome {
+  border: 1px solid #dee2e6 !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.cke_chrome:focus-within {
+  border-color: #f1aeb5 !important; /* Bootstrap danger border focus */
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.cke_top {
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6 !important;
+  padding: 6px 8px !important;
+}
+
+.cke_bottom {
+  background: #f8f9fa !important;
+  border-top: 1px solid #dee2e6 !important;
+}
+
+.cke_toolgroup {
+  border: 1px solid #dee2e6 !important;
+  background: #ffffff !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+
+.cke_button {
+  border-radius: 3px !important;
+}
+
+.cke_button:hover {
+  background: #e9ecef !important;
+}
