@@ -465,8 +465,23 @@
     if (!window.CKEDITOR) return;
     (scope || document).querySelectorAll('textarea.django-ckeditor-widget').forEach(el => {
       if (el.dataset.ckInitialized === '1') return;
+      if (window.CKEDITOR.instances[el.id]) {
+        el.dataset.ckInitialized = '1';
+        return;
+      }
       try {
-        CKEDITOR.replace(el.id, { height: 180, removePlugins: 'elementspath', resize_enabled: false });
+        window.CKEDITOR.replace(el.id, {
+          toolbar: [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat']
+          ],
+          width: '100%',
+          height: 150,
+          removePlugins: 'elementspath',
+          resize_enabled: false
+        });
         el.dataset.ckInitialized = '1';
       } catch (e) {}
     });
