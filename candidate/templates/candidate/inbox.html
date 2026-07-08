@@ -1,0 +1,144 @@
+{% extends "candidate/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Inbox</h2>
+      <p class="text-muted small mb-0">Communicate with recruiters and track your application progress.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <div class="row g-0" style="height: calc(100vh - 190px); min-height: 480px;">
+      
+      <!-- Left Panel: Chat List -->
+      <div class="col-md-4 border-end border-light d-flex flex-column h-100 bg-white">
+        <!-- Search bar -->
+        <div class="p-3 border-bottom border-light">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control bg-light border-0" placeholder="Search conversations...">
+          </div>
+        </div>
+
+        <!-- Scrollable Chat List -->
+        <div class="flex-grow-1 overflow-y-auto custom-scrollbar">
+          <div class="list-group list-group-flush">
+            {% for chat in chats %}
+              <a href="?chat_id={{ chat.id }}" 
+                 class="list-group-item list-group-item-action border-bottom border-light p-3 {% if chat.id == active_chat.id %}bg-light-danger-grad active-chat-border{% endif %}">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center p-1 border border-light" style="width: 32px; height: 32px;">
+                      <i class="bi bi-building text-muted" style="font-size: 0.9rem;"></i>
+                    </div>
+                    <span class="fw-bold text-dark text-truncate" style="max-width: 140px; font-size: 0.85rem;">{{ chat.sender_name }}</span>
+                  </div>
+                  <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ chat.timestamp }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="text-truncate text-muted small pe-2" style="font-size: 0.78rem;">
+                    <strong>{{ chat.subject }}:</strong> {{ chat.last_message }}
+                  </div>
+                  {% if chat.unread %}
+                    <span class="badge bg-danger rounded-circle p-1.5" style="width: 8px; height: 8px;" title="Unread">&nbsp;</span>
+                  {% endif %}
+                </div>
+              </a>
+            {% empty %}
+              <div class="text-center py-5">
+                <i class="bi bi-chat-left-dots fs-2 text-muted"></i>
+                <p class="text-muted small mt-2">No messages received yet.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Message Thread Viewport -->
+      <div class="col-md-8 d-flex flex-column h-100 bg-light-gray">
+        {% if active_chat %}
+          <!-- Thread Header -->
+          <div class="p-3 bg-white border-bottom border-light d-flex align-items-center justify-content-between shadow-xs">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-light rounded-circle d-flex align-items-center justify-content-center p-2 border" style="width: 42px; height: 42px;">
+                <i class="bi bi-building text-danger fs-5"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold text-dark mb-0">{{ active_chat.sender_name }}</h6>
+                <span class="text-muted small" style="font-size: 0.78rem;">Subject: {{ active_chat.subject }}</span>
+              </div>
+            </div>
+            <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-danger btn-sm rounded-pill fw-semibold px-3">
+              View Application Status
+            </a>
+          </div>
+
+          <!-- Messages Body Area -->
+          <div class="flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-3 custom-scrollbar" id="messagesContainer">
+            {% for msg in active_chat.messages %}
+              {% if msg.sender == "You" %}
+                <!-- Current candidate sent message -->
+                <div class="d-flex justify-content-end align-items-start gap-2 max-w-75 ms-auto">
+                  <div class="text-end">
+                    <div class="bg-danger text-white p-3 rounded-3 shadow-xs mb-1" style="font-size: 0.85rem; border-top-right-radius: 0 !important; border-radius: 12px; text-align: left; line-height: 1.5;">
+                      {{ msg.text }}
+                    </div>
+                    <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ msg.time }}</span>
+                  </div>
+                </div>
+              {% else %}
+                <!-- Recruiter received message -->
+                <div class="d-flex justify-content-start align-items-start gap-2 max-w-75">
+                  <div class="bg-light rounded-circle d-flex align-items-center justify-content-center p-1 border border-light shadow-xs" style="width: 28px; height: 28px; flex-shrink: 0;">
+                    <i class="bi bi-building text-muted" style="font-size: 0.75rem;"></i>
+                  </div>
+                  <div>
+                    <div class="bg-white text-dark p-3 rounded-3 border shadow-xs mb-1" style="font-size: 0.85rem; border-top-left-radius: 0 !important; border-radius: 12px; line-height: 1.5;">
+                      {{ msg.text }}
+                    </div>
+                    <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ msg.time }}</span>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Message Reply Compose Bar -->
+          <div class="p-3 bg-white border-top border-light">
+            <form onsubmit="event.preventDefault(); return false;">
+              <div class="input-group">
+                <input type="text" class="form-control border-light-gray" placeholder="Type your reply here..." style="font-size: 0.88rem;">
+                <button class="btn btn-danger px-4" type="button">
+                  <i class="bi bi-send-fill me-1"></i>Send
+                </button>
+              </div>
+            </form>
+          </div>
+        {% else %}
+          <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center py-5">
+            <i class="bi bi-chat-square-quote fs-1 text-muted"></i>
+            <h5 class="fw-bold mt-3 text-dark">Welcome to your inbox</h5>
+            <p class="text-muted small">Select a conversation from the left to start reading.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Scroll the messages feed viewport to the bottom on page render
+    var container = document.getElementById("messagesContainer");
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+</script>
+{% endblock %}
