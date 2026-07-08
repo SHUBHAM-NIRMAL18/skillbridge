@@ -55,8 +55,8 @@
             <i class="bi bi-search"></i> <span>Search Opportunities</span>
           </a>
         </li>
-        <li class="nav-item" >
-          <a class="nav-link" href="#">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}" href="{% url 'candidate:inbox' %}">
             <i class="bi bi-chat-dots"></i> <span>Inbox</span>
           </a>
         </li>
