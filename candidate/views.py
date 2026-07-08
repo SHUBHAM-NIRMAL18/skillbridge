@@ -592,3 +592,54 @@ def recommended_demo(request):
         "candidate/recommended_demo.html",
         {"recommended_jobs": items}
     )
+
+@login_required
+def inbox(request):
+    """
+    Static/Mock inbox view displaying a list of conversations and message threads
+    """
+    mock_chats = [
+        {
+            "id": 1,
+            "sender_name": "Google DeepMind HR",
+            "subject": "Interview Confirmation",
+            "last_message": "Hey Shubham, we would like to confirm your interview for the AI Software Engineer role scheduled for tomorrow.",
+            "timestamp": "10:30 AM",
+            "unread": True,
+            "messages": [
+                {"sender": "Google DeepMind HR", "text": "Hi Shubham, thanks for applying. We loved your profile!", "time": "Yesterday 3:15 PM"},
+                {"sender": "You", "text": "Thank you! I am very excited about this opportunity.", "time": "Yesterday 4:00 PM"},
+                {"sender": "Google DeepMind HR", "text": "Hey Shubham, we would like to confirm your interview for the AI Software Engineer role scheduled for tomorrow.", "time": "10:30 AM"},
+            ]
+        },
+        {
+            "id": 2,
+            "sender_name": "Microsoft Recruiting",
+            "subject": "Application Status Review",
+            "last_message": "Your application has been received and is currently under review by our engineering team.",
+            "timestamp": "Yesterday",
+            "unread": False,
+            "messages": [
+                {"sender": "Microsoft Recruiting", "text": "Hi Shubham, your application has been received and is currently under review by our engineering team. We will get back to you shortly.", "time": "Yesterday 9:00 AM"}
+            ]
+        },
+        {
+            "id": 3,
+            "sender_name": "Meta Careers",
+            "subject": "Coding Test Invitation",
+            "last_message": "Please choose a slot from the Calendly link sent to your registered email address.",
+            "timestamp": "July 5",
+            "unread": False,
+            "messages": [
+                {"sender": "Meta Careers", "text": "Hi Shubham, we are pleased to invite you to the technical screening round. Please choose a slot from the Calendly link sent to your registered email address.", "time": "July 5 2:30 PM"}
+            ]
+        }
+    ]
+    
+    active_chat_id = int(request.GET.get("chat_id", 1))
+    active_chat = next((c for c in mock_chats if c["id"] == active_chat_id), mock_chats[0])
+
+    return render(request, "candidate/inbox.html", {
+        "chats": mock_chats,
+        "active_chat": active_chat,
+    })
