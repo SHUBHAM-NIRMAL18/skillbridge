@@ -147,7 +147,7 @@
                       {% if app.is_job %}Job{% else %}Internship{% endif %}
                     </span>
                   </td>
-                  <td>{{ app.company.company_name }}</td>
+                  <td>{{ app.company.first_name }} {{ app.company.last_name }}</td>
                   <td>{{ app.applied_at|date:"M d, Y" }}</td>
                   <td>
                     {% if app.status == 'applied' %}
@@ -245,7 +245,7 @@
                     </div>
                     <div>
                       <h6 class="fw-bold mb-0 text-dark text-truncate" style="max-width: 150px; font-size: 0.9rem;" title="{{ rec.obj.title }}">{{ rec.obj.title }}</h6>
-                      <small class="text-muted text-truncate d-block" style="max-width: 150px;">{{ rec.obj.company.company_name }}</small>
+                      <small class="text-muted text-truncate d-block" style="max-width: 150px;">{{ rec.obj.company.first_name }} {{ rec.obj.company.last_name }}</small>
                     </div>
                   </div>
                   <p class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;">
