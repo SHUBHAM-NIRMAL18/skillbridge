@@ -12,7 +12,7 @@ from .forms import (
     EducationFormSet, ExperienceFormSet, ProjectFormSet,
     CertificateFormSet, SocialLinkFormSet, DocumentUploadForm
 )
-from .models import Profile
+from .models import Profile, Feedback
 from django.utils import timezone
 
 
@@ -643,3 +643,36 @@ def inbox(request):
         "chats": mock_chats,
         "active_chat": active_chat,
     })
+
+@login_required
+def support(request):
+    """
+    Static/Mock support information guide page
+    """
+    return render(request, "candidate/support.html")
+
+@login_required
+def feedback(request):
+    """
+    Logic-backed platform feedback form handler
+    """
+    if request.method == "POST":
+        rating = request.POST.get("rating")
+        liked_features_list = request.POST.getlist("liked_features")
+        comments = request.POST.get("comments", "").strip()
+
+        if not rating:
+            messages.error(request, "Please select a star rating.")
+            return render(request, "candidate/feedback.html")
+
+        # Save to database
+        Feedback.objects.create(
+            user=request.user,
+            rating=int(rating),
+            liked_features=", ".join(liked_features_list),
+            comments=comments
+        )
+        messages.success(request, "Thank you for your valuable feedback! It has been submitted successfully.")
+        return redirect("candidate:feedback")
+
+    return render(request, "candidate/feedback.html")
