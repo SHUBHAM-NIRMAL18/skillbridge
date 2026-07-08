@@ -47,29 +47,29 @@
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'candidate:dashboard' %}">
-            <i class="bi bi-speedometer2"></i> Dashboard
+            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link {% if '/jobs/' in request.path or '/internships/' in request.path %}active{% endif %}" href="{% url 'website:jobs_list' %}">
-            <i class="bi bi-search"></i> Search Opportunities
+            <i class="bi bi-search"></i> <span>Search Opportunities</span>
           </a>
         </li>
         <li class="nav-item" >
           <a class="nav-link" href="#">
-            <i class="bi bi-chat-dots"></i> Inbox
+            <i class="bi bi-chat-dots"></i> <span>Inbox</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link {% if 'profile' in request.path %}active{% endif %}" 
             href="{% url 'candidate:profile' 'personal' %}">
-            <i class="bi bi-person"></i> Profile
+            <i class="bi bi-person"></i> <span>Profile</span>
           </a>
         </li>
 
         <li class="nav-item">
           <a class="nav-link {% if 'applications' in request.path %}active{% endif %}" data-bs-toggle="collapse" href="#collapseApplications" role="button" aria-expanded="{% if 'applications' in request.path %}true{% else %}false{% endif %}" aria-controls="collapseApplications">
-            <i class="bi bi-briefcase"></i> Applications
+            <i class="bi bi-briefcase"></i> <span>Applications</span>
             <i class="bi bi-chevron-down float-end"></i>
           </a>
           <div class="collapse {% if 'applications' in request.path %}show{% endif %} ps-4" id="collapseApplications">
@@ -95,17 +95,17 @@
 
         <li class="nav-item">
           <a class="nav-link" href="#">
-            <i class="bi bi-bookmark"></i> Bookmarks
+            <i class="bi bi-bookmark"></i> <span>Bookmarks</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'candidate:recommended_demo' %}">
-            <i class="bi bi-graph-up-arrow"></i> Recommended Jobs
+            <i class="bi bi-graph-up-arrow"></i> <span>Recommended Jobs</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="collapse" href="#collapseContact" role="button" aria-expanded="false" aria-controls="collapseContact">
-            <i class="bi bi-telephone"></i> Contact Us
+            <i class="bi bi-telephone"></i> <span>Contact Us</span>
             <i class="bi bi-chevron-down float-end"></i>
           </a>
           <div class="collapse ps-4" id="collapseContact">
@@ -121,7 +121,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#">
-            <i class="bi bi-gear"></i> Settings
+            <i class="bi bi-gear"></i> <span>Settings</span>
           </a>
         </li>
       </ul>
@@ -129,7 +129,7 @@
 
     <div class="logout-container">
       <a class="nav-link text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-        <i class="bi bi-box-arrow-right"></i> Logout
+        <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
       </a>
     </div>
   </nav>
@@ -138,6 +138,11 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
       <div class="container-fluid px-3">
+        <!-- Sidebar Toggle Hamburger -->
+        <button class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center" id="sidebarToggle" style="width: 40px; height: 40px;" type="button">
+          <i class="bi bi-list fs-4 text-dark"></i>
+        </button>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -241,6 +246,59 @@
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('#toast-stack .toast')
       .forEach(el => new bootstrap.Toast(el).show());
+  });
+
+  // Collapsible Sidebar handler
+  document.addEventListener("DOMContentLoaded", function() {
+    const toggleBtn = document.getElementById("sidebarToggle");
+    const body = document.body;
+    
+    // Read persisted desktop sidebar state preference
+    if (localStorage.getItem("sidebar-collapsed") === "true") {
+      body.classList.add("sidebar-collapsed");
+    }
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", function() {
+        if (window.innerWidth >= 992) {
+          body.classList.toggle("sidebar-collapsed");
+          localStorage.setItem("sidebar-collapsed", body.classList.contains("sidebar-collapsed"));
+        } else {
+          body.classList.toggle("sidebar-mobile-show");
+          if (body.classList.contains("sidebar-mobile-show")) {
+            createBackdrop();
+          } else {
+            removeBackdrop();
+          }
+        }
+      });
+    }
+
+    function createBackdrop() {
+      let backdrop = document.createElement("div");
+      backdrop.className = "sidebar-backdrop";
+      backdrop.id = "sidebarBackdrop";
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener("click", function() {
+        body.classList.remove("sidebar-mobile-show");
+        removeBackdrop();
+      });
+    }
+
+    function removeBackdrop() {
+      let backdrop = document.getElementById("sidebarBackdrop");
+      if (backdrop) {
+        backdrop.remove();
+      }
+    }
+    
+    // Clean backdrop on window resize if scaling up to desktop
+    window.addEventListener("resize", function() {
+      if (window.innerWidth >= 992) {
+        body.classList.remove("sidebar-mobile-show");
+        removeBackdrop();
+      }
+    });
   });
 </script>
 
