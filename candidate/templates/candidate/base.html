@@ -139,7 +139,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
       <div class="container-fluid px-3">
         <!-- Sidebar Toggle Hamburger -->
-        <button class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center" id="sidebarToggle" style="width: 40px; height: 40px;" type="button">
+        <button class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                id="sidebarToggle" style="width: 40px; height: 40px;" type="button"
+                onclick="window.toggleSidebar()">
           <i class="bi bi-list fs-4 text-dark"></i>
         </button>
 
@@ -204,103 +206,82 @@
 
   {% bootstrap_javascript %}
 
-  <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    var toastEls = document.querySelectorAll(".toast");
-    toastEls.forEach(function(toastEl) {
-      new bootstrap.Toast(toastEl).show();
-    });
-  });
-</script>
-
-  
-  {% block extra_js %}{% endblock %}
-  
-</body>
-<!-- Toast Container -->
-<div id="toast-stack" class="position-fixed top-0 end-0 p-3" style="z-index: 1200;">
-  {% for message in messages %}
-    {% with level=message.tags|default:"info" %}
-    <div id="toast-{{ forloop.counter }}"
-         class="toast align-items-center text-bg-{{ level }} border-0 mb-2"
-         role="alert" aria-live="assertive" aria-atomic="true"
-         data-bs-delay="4000">
-      <div class="d-flex">
-        <div class="toast-body">
-          {% if level == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
-          {% if level == 'danger' or level == 'error' %}<i class="bi bi-x-circle-fill me-2"></i>{% endif %}
-          {% if level == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
-          {% if level == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
-          {{ message }}
+  <!-- Toast Container -->
+  <div id="toast-stack" class="position-fixed top-0 end-0 p-3" style="z-index: 1200;">
+    {% for message in messages %}
+      {% with level=message.tags|default:"info" %}
+      <div id="toast-{{ forloop.counter }}"
+           class="toast align-items-center text-bg-{{ level }} border-0 mb-2"
+           role="alert" aria-live="assertive" aria-atomic="true"
+           data-bs-delay="4000">
+        <div class="d-flex">
+          <div class="toast-body">
+            {% if level == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
+            {% if level == 'danger' or level == 'error' %}<i class="bi bi-x-circle-fill me-2"></i>{% endif %}
+            {% if level == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
+            {% if level == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                  data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
-    </div>
-    {% endwith %}
-  {% endfor %}
-</div>
+      {% endwith %}
+    {% endfor %}
+  </div>
 
-<script>
-  // Auto-show any rendered toasts
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('#toast-stack .toast')
-      .forEach(el => new bootstrap.Toast(el).show());
-  });
-
-  // Collapsible Sidebar handler
-  document.addEventListener("DOMContentLoaded", function() {
-    const toggleBtn = document.getElementById("sidebarToggle");
-    const body = document.body;
-    
-    // Read persisted desktop sidebar state preference
-    if (localStorage.getItem("sidebar-collapsed") === "true") {
-      body.classList.add("sidebar-collapsed");
-    }
-
-    if (toggleBtn) {
-      toggleBtn.addEventListener("click", function() {
-        if (window.innerWidth >= 992) {
-          body.classList.toggle("sidebar-collapsed");
-          localStorage.setItem("sidebar-collapsed", body.classList.contains("sidebar-collapsed"));
-        } else {
-          body.classList.toggle("sidebar-mobile-show");
-          if (body.classList.contains("sidebar-mobile-show")) {
-            createBackdrop();
-          } else {
-            removeBackdrop();
-          }
-        }
-      });
-    }
-
-    function createBackdrop() {
-      let backdrop = document.createElement("div");
-      backdrop.className = "sidebar-backdrop";
-      backdrop.id = "sidebarBackdrop";
-      document.body.appendChild(backdrop);
-      backdrop.addEventListener("click", function() {
-        body.classList.remove("sidebar-mobile-show");
-        removeBackdrop();
-      });
-    }
-
-    function removeBackdrop() {
-      let backdrop = document.getElementById("sidebarBackdrop");
-      if (backdrop) {
-        backdrop.remove();
+  <script>
+  // ---- Collapsible Sidebar ----
+  window.toggleSidebar = function() {
+    var body = document.body;
+    if (window.innerWidth >= 992) {
+      body.classList.toggle("sidebar-collapsed");
+      localStorage.setItem("sidebar-collapsed", body.classList.contains("sidebar-collapsed"));
+    } else {
+      body.classList.toggle("sidebar-mobile-show");
+      if (body.classList.contains("sidebar-mobile-show")) {
+        var existing = document.getElementById("sidebarBackdrop");
+        if (existing) existing.remove();
+        var backdrop = document.createElement("div");
+        backdrop.className = "sidebar-backdrop";
+        backdrop.id = "sidebarBackdrop";
+        document.body.appendChild(backdrop);
+        backdrop.addEventListener("click", function() {
+          body.classList.remove("sidebar-mobile-show");
+          var b = document.getElementById("sidebarBackdrop");
+          if (b) b.remove();
+        });
+      } else {
+        var b = document.getElementById("sidebarBackdrop");
+        if (b) b.remove();
       }
     }
-    
-    // Clean backdrop on window resize if scaling up to desktop
+  };
+
+  // Restore persisted state on load
+  document.addEventListener("DOMContentLoaded", function() {
+    // Auto-show toasts
+    document.querySelectorAll(".toast").forEach(function(el) {
+      new bootstrap.Toast(el).show();
+    });
+
+    // Restore collapsed sidebar on desktop
+    if (window.innerWidth >= 992 && localStorage.getItem("sidebar-collapsed") === "true") {
+      document.body.classList.add("sidebar-collapsed");
+    }
+
+    // Clean up on resize to desktop
     window.addEventListener("resize", function() {
       if (window.innerWidth >= 992) {
-        body.classList.remove("sidebar-mobile-show");
-        removeBackdrop();
+        document.body.classList.remove("sidebar-mobile-show");
+        var b = document.getElementById("sidebarBackdrop");
+        if (b) b.remove();
       }
     });
   });
-</script>
+  </script>
 
-</div>
+  {% block extra_js %}{% endblock %}
+
+</body>
 </html>
