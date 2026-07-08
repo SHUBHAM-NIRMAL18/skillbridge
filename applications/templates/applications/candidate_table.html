@@ -1,161 +1,199 @@
 {% extends "candidate/base.html" %}
 {% load humanize static %}
 
-{% block title %}Applications{% endblock %}
+{% block title %}My Applications{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 px-4">
 
-  <!-- header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <!-- Breadcrumbs & Title -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <nav aria-label="breadcrumb" class="small text-muted">
         <ol class="breadcrumb mb-1">
-          <li class="breadcrumb-item">Dashboard</li>
-          <li class="breadcrumb-item active" aria-current="page">Internship/Job Applications</li>
+          <li class="breadcrumb-item"><a href="{% url 'candidate:dashboard' %}" class="text-danger text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">My Applications</li>
         </ol>
       </nav>
-      <h4 class="mb-0">Internship/Job Applications</h4>
+      <h2 class="fw-bold text-dark mb-0">My Applications</h2>
     </div>
-
-    <form class="d-flex gap-2" method="get">
-      <input type="hidden" name="tab" value="{{ tab }}">
-      <select class="form-select form-select-sm" name="type" onchange="this.form.submit()">
-        <option value="all" {% if typ == 'all' %}selected{% endif %}>All Types ({{ total_all }})</option>
-        <option value="job" {% if typ == 'job' %}selected{% endif %}>Jobs ({{ total_job }})</option>
-        <option value="intern" {% if typ == 'intern' %}selected{% endif %}>Internships ({{ total_int }})</option>
-      </select>
-      <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
-        <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
-        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
-      </select>
-      <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Search title or company">
-      <button class="btn btn-danger btn-sm">Search</button>
-    </form>
   </div>
 
-  <!-- tabs -->
-  <ul class="nav nav-tabs small mb-3">
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'all' %}active{% endif %}" href="?tab=all&type={{ typ }}">All
-        <span class="badge bg-secondary ms-1">{{ total_all }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'pending' %}active{% endif %}" href="?tab=pending&type={{ typ }}">Pending
-        <span class="badge bg-secondary ms-1">{{ counts.applied|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'viewed' %}active{% endif %}" href="?tab=viewed&type={{ typ }}">Viewed
-        <span class="badge bg-secondary ms-1">{{ counts.under_review|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'shortlisted' %}active{% endif %}" href="?tab=shortlisted&type={{ typ }}">Shortlisted
-        <span class="badge bg-secondary ms-1">{{ counts.shortlisted|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'interview' %}active{% endif %}" href="?tab=interview&type={{ typ }}">Interview
-        <span class="badge bg-secondary ms-1">{{ counts.interview|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'offered' %}active{% endif %}" href="?tab=offered&type={{ typ }}">Offered
-        <span class="badge bg-secondary ms-1">{{ counts.offered|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'rejected' %}active{% endif %}" href="?tab=rejected&type={{ typ }}">Rejected
-        <span class="badge bg-secondary ms-1">{{ counts.rejected|default:0 }}</span>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if tab == 'withdrawn' %}active{% endif %}" href="?tab=withdrawn&type={{ typ }}">Withdrawn
-        <span class="badge bg-secondary ms-1">{{ counts.withdrawn|default:0 }}</span>
-      </a>
-    </li>
-  </ul>
-
-  {% if apps %}
-  <div class="table-responsive">
-    <table class="table align-middle">
-      <thead class="table-light">
-        <tr class="small text-muted">
-          <th>Title</th>
-          <th>Company</th>
-          <th>Status</th>
-          <th>Location</th>
-          <th>Openings</th>
-          <th>Applied Date</th>
-          <th class="text-end">Details</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-
-        {% for a in apps %}
-          {% if a.is_job %}
-            {% with post=a.job_post detail_url="website:job_detail" %}
-              {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="job" %}
-            {% endwith %}
-          {% else %}
-            {% with post=a.internship_post detail_url="website:internship_detail" %}
-              {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="intern" %}
-            {% endwith %}
-          {% endif %}
-        {% endfor %}
-
-      </tbody>
-    </table>
+  <!-- Search & Filter Card -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+      <form class="row g-2 align-items-center" method="get">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        
+        <div class="col-md-5">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input class="form-control form-control-sm border-start-0 bg-light ps-0" name="q" value="{{ q }}" placeholder="Search by title or company name...">
+          </div>
+        </div>
+        
+        <div class="col-6 col-md-2.5">
+          <select class="form-select form-select-sm bg-light" name="type" onchange="this.form.submit()">
+            <option value="all" {% if typ == 'all' %}selected{% endif %}>All Types ({{ total_all }})</option>
+            <option value="job" {% if typ == 'job' %}selected{% endif %}>Jobs ({{ total_job }})</option>
+            <option value="intern" {% if typ == 'intern' %}selected{% endif %}>Internships ({{ total_int }})</option>
+          </select>
+        </div>
+        
+        <div class="col-6 col-md-2.5">
+          <select class="form-select form-select-sm bg-light" name="sort" onchange="this.form.submit()">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest first</option>
+            <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+          </select>
+        </div>
+        
+        <div class="col-12 col-md-2 d-grid">
+          <button class="btn btn-danger btn-sm rounded-pill fw-semibold shadow-sm px-3">Search</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  {% if page_obj.paginator.num_pages > 1 %}
-    <nav class="mt-3">
-      <ul class="pagination pagination-sm">
-        {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">«</a>
-          </li>
-        {% endif %}
-        <li class="page-item disabled">
-          <span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-        </li>
-        {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">»</a>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
-  {% endif %}
+  <!-- Tabs (Scrolling custom nav-pills) -->
+  <div class="nav-pills-custom-wrapper">
+    <ul class="nav nav-pills small gap-2">
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'all' %}active{% endif %}" href="?tab=all&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">All
+          <span class="badge rounded-pill bg-secondary ms-1">{{ total_all }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'pending' %}active{% endif %}" href="?tab=pending&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Pending
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.applied|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'viewed' %}active{% endif %}" href="?tab=viewed&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Under Review
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.under_review|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'shortlisted' %}active{% endif %}" href="?tab=shortlisted&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Shortlisted
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.shortlisted|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'interview' %}active{% endif %}" href="?tab=interview&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Interview
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.interview|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'offered' %}active{% endif %}" href="?tab=offered&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Offered
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.offered|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'rejected' %}active{% endif %}" href="?tab=rejected&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Rejected
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.rejected|default:0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'withdrawn' %}active{% endif %}" href="?tab=withdrawn&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}">Withdrawn
+          <span class="badge rounded-pill bg-secondary ms-1">{{ counts.withdrawn|default:0 }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
 
-  {% else %}
-    <div class="alert alert-light border">No applications found.</div>
-  {% endif %}
+  <!-- Applications Table Card -->
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden mt-2">
+    <div class="card-body p-0">
+      {% if apps %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr class="small text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+              <th class="px-4 py-3">Title / Posting</th>
+              <th class="py-3">Company</th>
+              <th class="py-3">Status</th>
+              <th class="py-3">Location</th>
+              <th class="py-3">Openings</th>
+              <th class="py-3">Applied Date</th>
+              <th class="py-3 text-end">Details</th>
+              <th class="py-3 text-end px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in apps %}
+              {% if a.is_job %}
+                {% with post=a.job_post detail_url="website:job_detail" %}
+                  {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="job" %}
+                {% endwith %}
+              {% else %}
+                {% with post=a.internship_post detail_url="website:internship_detail" %}
+                  {% include "applications/_application_row.html" with application=a post=post detail_url=detail_url type="intern" %}
+                {% endwith %}
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Centered inside Table Card Footer -->
+      {% if page_obj.paginator.num_pages > 1 %}
+        <div class="d-flex justify-content-center py-3 border-top bg-light">
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link border-0 rounded-circle mx-1 d-flex align-items-center justify-content-center bg-white text-dark shadow-xs" style="width: 32px; height: 32px;" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+              {% endif %}
+              <li class="page-item disabled">
+                <span class="page-link border-0 bg-transparent text-dark mx-2 fw-bold" style="padding: 6px 0;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+              </li>
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link border-0 rounded-circle mx-1 d-flex align-items-center justify-content-center bg-white text-dark shadow-xs" style="width: 32px; height: 32px;" href="?tab={{ tab }}&type={{ typ }}&q={{ q|urlencode }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      {% endif %}
+
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-folder2-open fs-1 text-muted"></i>
+        <p class="mt-2 text-muted mb-0">No applications found matching the criteria.</p>
+        <a href="{% url 'website:index' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4 mt-3 fw-semibold">
+          Browse Jobs / Internships
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
 <!-- Withdraw Confirm Modal -->
 <div class="modal fade" id="withdrawConfirmModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-3">
+    <div class="modal-content rounded-3 border-0 shadow">
       <form id="withdrawForm" method="post">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">Withdraw application?</h5>
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Withdraw Application?</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <p class="mb-0">
+        <div class="modal-body py-3">
+          <p class="text-muted mb-0">
             You're about to withdraw your application for
-            <strong id="withdrawTitle">this posting</strong>.
+            <strong id="withdrawTitle" class="text-dark">this posting</strong>.
             You can re-apply later if the posting is still open.
           </p>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button id="withdrawConfirmBtn" type="submit" class="btn btn-danger">Yes, withdraw</button>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold text-dark" data-bs-dismiss="modal">Cancel</button>
+          <button id="withdrawConfirmBtn" type="submit" class="btn btn-warning rounded-pill px-3 fw-semibold text-dark">Yes, withdraw</button>
         </div>
       </form>
     </div>
@@ -165,26 +203,26 @@
 <!-- Delete Confirm Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-3">
+    <div class="modal-content rounded-3 border-0 shadow">
       <form id="deleteForm" method="post">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">Delete application?</h5>
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold text-danger">Delete Application?</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
-          <p class="mb-2">
+        <div class="modal-body py-3">
+          <p class="text-muted mb-3">
             You're about to permanently delete your application for
-            <strong id="deleteTitle">this posting</strong>.
+            <strong id="deleteTitle" class="text-dark">this posting</strong>.
           </p>
-          <div class="alert alert-warning small mb-0">
-            <i class="bi bi-exclamation-triangle-fill me-1"></i>
-            <strong>Warning:</strong> This action cannot be undone. All application data including your cover letter and resume will be permanently removed.
+          <div class="alert alert-danger bg-light-danger border-0 small mb-0 rounded-3 text-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> This action cannot be undone. All application details, your cover letter, and resume files will be permanently deleted.
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button id="deleteConfirmBtn" type="submit" class="btn btn-danger">Yes, delete permanently</button>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-3 fw-semibold text-dark" data-bs-dismiss="modal">Cancel</button>
+          <button id="deleteConfirmBtn" type="submit" class="btn btn-danger rounded-pill px-3 fw-semibold shadow-sm">Yes, delete permanently</button>
         </div>
       </form>
     </div>
@@ -193,22 +231,22 @@
 
 <!-- Application Detail Modal -->
 <div class="modal fade" id="applicationDetailModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content rounded-3">
-      <div class="modal-header">
-        <h5 class="modal-title">Application Details</h5>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content rounded-3 border-0 shadow">
+      <div class="modal-header bg-light border-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-file-earmark-text me-2 text-danger"></i>Application Summary</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="applicationDetailContent">
-        <!-- Content will be loaded via AJAX -->
-        <div class="text-center py-4">
+      <div class="modal-body p-4" id="applicationDetailContent">
+        <!-- Content loaded dynamically via AJAX -->
+        <div class="text-center py-5">
           <div class="spinner-border text-danger" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer border-0 pt-0 bg-light py-2">
+        <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3 fw-semibold" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -226,60 +264,50 @@ document.addEventListener('DOMContentLoaded', function () {
   
   const withdrawFormEl = document.getElementById('withdrawForm');
   const deleteFormEl = document.getElementById('deleteForm');
-
-  // Handle withdraw button clicks
+  
+  // Withdraw confirmation
   document.body.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-withdraw-btn');
     if (!btn) return;
-
     e.preventDefault();
     const action = btn.getAttribute('data-action');
     const title = btn.getAttribute('data-title') || 'this posting';
-
     withdrawFormEl.setAttribute('action', action);
     withdrawTitleEl.textContent = title;
-
     const modal = new bootstrap.Modal(withdrawModalEl);
     modal.show();
   });
 
-  // Handle delete button clicks
+  // Delete confirmation
   document.body.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-delete-btn');
     if (!btn) return;
-
     e.preventDefault();
     const action = btn.getAttribute('data-action');
     const title = btn.getAttribute('data-title') || 'this posting';
-
     deleteFormEl.setAttribute('action', action);
     deleteTitleEl.textContent = title;
-
     const modal = new bootstrap.Modal(deleteModalEl);
     modal.show();
   });
 
-  // Handle view details button clicks
+  // View details modal
   document.body.addEventListener('click', function (e) {
     const btn = e.target.closest('.js-detail-btn');
     if (!btn) return;
-
     e.preventDefault();
     const url = btn.getAttribute('data-url');
     
-    // Reset content
     detailContentEl.innerHTML = `
-      <div class="text-center py-4">
+      <div class="text-center py-5">
         <div class="spinner-border text-danger" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
     `;
-
     const modal = new bootstrap.Modal(detailModalEl);
     modal.show();
 
-    // Load content via AJAX
     fetch(url)
       .then(response => response.text())
       .then(html => {
@@ -287,15 +315,14 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       .catch(error => {
         detailContentEl.innerHTML = `
-          <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div class="alert alert-danger border-0 text-center py-4">
+            <i class="bi bi-exclamation-triangle-fill fs-3 d-block mb-2 text-danger"></i>
             Failed to load application details. Please try again.
           </div>
         `;
       });
   });
 
-  // Disable buttons while submitting
   withdrawFormEl.addEventListener('submit', function () {
     const confirmBtn = document.getElementById('withdrawConfirmBtn');
     if (confirmBtn) {
@@ -313,5 +340,4 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-
 {% endblock %}
