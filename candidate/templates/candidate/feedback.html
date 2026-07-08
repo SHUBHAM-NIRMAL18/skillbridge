@@ -76,7 +76,7 @@
           <h5 class="fw-bold text-dark mb-4"><i class="bi bi-chat-left-heart text-danger me-2"></i>Feedback Form</h5>
           
           <form method="POST" action="{% url 'candidate:feedback' %}">
-            {% csrf_value %}{% csrf_token %}
+            {% csrf_token %}
             
             <!-- 1. Star Rating Section -->
             <div class="mb-4">
