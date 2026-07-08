@@ -180,3 +180,15 @@ class Certificate(models.Model):  # Renamed from Credential
 
     def __str__(self):
         return f"{self.title} ({self.get_certificate_type_display()})"
+
+
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks')
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    liked_features = models.TextField(blank=True, help_text="Comma-separated liked features")
+    comments = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback from {self.user.username} - Rating: {self.rating}"
+
