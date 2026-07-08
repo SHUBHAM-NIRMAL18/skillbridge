@@ -1,52 +1,67 @@
 {% load static %}
 <!-- applications/_application_row.html -->
 <tr>
-  <td>
-    <div class="fw-semibold">{{ post.title }}</div>
-    <div class="small text-muted">{% if type == "job" %}Job{% else %}Internship{% endif %}</div>
+  <td class="px-4 py-3">
+    <div class="fw-bold text-dark">{{ post.title }}</div>
+    <span class="badge bg-light text-muted" style="font-size: 0.65rem;">
+      {% if type == "job" %}Job{% else %}Internship{% endif %}
+    </span>
   </td>
   <td class="text-nowrap">
     <div class="d-flex align-items-center">
-      {% if application.company.logo %}
-        <img src="{{ application.company.logo.url }}" class="rounded me-2" style="width:28px;height:28px;object-fit:cover;">
-      {% else %}
-        <img src="{% static 'icons/employee.svg' %}" class="rounded me-2" style="width:28px;height:28px;">
-      {% endif %}
-      <span>{{ application.company.first_name }} {{ application.company.last_name }}</span>
+      <div class="bg-light rounded-circle d-flex align-items-center justify-content-center p-1 me-2 border border-light" style="width: 32px; height: 32px; overflow: hidden;">
+        {% if application.company.logo %}
+          <img src="{{ application.company.logo.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+          <i class="bi bi-building text-muted" style="font-size: 0.9rem;"></i>
+        {% endif %}
+      </div>
+      <span class="fw-semibold text-dark">{{ application.company.first_name }} {{ application.company.last_name }}</span>
     </div>
   </td>
   <td>
     {% with s=application.status %}
-      <span class="badge
-        {% if s == 'applied' %} bg-secondary
-        {% elif s == 'under_review' %} bg-info text-dark
-        {% elif s == 'shortlisted' %} bg-success
-        {% elif s == 'interview' %} bg-warning text-dark
-        {% elif s == 'offered' %} bg-primary
-        {% elif s == 'rejected' %} bg-danger
-        {% elif s == 'withdrawn' %} bg-dark
-        {% else %} bg-light text-dark border{% endif %}
-      ">{{ application.get_status_display }}</span>
+      {% if s == 'applied' %}
+        <span class="badge bg-light-primary text-primary px-2.5 py-1.5 rounded-pill font-medium text-xs">Applied</span>
+      {% elif s == 'under_review' %}
+        <span class="badge bg-light-info text-info px-2.5 py-1.5 rounded-pill font-medium text-xs">Under Review</span>
+      {% elif s == 'shortlisted' %}
+        <span class="badge bg-light-purple text-purple px-2.5 py-1.5 rounded-pill font-medium text-xs">Shortlisted</span>
+      {% elif s == 'interview' %}
+        <span class="badge bg-light-warning text-warning px-2.5 py-1.5 rounded-pill font-medium text-xs">Interview</span>
+      {% elif s == 'offered' %}
+        <span class="badge bg-light-success text-success px-2.5 py-1.5 rounded-pill font-medium text-xs">Offered</span>
+      {% elif s == 'rejected' %}
+        <span class="badge bg-light-danger text-danger px-2.5 py-1.5 rounded-pill font-medium text-xs">Rejected</span>
+      {% elif s == 'withdrawn' %}
+        <span class="badge bg-light-secondary text-secondary px-2.5 py-1.5 rounded-pill font-medium text-xs">Withdrawn</span>
+      {% else %}
+        <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-pill font-medium text-xs">{{ application.get_status_display }}</span>
+      {% endif %}
     {% endwith %}
   </td>
-  <td class="text-nowrap">{{ post.city }}</td>
-  <td>{{ post.openings }}</td>
-  <td class="text-nowrap">{{ application.applied_at|date:"F j, Y" }}</td>
+  <td class="text-nowrap text-muted" style="font-size: 0.85rem;"><i class="bi bi-geo-alt me-1"></i>{{ post.city|default:"—" }}</td>
+  <td class="text-dark fw-medium" style="font-size: 0.85rem;">{{ post.openings }}</td>
+  <td class="text-nowrap text-muted" style="font-size: 0.85rem;"><i class="bi bi-calendar3 me-1"></i>{{ application.applied_at|date:"M j, Y" }}</td>
   <td class="text-end">
-    <a href="{% url detail_url post.id %}" class="text-decoration-none small">See Details →</a>
+    <button type="button" 
+            class="btn btn-light btn-sm rounded-pill fw-semibold px-3 js-detail-btn"
+            data-url="{% url 'applications:detail' application.id %}">
+      View Summary
+    </button>
   </td>
-  <td class="text-end">
+  <td class="text-end px-4">
     <div class="dropdown">
-      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Actions
+      <button class="btn btn-light btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center border-light shadow-xs" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
+        <i class="bi bi-three-dots-vertical text-dark"></i>
       </button>
-      <ul class="dropdown-menu dropdown-menu-end">
+      <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3 py-2" style="font-size: 0.85rem;">
         <!-- View Details -->
         <li>
           <button type="button" 
-                  class="dropdown-item js-detail-btn"
+                  class="dropdown-item py-2 js-detail-btn"
                   data-url="{% url 'applications:detail' application.id %}">
-            <i class="bi bi-eye me-2"></i>View Details
+            <i class="bi bi-eye me-2 text-muted"></i>View details
           </button>
         </li>
         
@@ -54,10 +69,10 @@
         {% if application.status == 'applied' or application.status == 'under_review' %}
           <li>
             <button type="button"
-                    class="dropdown-item text-warning js-withdraw-btn"
+                    class="dropdown-item py-2 text-warning js-withdraw-btn"
                     data-action="{% url 'applications:withdraw' application.id %}"
                     data-title="{{ post.title }}">
-              <i class="bi bi-arrow-left-circle me-2"></i>Withdraw
+              <i class="bi bi-arrow-left-circle me-2"></i>Withdraw application
             </button>
           </li>
         {% endif %}
@@ -66,26 +81,26 @@
           {% if application.target_is_open %}
             <li>
               <button type="button"
-                      class="dropdown-item text-success js-apply-btn"
+                      class="dropdown-item py-2 text-success js-apply-btn"
                       data-type="{{ type }}"
                       data-id="{{ post.id }}"
                       data-auth="1"
                       data-login="{% url 'accounts:login' %}"
                       data-next="{% url detail_url post.id %}">
-                <i class="bi bi-arrow-repeat me-2"></i>Apply Again
+                <i class="bi bi-arrow-repeat me-2"></i>Apply again
               </button>
             </li>
           {% endif %}
         {% endif %}
         
-        <!-- Delete action (available for all statuses) -->
-        <li><hr class="dropdown-divider"></li>
+        <!-- Delete action -->
+        <li><hr class="dropdown-divider border-light"></li>
         <li>
           <button type="button"
-                  class="dropdown-item text-danger js-delete-btn"
+                  class="dropdown-item py-2 text-danger js-delete-btn"
                   data-action="{% url 'applications:delete' application.id %}"
                   data-title="{{ post.title }}">
-            <i class="bi bi-trash me-2"></i>Delete Permanently
+            <i class="bi bi-trash me-2"></i>Delete permanently
           </button>
         </li>
       </ul>
