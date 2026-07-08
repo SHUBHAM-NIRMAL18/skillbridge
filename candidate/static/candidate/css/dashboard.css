@@ -400,5 +400,13 @@ p, li, span, label, a {
   color: #212529 !important;
 }
 
+/* Sidebar submenu active item styling */
+.sidebar .nav-items .collapse .nav-link.active {
+  color: #dc3545 !important;
+  background-color: transparent !important;
+  font-weight: 600 !important;
+}
+
+
 
 
