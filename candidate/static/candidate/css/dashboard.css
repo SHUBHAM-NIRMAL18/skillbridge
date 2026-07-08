@@ -481,6 +481,39 @@ body.sidebar-collapsed .sidebar .logout-container {
   }
 }
 
+/* Inbox custom layout and scrollbar styles */
+.bg-light-gray {
+  background-color: #f8f9fa !important;
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+.active-chat-border {
+  border-left: 4px solid #dc3545 !important;
+}
+.max-w-75 {
+  max-width: 75% !important;
+}
+.border-light-gray {
+  border-color: #e9ecef !important;
+}
+
+
 
 
 
