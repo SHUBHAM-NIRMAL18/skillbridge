@@ -413,44 +413,44 @@ p, li, span, label, a {
 /* ----------------------------------------------------
    Collapsible Sidebar Rules
 ---------------------------------------------------- */
-/* Collapsed Sidebar on Desktop */
-@media (min-width: 992px) {
-  body.sidebar-collapsed .sidebar {
-    min-width: 70px !important;
-    max-width: 70px !important;
-  }
-  body.sidebar-collapsed .sidebar .logo-container {
-    padding: 0.5rem 0.25rem !important;
-    text-align: center;
-  }
-  body.sidebar-collapsed .sidebar .logo-container img {
-    max-width: 40px !important;
-    margin: 0 auto;
-  }
-  body.sidebar-collapsed .sidebar .nav-link span,
-  body.sidebar-collapsed .sidebar .nav-link .bi-chevron-down,
-  body.sidebar-collapsed .sidebar .logout-container span {
-    display: none !important;
-  }
-  body.sidebar-collapsed .sidebar .nav-link {
-    text-align: center;
-    justify-content: center;
-    padding: 0.75rem 0.5rem !important;
-  }
-  body.sidebar-collapsed .sidebar .nav-link i {
-    margin-right: 0 !important;
-    font-size: 1.25rem !important;
-  }
-  body.sidebar-collapsed .sidebar .nav-items .collapse {
-    display: none !important; /* Hide submenus when collapsed */
-  }
-  body.sidebar-collapsed .content-area {
-    margin-left: 70px !important;
-  }
-  body.sidebar-collapsed .sidebar .logout-container {
-    padding: 0.75rem 0.5rem !important;
-    text-align: center;
-  }
+/* Collapsed Sidebar (toggled via JS on desktop) */
+body.sidebar-collapsed .sidebar {
+  min-width: 70px !important;
+  max-width: 70px !important;
+  overflow: hidden;
+}
+body.sidebar-collapsed .sidebar .logo-container {
+  padding: 0.5rem 0.25rem !important;
+  text-align: center;
+}
+body.sidebar-collapsed .sidebar .logo-container img {
+  max-width: 40px !important;
+  margin: 0 auto;
+}
+body.sidebar-collapsed .sidebar .nav-link span,
+body.sidebar-collapsed .sidebar .nav-link .bi-chevron-down,
+body.sidebar-collapsed .sidebar .logout-container span {
+  display: none !important;
+}
+body.sidebar-collapsed .sidebar .nav-link {
+  text-align: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem !important;
+}
+body.sidebar-collapsed .sidebar .nav-link i {
+  margin-right: 0 !important;
+  font-size: 1.25rem !important;
+}
+body.sidebar-collapsed .sidebar .nav-items .collapse,
+body.sidebar-collapsed .sidebar .nav-items .collapse.show {
+  display: none !important;
+}
+body.sidebar-collapsed .content-area {
+  margin-left: 70px !important;
+}
+body.sidebar-collapsed .sidebar .logout-container {
+  padding: 0.75rem 0.5rem !important;
+  text-align: center;
 }
 
 /* Mobile Sidebar behavior */
