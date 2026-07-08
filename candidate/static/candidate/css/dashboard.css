@@ -338,4 +338,67 @@ p, li, span, label, a {
   height: 32px;
 }
 
+/* Custom Nav Pills for application tabs */
+.nav-pills-custom-wrapper {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 6px;
+  margin-bottom: 1rem;
+}
+
+.nav-pills-custom-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.nav-pills-custom-wrapper::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 4px;
+}
+
+.nav-pills .nav-link {
+  color: #555555;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 30px !important;
+  padding: 6px 16px !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #dc3545 !important;
+  color: #ffffff !important;
+  border-color: #dc3545 !important;
+  box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2) !important;
+}
+
+.nav-pills .nav-link.active .badge {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+/* Soft status badge colors */
+.bg-light-info {
+  background-color: rgba(13, 202, 240, 0.1) !important;
+}
+.text-info {
+  color: #0dcaf0 !important;
+}
+.badge.bg-light-info {
+  color: #0dcaf0 !important;
+}
+.bg-light-dark {
+  background-color: rgba(33, 37, 41, 0.1) !important;
+}
+.badge.bg-light-dark {
+  color: #212529 !important;
+}
+
+
 
