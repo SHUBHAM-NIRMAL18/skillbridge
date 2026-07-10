@@ -14,10 +14,16 @@ body {
   margin-left: 1.5rem;
 }
 .navbar-dark .navbar-nav .nav-link {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 .navbar-dark .navbar-nav .nav-link:hover {
-  color: #ddd;
+  color: #ffffff !important;
+}
+.navbar-dark .navbar-nav .nav-link.active {
+  color: #d2232a !important;
+  font-weight: 700 !important;
 }
 
 /* Footer adjustments */
