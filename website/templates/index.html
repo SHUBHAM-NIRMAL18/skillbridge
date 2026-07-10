@@ -3,92 +3,117 @@
 
 {% block title %}Home – SkillBridge{% endblock %}
 
-{% block hero %}
-<section class="hero-section bg-dark text-white py-5">
-  <div class="container-fluid px-0">
-    <div class="text-center">
-      <h1 class="mb-3">Join the most popular internships and companies.</h1>
-      <p class="mb-4">We’ve helped over 2,500 freshers to get into the most popular internships.</p>
+{% block extra_head %}
+<style>
+  /* Seamless Navbar blending with the Premium Hero dark slate background */
+  .navbar {
+    background-color: #0f172a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+</style>
+{% endblock %}
 
-      <form class="d-flex justify-content-center mb-3">
-            <div class="input-group w-50 rounded-pill">
+{% block main_content %}
+<!-- Premium Hero Section with Background Glow and Patterns -->
+<section class="hero-premium text-white py-5" style="background-color: #0f172a;">
+  <div class="container text-center py-4">
+    <!-- Floating Badges for Stats -->
+    <div class="mb-4">
+      <span class="stat-pill"><span class="stat-pill-highlight">5,000+</span> Placed Candidates</span>
+      <span class="stat-pill"><span class="stat-pill-highlight">250+</span> Partnered Companies</span>
+      <span class="stat-pill"><span class="stat-pill-highlight">1,200+</span> Active Positions</span>
+    </div>
 
-                <!-- add form-select-sm for a smaller height and w-auto + a max-width -->
-                <select 
-                class="form-select form-select-sm bg-white text-dark w-auto" 
-                style="max-width: 180px;"
-                aria-label="Opportunity type">
-                <option selected>All Opportunities</option>
-                <option value="internships">Internships</option>
-                <option value="jobs">Jobs</option>
-                <option value="events">Events</option>
-                </select>
+    <!-- Title and Subtitle -->
+    <h1 class="hero-title mb-3">Join the Next Generation of Talent</h1>
+    <p class="hero-subtitle mb-5">Connect with the industry's most popular companies and unlock your dream job or internship today.</p>
 
-                <input
-                type="text"
-                class="form-control"
-                placeholder="Enter title, keywords or phrase"
-                aria-label="Search keywords" />
+    <!-- Sleek Glassmorphic Search Form -->
+    <form id="heroSearchForm" class="mb-4" method="GET" action="{% url 'website:internship' %}">
+      <div class="glass-search-box d-flex align-items-center">
+        <!-- Search Type Selector -->
+        <select id="searchType" class="form-select form-select-lg w-auto" aria-label="Opportunity type">
+          <option value="internships" selected>Internships</option>
+          <option value="jobs">Jobs</option>
+        </select>
 
-                <button class="btn btn-danger" type="submit" aria-label="Search">
-                <i class="bi bi-search fs-5"></i>
-                </button>
-            </div>
-        </form>
-      <div>
-        <small>Popular Searches:
-        <a href="#" class="text-white ms-2">Business development</a> |
-        <a href="#" class="text-white">UI/UX Design</a> |
-        <a href="#" class="text-white">Frontend</a> |
-        <a href="#" class="text-white">Backend</a>
-        </small>
+        <!-- Query Input Field -->
+        <input 
+          type="text" 
+          id="searchQuery" 
+          name="q" 
+          class="form-control form-control-lg" 
+          placeholder="Enter title, keywords, or skills..." 
+          aria-label="Search keywords" 
+          required />
+
+        <!-- Search button -->
+        <button class="btn btn-search d-flex align-items-center gap-2" type="submit" aria-label="Search">
+          <i class="bi bi-search"></i>
+          <span class="d-none d-md-inline">Search</span>
+        </button>
       </div>
+    </form>
+
+    <!-- Popular Searches tags -->
+    <div class="popular-searches mt-3">
+      <span class="text-white-50 small me-2">Popular Searches:</span>
+      <a href="{% url 'website:internship' %}?q=Business" class="popular-tag">Business Development</a>
+      <a href="{% url 'website:internship' %}?q=UI/UX" class="popular-tag">UI/UX Design</a>
+      <a href="{% url 'website:internship' %}?q=Frontend" class="popular-tag">Frontend</a>
+      <a href="{% url 'website:internship' %}?q=Backend" class="popular-tag">Backend</a>
     </div>
   </div>
 </section>
-{% endblock %}
 
-{% block content %}
-
-<!-- Candidate / Employer Cards -->
-<section class="py-5 px-4 px-md-5">
+<!-- Candidate / Employer Promotional Call-out Cards -->
+<section class="py-5 bg-white">
   <div class="container">
-    <div class="row g-4">
+    <div class="row g-4 justify-content-center">
       <!-- For Candidate -->
       <div class="col-md-6 d-flex">
-        <div class="card border border-2 border-secondary rounded overflow-hidden w-100 h-100">
+        <div class="card promo-card w-100 border-0">
           <div class="row g-0 h-100">
-            <div class="col-6 bg-light d-flex flex-column justify-content-center p-4 card-content">
-              <!-- larger heading -->
-              <h4 class="mb-3">For Candidate</h4>
-              <!-- smaller paragraph -->
-              <p>Unlock endless opportunities and connect with top employers. Let your skills shine and land your dream job.</p>
-              <!-- cream button with red text -->
-              <a href="#" class="btn btn-cream align-self-start">Upload your CV</a>
+            <div class="col-6 card-content-left d-flex flex-column justify-content-center p-4">
+              <span class="text-danger small fw-semibold text-uppercase mb-1">For Candidates</span>
+              <h4 class="mb-3 text-dark fw-bold">Elevate Your Career</h4>
+              <p class="text-muted small mb-4">Unlock endless opportunities, showcase your portfolio, match with top employers, and land your dream job.</p>
+              {% if user.is_authenticated %}
+                <a href="{% url 'candidate:dashboard' %}" class="btn btn-custom-card btn-custom-red align-self-start">Go to Dashboard</a>
+              {% else %}
+                <a href="{% url 'accounts:register_candidate' %}" class="btn btn-custom-card btn-custom-red align-self-start">Upload Your CV</a>
+              {% endif %}
             </div>
             <div class="col-6">
               <img
                 src="{% static 'icons/candidate.jpg' %}"
                 alt="Candidate illustration"
-                class="img-fluid h-100 w-100 object-fit-cover" />
+                class="img-fluid h-100 w-100 object-fit-cover"
+                onerror="this.src='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80'" />
             </div>
           </div>
         </div>
       </div>
       <!-- For Employer -->
       <div class="col-md-6 d-flex">
-        <div class="card border border-2 border-secondary rounded overflow-hidden w-100 h-100">
+        <div class="card promo-card w-100 border-0">
           <div class="row g-0 h-100">
-            <div class="col-6 bg-primary text-white d-flex flex-column justify-content-center p-4 card-content">
-              <h4 class="mb-3">For Company</h4>
-              <p>Access a pool of skilled candidates and streamline your hiring process. Find the best talent for your company's success.</p>
-              <a href="#" class="btn btn-cream align-self-start">Start Hiring</a>
+            <div class="col-6 card-content-right d-flex flex-column justify-content-center p-4">
+              <span class="text-danger small fw-semibold text-uppercase mb-1">For Companies</span>
+              <h4 class="mb-3 text-white fw-bold">Hire Exceptional Talent</h4>
+              <p class="text-white-50 small mb-4">Access a verified pool of qualified candidates, run skill-based tests, and streamline your recruitment workflow.</p>
+              {% if user.is_authenticated %}
+                <a href="{% url 'company:dashboard' %}" class="btn btn-custom-card btn-custom-outline align-self-start">Start Hiring</a>
+              {% else %}
+                <a href="{% url 'accounts:register_company' %}" class="btn btn-custom-card btn-custom-outline align-self-start">Start Hiring</a>
+              {% endif %}
             </div>
             <div class="col-6">
               <img
                 src="{% static 'icons/employee.svg' %}"
                 alt="Employer illustration"
-                class="img-fluid h-100 w-100 object-fit-cover" />
+                class="img-fluid h-100 w-100 object-fit-cover"
+                onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80'" />
             </div>
           </div>
         </div>
@@ -97,419 +122,380 @@
   </div>
 </section>
 
-
-
-<section class="py-5 bg-light px-4 px-md-5">
-  <div class="container px-0">
-    <!-- title + browse link -->
-    <div class="d-flex justify-content-between align-items-baseline mb-2">
-      <h3 class="mb-0">Get your dream Internship now</h3>
-      <!-- FIX: correct URL name -->
-      <a href="{% url 'website:internship' %}" class="text-danger fw-bold">
+<!-- Internship Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+      <div>
+        <h3 class="section-title-premium mb-2">Get your dream Internship now</h3>
+        <p class="text-muted mb-0">Search your career opportunity through available entry-level internship positions.</p>
+      </div>
+      <a href="{% url 'website:internship' %}" class="text-danger fw-bold text-decoration-none d-inline-flex align-items-center gap-1 mt-2 mt-md-0">
         Browse all Internships <i class="bi bi-arrow-right"></i>
       </a>
     </div>
 
-    <p class="text-muted mb-4">
-      Search your career opportunity through the available positions.
-    </p>
-
+    <!-- Internship Card Grid -->
     <div class="row row-cols-1 row-cols-md-3 g-4">
       {% for post in internships %}
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 border-0 rounded-3 p-4">
-            <div class="mb-3">
-              {% if post.company.logo %}
-                <img src="{{ post.company.logo.url }}" alt="Logo" style="height:40px;">
+        <div class="col">
+          <div class="opportunity-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="company-logo-wrapper">
+                {% if post.company.logo %}
+                  <img src="{{ post.company.logo.url }}" alt="Logo">
+                {% else %}
+                  <img src="{% static 'icons/employee.svg' %}" alt="Logo">
+                {% endif %}
+              </div>
+              {% if post.days_left > 0 %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold small">Active</span>
               {% else %}
-                <img src="{% static 'icons/employee.svg' %}" alt="Logo" style="height:40px;">
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-semibold small">Closed</span>
               {% endif %}
             </div>
 
-            <h5 class="mb-1">{{ post.title }}</h5>
-            <p class="text-danger small text-uppercase mb-2">
+            <h5 class="card-title text-dark fw-bold mb-1 text-truncate">{{ post.title }}</h5>
+            <p class="text-danger small text-uppercase fw-semibold mb-3">
               {{ post.company.first_name }} {{ post.company.last_name }}
             </p>
 
-            <p class="mb-3">{{ post.responsibilities|striptags|truncatechars:100 }}</p>
+            <p class="card-text text-muted mb-4 small flex-grow-1">
+              {{ post.responsibilities|striptags|truncatechars:110 }}
+            </p>
 
-            <div class="d-flex flex-wrap gap-2 mb-3">
-              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-                <i class="bi bi-clock me-1"></i>
-                <small>
-                  {% if post.days_left > 0 %}{{ post.days_left }} days left{% else %}Closed{% endif %}
-                </small>
-              </div>
-              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-                <i class="bi bi-geo-alt me-1"></i>
-                <small>{{ post.city }}</small>
-              </div>
-              <div class="d-flex align-items-center bg-light px-2 py-1 rounded">
-                <i class="bi bi-briefcase me-1"></i>
-                <small>{{ post.type }}</small>
-              </div>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <span class="badge-pill-custom">
+                <i class="bi bi-clock"></i>
+                {% if post.days_left > 0 %}{{ post.days_left }} days left{% else %}Closed{% endif %}
+              </span>
+              <span class="badge-pill-custom">
+                <i class="bi bi-geo-alt"></i>
+                {{ post.city }}
+              </span>
+              <span class="badge-pill-custom">
+                <i class="bi bi-briefcase"></i>
+                {{ post.type }}
+              </span>
             </div>
 
-            <!-- FIX: one link per internship card -->
-            <a href="{% url 'website:internship_detail' pk=post.id %}"
-               class="text-danger text-decoration-none fw-bold">
-              View & Apply <i class="bi bi-arrow-right"></i>
+            <a href="{% url 'website:internship_detail' pk=post.id %}" class="card-cta-link">
+              <span>View & Apply</span>
+              <i class="bi bi-arrow-right"></i>
             </a>
           </div>
         </div>
       {% empty %}
-        <div class="col-12 text-center text-muted py-5">
-          No internships found.
+        <div class="col-12 text-center text-muted py-5 bg-white rounded-3 shadow-sm">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          <span>No internships found. Check back later!</span>
         </div>
       {% endfor %}
     </div>
   </div>
 </section>
 
+<!-- "How Can We Help" Section -->
+<section class="py-5 bg-white">
+  <div class="container text-center">
+    <span class="text-danger small fw-semibold text-uppercase">Workflow</span>
+    <h3 class="fw-bold mb-2">How We Help You Grow</h3>
+    <p class="text-muted mb-5 max-width-600 mx-auto">Making the hiring, posting, and matching experience smooth for everyone.</p>
 
-
-<section class="py-5">
-  <div class="container px-4 px-md-5">
-    <!-- Heading + subtitle -->
-    <h3 class="text-center mb-1">How can we help</h3>
-    <p class="text-center text-muted mb-4">Making your talent search easy</p>
-
-    <!-- Three cards -->
     <div class="row row-cols-1 row-cols-md-3 g-4">
-      
-      <!-- Card 1 -->
+      <!-- Step 1 -->
       <div class="col">
-        <div class="card h-100 border rounded-3 text-center p-4">
-          <img 
-            src="{% static 'icons/posting.svg' %}" 
-            alt="Free Internship Posting" 
-            class="d-block mx-auto mb-3" 
-            style="width:60px; height:auto;">
-          <h5 class="mb-2">Free Internship Posting</h5>
+        <div class="card help-card h-100 border-0">
+          <div class="help-icon-box">
+            <img 
+              src="{% static 'icons/posting.svg' %}" 
+              alt="Free Internship Posting" 
+              class="img-fluid"
+              style="width:32px; height:32px;"
+              onerror="this.src='https://img.icons8.com/color/48/plus-key.png'" />
+          </div>
+          <h5 class="fw-bold mb-2">Free Internship Posting</h5>
           <p class="text-muted small mb-0">
-            Post an internship of your open vacancies absolutely for free.
+            Post an internship of your open vacancies absolutely for free and capture candidate attention.
           </p>
         </div>
       </div>
 
-      <!-- Card 2 -->
+      <!-- Step 2 -->
       <div class="col">
-        <div class="card h-100 border rounded-3 text-center p-4">
-          <img 
-            src="{% static 'icons/all-types-internship.svg' %}" 
-            alt="All Types of Internship" 
-            class="d-block mx-auto mb-3" 
-            style="width:60px; height:auto;">
-          <h5 class="mb-2">All Types of Internship</h5>
+        <div class="card help-card h-100 border-0">
+          <div class="help-icon-box">
+            <img 
+              src="{% static 'icons/all-types-internship.svg' %}" 
+              alt="All Types of Internship" 
+              class="img-fluid"
+              style="width:32px; height:32px;"
+              onerror="this.src='https://img.icons8.com/color/48/connection-status-on.png'" />
+          </div>
+          <h5 class="fw-bold mb-2">Multi-Sector Openings</h5>
           <p class="text-muted small mb-0">
-            Hire from internship on multiple sectors for absolutely free.
+            Find and hire candidates from multiple sectors and disciplines without any premium paywall constraints.
           </p>
         </div>
       </div>
 
-      <!-- Card 3 -->
+      <!-- Step 3 -->
       <div class="col">
-        <div class="card h-100 border rounded-3 text-center p-4">
-          <img 
-            src="{% static 'icons/hire-the-best.svg' %}" 
-            alt="Hire the best" 
-            class="d-block mx-auto mb-3" 
-            style="width:60px; height:auto;">
-          <h5 class="mb-2">Hire the best</h5>
+        <div class="card help-card h-100 border-0">
+          <div class="help-icon-box">
+            <img 
+              src="{% static 'icons/hire-the-best.svg' %}" 
+              alt="Hire the best" 
+              class="img-fluid"
+              style="width:32px; height:32px;"
+              onerror="this.src='https://img.icons8.com/color/48/medal-first-place.png'" />
+          </div>
+          <h5 class="fw-bold mb-2">Hire the Best</h5>
           <p class="text-muted small mb-0">
-            Get the best candidate for your vacancy fulfillment.
+            Access intelligent recommendation score matching and shortlisting tools to secure top performers.
           </p>
         </div>
       </div>
-
     </div>
   </div>
 </section>
 
-
-
-
-<section class="py-5 bg-light px-4 px-md-5">
-  <div class="container px-0">
-    <!-- header + browse link -->
-    <div class="d-flex justify-content-between align-items-baseline mb-2">
-      <h3 class="mb-0">Get your dream Job now</h3>
-      <a href="{% url 'website:jobs_list' %}" class="text-danger fw-bold">
-          Browse all Jobs <i class="bi bi-arrow-right"></i>
+<!-- Jobs Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+      <div>
+        <h3 class="section-title-premium mb-2">Get your dream Job now</h3>
+        <p class="text-muted mb-0">Search your dream job through active market openings and apply instantly.</p>
+      </div>
+      <a href="{% url 'website:jobs_list' %}" class="text-danger fw-bold text-decoration-none d-inline-flex align-items-center gap-1 mt-2 mt-md-0">
+        Browse all Jobs <i class="bi bi-arrow-right"></i>
       </a>
-
     </div>
 
-    <!-- subtitle -->
-    <p class="text-muted mb-4">
-      Search your dream job through the available openings.
-    </p>
-
-    <!-- pill-shaped tab buttons -->
-    <ul class="nav mb-4">
-      <li class="nav-item me-2">
-        <button class="btn btn-danger rounded-pill px-4">Featured Jobs</button>
-      </li>
-      <li class="nav-item me-2">
-        <button class="btn btn-light rounded-pill px-4">Newest</button>
-      </li>
-      <li class="nav-item me-2">
-        <button class="btn btn-light rounded-pill px-4">Nearest</button>
-      </li>
-      <li class="nav-item">
-        <button class="btn btn-light rounded-pill px-4">Oldest</button>
-      </li>
-    </ul>
-
-    <!-- jobs cards grid -->
+    <!-- Jobs Card Grid -->
     <div class="row row-cols-1 row-cols-md-3 g-4">
       {% for job in jobs %}
         <div class="col">
-          <div class="card h-100 border-0 rounded-3 p-4">
-            <!-- logo (placeholder) -->
-            <div class="mb-3">
-              <img src="{% static 'icons/employee.svg' %}"
-                   alt="Company logo"
-                   style="height:40px;">
+          <div class="opportunity-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="company-logo-wrapper">
+                {% if job.company.logo %}
+                  <img src="{{ job.company.logo.url }}" alt="Logo">
+                {% else %}
+                  <img src="{% static 'icons/employee.svg' %}" alt="Logo">
+                {% endif %}
+              </div>
+              {% if job.days_left > 0 %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-semibold small">Active</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-semibold small">Closed</span>
+              {% endif %}
             </div>
-            <!-- job title + company -->
-            <h5 class="mb-1">{{ job.title }}</h5>
-            <p class="text-danger small text-uppercase mb-2">
+
+            <h5 class="card-title text-dark fw-bold mb-1 text-truncate">{{ job.title }}</h5>
+            <p class="text-danger small text-uppercase fw-semibold mb-3">
               {{ job.company }}
             </p>
-            <!-- truncated description -->
-            <p class="mb-3">
-              {{ job.responsibilities|striptags|truncatewords:20 }}…
+
+            <p class="card-text text-muted mb-4 small flex-grow-1">
+              {{ job.responsibilities|striptags|truncatewords:20 }}
             </p>
 
-            <!-- stats pills -->
-            <div class="d-flex flex-wrap gap-2 mb-3">
-              <div class="d-flex align-items-center bg-white px-2 py-1 rounded" title="Deadline: {{ job.application_deadline|date:'M j, Y' }}">
-                  <i class="bi bi-clock me-1"></i>
-                  <small>
-                    {% if job.days_left > 0 %}
-                      {{ job.days_left }} day{{ job.days_left|pluralize }} left
-                    {% else %}
-                      Closed
-                    {% endif %}
-                  </small>
-                </div>
-              <div class="d-flex align-items-center bg-white px-2 py-1 rounded">
-                <i class="bi bi-geo-alt me-1"></i>
-                <small>{{ job.location_type }}</small>
-              </div>
-              <div class="d-flex align-items-center bg-white px-2 py-1 rounded">
-                <i class="bi bi-briefcase me-1"></i>
-                <small>{{ job.job_type }}</small>
-              </div>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              <span class="badge-pill-custom">
+                <i class="bi bi-clock"></i>
+                {% if job.days_left > 0 %}{{ job.days_left }} days left{% else %}Closed{% endif %}
+              </span>
+              <span class="badge-pill-custom">
+                <i class="bi bi-geo-alt"></i>
+                {{ job.location_type }}
+              </span>
+              <span class="badge-pill-custom">
+                <i class="bi bi-briefcase"></i>
+                {{ job.job_type }}
+              </span>
             </div>
 
-            <!-- apply link -->
-            <a href="{% url 'website:job_detail' job.id %}" class="text-danger text-decoration-none fw-bold">
-              View & Apply <i class="bi bi-arrow-right"></i>
+            <a href="{% url 'website:job_detail' job.id %}" class="card-cta-link">
+              <span>View & Apply</span>
+              <i class="bi bi-arrow-right"></i>
             </a>
-
           </div>
         </div>
       {% empty %}
-        <div class="col">
-          <div class="text-center text-muted py-5">
-            <i class="bi bi-briefcase" style="font-size:2rem;"></i><br>
-            <span class="small">No jobs available right now.</span>
-          </div>
+        <div class="col-12 text-center text-muted py-5 bg-white rounded-3 shadow-sm">
+          <i class="bi bi-briefcase fs-1 d-block mb-2"></i>
+          <span>No jobs available right now. Check back later!</span>
         </div>
       {% endfor %}
     </div>
   </div>
 </section>
 
-<!-- Blog Preview (single card) -->
-<section class="py-5 bg-dark text-white mt-5">
-  <div class="container px-4 px-md-5">
-    <!-- Heading + subtitle -->
-    <h3 class="text-center mb-1">From Our Blogs</h3>
-    <p class="text-center text-muted mb-4">
-      A better career is out there. We'll help your first step to becoming everything you want to be.
-    </p>
+<!-- Blog Preview Section -->
+<section class="py-5 bg-white">
+  <div class="container text-center">
+    <span class="text-danger small fw-semibold text-uppercase">Resources</span>
+    <h3 class="fw-bold mb-2">From Our Blogs</h3>
+    <p class="text-muted mb-5 max-width-600 mx-auto">Get career advice, industry updates, and expert tips to guide your professional journey.</p>
 
-    <div class="row justify-content-center mt-4">
-      <!-- use col-auto + mx-auto to size the card to its content -->
-      <div class="col-auto">
-        <div 
-          class="card bg-light text-dark border-0 rounded-3 overflow-hidden mx-auto" 
-          style="max-width: 320px;">
-          
-          <!-- logo / image -->
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-4">
+        <div class="card blog-card-premium border-0 h-100">
           <img 
             src="{% static 'icons/blog.png' %}" 
-            class="card-img-top blog-card-img" 
-            alt="SkillBridge Blog" />
-
-          <div class="card-body p-4">
-            <h5 class="card-title">Unlocking Success: 10 Best Reasons To Hire An Intern For Your Company</h5>
-            <p class="small text-muted mb-3">Ram • 09 Jun 2025</p>
-            <p class="card-text mb-4">
-              Discover why bringing interns on board can supercharge your team’s productivity and growth.
-            </p>
-            <a href="#" class="text-danger fw-bold">
+            class="card-img-top object-fit-cover" 
+            alt="SkillBridge Blog" 
+            style="height: 200px;"
+            onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=400&q=80'" />
+          <div class="card-body text-start p-4 d-flex flex-column">
+            <span class="text-danger text-xs fw-semibold text-uppercase mb-2">Recruitment</span>
+            <h5 class="card-title fw-bold mb-2 text-dark">Unlocking Success: 10 Reasons To Hire An Intern</h5>
+            <p class="small text-muted mb-3"><i class="bi bi-person me-1"></i> Ram &bull; <i class="bi bi-calendar3 me-1"></i> 09 Jun 2025</p>
+            <p class="card-text text-muted small mb-4">Discover why bringing interns on board can supercharge your team’s productivity, inject fresh perspectives, and fuel long-term growth.</p>
+            <a href="#" class="text-danger fw-bold text-decoration-none d-inline-flex align-items-center gap-1 mt-auto">
               Read Post <i class="bi bi-arrow-right"></i>
             </a>
           </div>
-
         </div>
       </div>
     </div>
   </div>
 </section>
 
-
-<!-- FAQ -->
-<section class="py-5 mt-5">
-  <div class="container">
-    <!-- Heading + contact line -->
-    <h2 class="text-center mb-2">Frequently Asked Questions</h2>
-    <p class="text-center text-muted mb-4">
-      Still have any questions? Contact our Team via
-      <a href="mailto:support@skillbridge.com" class="text-danger text-decoration-none">
-        support@skillbridge.com
-      </a>
-    </p>
-
-    <!-- Accordion -->
-    <div class="accordion" id="faqAccordion">
-
-      <!-- Item 1 -->
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingOne">
-          <button
-            class="accordion-button collapsed text-dark"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseOne"
-            aria-expanded="false"
-            aria-controls="collapseOne"
-          >
-            What benefits does the internship offer?
-          </button>
-        </h2>
-        <div
-          id="collapseOne"
-          class="accordion-collapse collapse"
-          aria-labelledby="headingOne"
-          data-bs-parent="#faqAccordion"
-        >
-          <div class="accordion-body">
-            Our internships provide hands-on project experience, one-on-one mentorship, and real-world exposure to industry workflows. You’ll build your resume, develop technical and soft skills, and expand your professional network—all while earning a stipend and a certificate of completion.
-          </div>
-        </div>
-      </div>
-
-      <!-- Item 2 -->
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingTwo">
-          <button
-            class="accordion-button collapsed text-dark"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseTwo"
-            aria-expanded="false"
-            aria-controls="collapseTwo"
-          >
-            How will the department contact me?
-          </button>
-        </h2>
-        <div
-          id="collapseTwo"
-          class="accordion-collapse collapse"
-          aria-labelledby="headingTwo"
-          data-bs-parent="#faqAccordion"
-        >
-          <div class="accordion-body">
-            After you apply, the recruiting team will email or call you using the contact details you provided. Check your inbox (and spam folder) regularly, and keep your profile’s email/phone up to date.
-          </div>
-        </div>
-      </div>
-
-      <!-- Item 3 -->
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingThree">
-          <button
-            class="accordion-button collapsed text-dark"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseThree"
-            aria-expanded="false"
-            aria-controls="collapseThree"
-          >
-            How do I apply for an internship opening?
-          </button>
-        </h2>
-        <div
-          id="collapseThree"
-          class="accordion-collapse collapse"
-          aria-labelledby="headingThree"
-          data-bs-parent="#faqAccordion"
-        >
-          <div class="accordion-body">
-            Browse our listings, click “Apply Now” on the position you want, and complete the online form. You can upload your resume and cover letter directly, and track your application status in your dashboard.
-          </div>
-        </div>
-      </div>
-
-      <!-- Item 4 -->
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingFour">
-          <button
-            class="accordion-button collapsed text-dark"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseFour"
-            aria-expanded="false"
-            aria-controls="collapseFour"
-          >
-            How do I know if I am shortlisted?
-          </button>
-        </h2>
-        <div
-          id="collapseFour"
-          class="accordion-collapse collapse"
-          aria-labelledby="headingFour"
-          data-bs-parent="#faqAccordion"
-        >
-          <div class="accordion-body">
-            If you’re shortlisted, you’ll receive an email notification within 5–7 business days. You can also log into your account and view your application status under “My Applications” at any time.
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-
-<!-- Contact Departments -->
+<!-- FAQ Section -->
 <section class="py-5 bg-light">
   <div class="container">
-    <h3 class="text-center mb-4">Contact our Various Department</h3>
-    <div class="row">
-      <div class="col-md-4 text-center mb-4">
-        <h5>Sales</h5>
-        <p>+977 98020XXXXX</p>
-        <p>sales@skillbridge.com</p>
-      </div>
-      <div class="col-md-4 text-center mb-4">
-        <h5>Technical HR</h5>
-        <p>+977 98020XXXXX</p>
-        <p>techhr@skillbridge.com</p>
-      </div>
-      <div class="col-md-4 text-center mb-4">
-        <h5>Creative & Marketing HR</h5>
-        <p>+977 98020XXXXX</p>
-        <p>marketing@skillbridge.com</p>
+    <div class="text-center mb-5">
+      <span class="text-danger small fw-semibold text-uppercase">Questions</span>
+      <h3 class="fw-bold mb-2">Frequently Asked Questions</h3>
+      <p class="text-muted mb-0">Still have questions? Reach our support team anytime at <a href="mailto:support@skillbridge.com" class="text-danger text-decoration-none fw-semibold">support@skillbridge.com</a></p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="accordion accordion-custom" id="faqAccordion">
+          <!-- Question 1 -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                What benefits does the internship offer?
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                Our internships provide hands-on project experience, one-on-one mentorship, and real-world exposure to industry workflows. You’ll build your resume, develop technical and soft skills, and expand your professional network—all while earning a stipend and a certificate of completion.
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingTwo">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                How will the department contact me?
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                After you apply, the recruiting team will email or call you using the contact details you provided. Check your inbox (and spam folder) regularly, and keep your profile’s email/phone up to date.
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingThree">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                How do I apply for an internship opening?
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                Browse our listings, click “Apply Now” on the position you want, and complete the online form. You can upload your resume and cover letter directly, and track your application status in your dashboard.
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 4 -->
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingFour">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                How do I know if I am shortlisted?
+              </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                If you’re shortlisted, you’ll receive an email notification within 5–7 business days. You can also log into your account and view your application status under “My Applications” at any time.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- Contact Departments Section -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="text-danger small fw-semibold text-uppercase">Get in touch</span>
+      <h3 class="fw-bold mb-2">Contact our Departments</h3>
+      <p class="text-muted">Feel free to connect directly with the respective team members.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <!-- Sales -->
+      <div class="col-md-4 text-center">
+        <div class="contact-card">
+          <i class="bi bi-chat-dots fs-1 d-block mb-3"></i>
+          <h5 class="fw-bold mb-2">Sales Department</h5>
+          <p class="text-muted small mb-1">+977 98020XXXXX</p>
+          <a href="mailto:sales@skillbridge.com" class="text-danger small text-decoration-none">sales@skillbridge.com</a>
+        </div>
+      </div>
+
+      <!-- Technical HR -->
+      <div class="col-md-4 text-center">
+        <div class="contact-card">
+          <i class="bi bi-envelope-check fs-1 d-block mb-3"></i>
+          <h5 class="fw-bold mb-2">Technical HR</h5>
+          <p class="text-muted small mb-1">+977 98020XXXXX</p>
+          <a href="mailto:techhr@skillbridge.com" class="text-danger small text-decoration-none">techhr@skillbridge.com</a>
+        </div>
+      </div>
+
+      <!-- Marketing HR -->
+      <div class="col-md-4 text-center">
+        <div class="contact-card">
+          <i class="bi bi-megaphone fs-1 d-block mb-3"></i>
+          <h5 class="fw-bold mb-2">Marketing & Creative HR</h5>
+          <p class="text-muted small mb-1">+977 98020XXXXX</p>
+          <a href="mailto:marketing@skillbridge.com" class="text-danger small text-decoration-none">marketing@skillbridge.com</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const searchForm = document.getElementById("heroSearchForm");
+    const searchType = document.getElementById("searchType");
+    
+    if (searchForm && searchType) {
+      searchForm.addEventListener("submit", function(e) {
+        if (searchType.value === "jobs") {
+          searchForm.action = "{% url 'website:jobs_list' %}";
+        } else {
+          searchForm.action = "{% url 'website:internship' %}";
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
