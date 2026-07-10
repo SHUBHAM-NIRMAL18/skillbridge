@@ -5,7 +5,7 @@ from .views import (
     CustomLoginView,
     CustomLogoutView,
     google_login_start,
-    
+    check_email_exists,
 )
 
 app_name = "accounts"
@@ -17,5 +17,5 @@ urlpatterns = [
     path("logout/", CustomLogoutView.as_view(), name="logout"),
 
     path("accounts/google/start/", google_login_start, name="google_start"),
-
+    path("check-email/", check_email_exists, name="check_email_exists"),
 ]
