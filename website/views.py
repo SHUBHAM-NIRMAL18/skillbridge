@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
+from django.db.models import Q
 from company.models import InternshipPost, JobPost, CompanyProfile
 from applications.models import Application
 from candidate.models import Profile
@@ -51,10 +52,11 @@ def termcondition_view(request):
 def internships_list_view(request):
     """
     Show ALL active, non-expired internships (soonest deadline first by default).
-    Supports ?sort=newest|oldest|deadline
+    Supports ?sort=newest|oldest|deadline and search ?q=keyword
     """
     today = timezone.localdate()
     sort = request.GET.get("sort", "deadline")
+    q = request.GET.get("q", "").strip()
     order_map = {
         "newest": "-created_at",
         "oldest": "created_at",
@@ -67,12 +69,23 @@ def internships_list_view(request):
         .filter(is_active=True, application_deadline__gte=today)
         .select_related("company")
         .prefetch_related("skills")
-        .order_by(ordering)
     )
+
+    if q:
+        internships = internships.filter(
+            Q(title__icontains=q) |
+            Q(company__first_name__icontains=q) |
+            Q(company__last_name__icontains=q) |
+            Q(city__icontains=q) |
+            Q(skills__name__icontains=q)
+        ).distinct()
+
+    internships = internships.order_by(ordering)
 
     return render(request, "internship.html", {
         "internships": internships,
         "sort": sort,
+        "q": q,
     })
 
 
@@ -145,10 +158,11 @@ def company_detail_view(request, pk: int):
 def jobs_list_view(request):
     """
     Show ALL active, non-expired jobs (soonest deadline by default).
-    Supports ?sort=newest|oldest|deadline
+    Supports ?sort=newest|oldest|deadline and search ?q=keyword
     """
     today = timezone.localdate()
     sort = request.GET.get("sort", "deadline")
+    q = request.GET.get("q", "").strip()
     order_map = {"newest": "-created_at", "oldest": "created_at", "deadline": "application_deadline"}
     ordering = order_map.get(sort, "application_deadline")
 
@@ -157,12 +171,23 @@ def jobs_list_view(request):
         .filter(is_active=True, application_deadline__gte=today)
         .select_related("company")
         .prefetch_related("skills")
-        .order_by(ordering)
     )
+
+    if q:
+        jobs = jobs.filter(
+            Q(title__icontains=q) |
+            Q(company__first_name__icontains=q) |
+            Q(company__last_name__icontains=q) |
+            Q(city__icontains=q) |
+            Q(skills__name__icontains=q)
+        ).distinct()
+
+    jobs = jobs.order_by(ordering)
 
     return render(request, "jobs.html", {
         "jobs": jobs,
         "sort": sort,
+        "q": q,
     })
 
 
