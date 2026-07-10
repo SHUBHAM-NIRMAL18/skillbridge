@@ -93,3 +93,14 @@ def google_login_start(request):
     """
     return HttpResponse(html)
 
+
+from django.http import JsonResponse
+from .models import User
+
+def check_email_exists(request):
+    email = request.GET.get("email", "").strip().lower()
+    exists = False
+    if email:
+        exists = User.objects.filter(email=email).exists()
+    return JsonResponse({"exists": exists})
+
