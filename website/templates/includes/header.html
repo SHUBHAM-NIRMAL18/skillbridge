@@ -122,17 +122,21 @@
 <!-- Toast Container -->
 <div id="toast-stack" class="position-fixed top-0 end-0 p-3" style="z-index: 1200;">
   {% for message in messages %}
-    {% with level=message.tags|default:"info" %}
     <div id="toast-{{ forloop.counter }}"
-         class="toast align-items-center text-bg-{{ level }} border-0 mb-2"
+         class="toast align-items-center {% if 'success' in message.tags %}text-bg-success{% elif 'danger' in message.tags or 'error' in message.tags %}text-bg-danger{% elif 'info' in message.tags %}text-bg-primary{% elif 'warning' in message.tags %}text-bg-warning{% else %}text-bg-dark{% endif %} border-0 mb-2"
          role="alert" aria-live="assertive" aria-atomic="true"
          data-bs-delay="4000">
       <div class="d-flex">
         <div class="toast-body">
-          {% if level == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
-          {% if level == 'danger' or level == 'error' %}<i class="bi bi-x-circle-fill me-2"></i>{% endif %}
-          {% if level == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
-          {% if level == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
+          {% if 'success' in message.tags %}
+            <i class="bi bi-check-circle-fill me-2"></i>
+          {% elif 'danger' in message.tags or 'error' in message.tags %}
+            <i class="bi bi-x-circle-fill me-2"></i>
+          {% elif 'warning' in message.tags %}
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {% else %}
+            <i class="bi bi-info-circle-fill me-2"></i>
+          {% endif %}
           {{ message }}
         </div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto"
