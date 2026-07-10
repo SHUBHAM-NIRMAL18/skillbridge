@@ -20,7 +20,7 @@
   />
 
   {# Your custom styles #}
-  <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/style.css' %}?v=1.1" rel="stylesheet" />
   <script src="{% static 'applications/apply.js' %}"></script>
 
   {% block extra_head %}{% endblock %}
@@ -32,11 +32,13 @@
   {# hero goes here if overridden #}
   {% block hero %}{% endblock %}
 
+  {% block main_content %}
   <main class="py-5">
     <div class="container">
       {% block content %}{% endblock %}
     </div>
   </main>
+  {% endblock %}
 
   {% include 'includes/footer.html' %}
 
