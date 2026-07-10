@@ -1,8 +1,109 @@
 {% extends "website/base.html" %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block title %}Candidate Registration | SkillBridge{% endblock %}
+
 {% block content %}
-  <h2>Candidiate Sign-Up</h2>
-  <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register as Candidate</button>
-  </form>
+<div class="auth-container py-5">
+  <div class="card auth-card" style="max-width: {% if form.errors %}950px{% else %}550px{% endif %}; transition: max-width 0.3s;">
+    <div class="card-body auth-card-body">
+      
+      <!-- Brand Header -->
+      <div class="auth-brand">
+        <a href="{% url 'website:index' %}" class="text-decoration-none">
+          <img src="{% static 'icons/sb.png' %}" alt="SkillBridge Logo" width="55" height="55" class="mb-2">
+          <h4 class="text-dark fw-bold mb-0">Skill<span class="text-danger">Bridge</span></h4>
+        </a>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="auth-tabs">
+        <a href="{% url 'accounts:register_candidate' %}" class="auth-tab-btn active">Candidate Signup</a>
+        <a href="{% url 'accounts:register_company' %}" class="auth-tab-btn">Company Signup</a>
+      </div>
+
+      <!-- Form Container -->
+      {% if form.errors %}
+      <div class="row g-4 text-start">
+        <div class="col-md-7 border-end-md auth-form-column">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% bootstrap_form form %}
+            
+            <button type="submit" class="btn btn-danger w-100 py-2.5 fw-semibold mb-3 mt-4">
+              Register as Candidate
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Validation Errors & Instructions -->
+        <div class="col-md-5">
+          <div class="alert alert-danger border-0 rounded-3 p-4 mb-4 text-start">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>Please Correct the Errors</span>
+            </h6>
+            <ul class="mb-0 ps-3 small" style="line-height:1.5;">
+              {% for field in form %}
+                {% if field.errors %}
+                  {% for error in field.errors %}
+                    <li class="mb-2"><strong>{{ field.label }}:</strong> {{ error }}</li>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li class="mb-2">{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <div class="bg-light rounded-3 p-4 text-start">
+            <h6 class="fw-bold mb-2 small text-dark">Password Requirements:</h6>
+            <ul class="small text-muted mb-0 ps-3" style="line-height:1.5;">
+              <li>Must be at least 8 characters long</li>
+              <li>Cannot be too similar to your username or email</li>
+              <li>Cannot be a commonly used password</li>
+              <li>Cannot be entirely numeric</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Standard Layout when no errors exist -->
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        {% bootstrap_form form %}
+        
+        <button type="submit" class="btn btn-danger w-100 py-2.5 fw-semibold mb-3 mt-4">
+          Register as Candidate
+        </button>
+      </form>
+      {% endif %}
+
+      <hr class="my-4 text-muted opacity-25">
+
+      <div class="text-center text-muted mb-3 small">or sign up with</div>
+
+      <!-- Google Sign-Up -->
+      <a href="{% url 'accounts:google_start' %}" class="google-btn w-100 mb-4">
+        <div class="google-icon-wrapper">
+          <img class="google-icon" src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+        </div>
+        <span class="btn-text">Sign up with Google <small class="text-muted">(candidates)</small></span>
+      </a>
+
+      <!-- Helper redirect link -->
+      <div class="text-center mt-3">
+        <p class="text-muted small mb-0">
+          Already have an account? 
+          <a href="{% url 'accounts:login' %}" class="text-danger fw-semibold text-decoration-none">Sign In</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}
