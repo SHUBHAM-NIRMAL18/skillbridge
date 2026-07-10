@@ -1,16 +1,20 @@
 {% extends "website/base.html" %}
+{% load static %}
 
-{% block title %}Sign in | Skill Bridge{% endblock %}
+{% block title %}Sign in | SkillBridge{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-80">
-  <div class="card shadow-sm" style="width:100%; max-width:500px; border-radius:0.75rem;">
-    <div class="card-body p-4">
-      <h3 class="card-title text-center mb-4">
-        Welcome back to <span class="text-danger">Skill Bridge</span>
-      </h3>
-
-
+<div class="auth-container py-4">
+  <div class="card auth-card">
+    <div class="card-body auth-card-body">
+      
+      <!-- Brand Header -->
+      <div class="auth-brand">
+        <a href="{% url 'website:index' %}" class="text-decoration-none">
+          <img src="{% static 'icons/sb.png' %}" alt="SkillBridge Logo" width="55" height="55" class="mb-2">
+          <h4 class="text-dark fw-bold mb-0">Skill<span class="text-danger">Bridge</span></h4>
+        </a>
+      </div>
 
       <form method="post" novalidate>
         {% csrf_token %}
@@ -73,17 +77,17 @@
               {{ form.remember_me.label }}
             </label>
           </div>
-          <a href="#" class="text-danger small">Forgot Password?</a>
+          <a href="#" class="text-danger small text-decoration-none">Forgot Password?</a>
         </div>
 
-        <button type="submit" class="btn btn-danger w-100 mb-3">Sign in</button>
+        <button type="submit" class="btn btn-danger w-100 py-2.5 fw-semibold mb-3">Sign in</button>
 
-        <div class="text-center text-muted mb-3">or login with</div>
+        <div class="text-center text-muted mb-3 small">or login with</div>
 
         {# Authentic Google Sign-In Button (Candidates) #}
         <a
           href="{% url 'accounts:google_start' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
-          class="google-btn w-100 mb-2"
+          class="google-btn w-100 mb-4"
         >
           <div class="google-icon-wrapper">
             <img
@@ -92,67 +96,20 @@
               alt="Google logo"
             >
           </div>
-          <span class="btn-text">Sign in with Google <small>(candidates)</small></span>
+          <span class="btn-text">Sign in with Google <small class="text-muted">(candidates)</small></span>
         </a>
       </form>
 
-      <p class="text-center mt-4 text-muted small">
-        Don't have an account?
-        <a href="{% url 'accounts:register_candidate' %}" class="text-danger">Candidate</a>
-        /
-        <a href="{% url 'accounts:register_company' %}" class="text-danger">Recruiter</a>
-      </p>
+      <div class="text-center mt-3">
+        <p class="text-muted small mb-0">
+          Don't have an account?
+          <a href="{% url 'accounts:register_candidate' %}" class="text-danger fw-semibold text-decoration-none">Candidate</a>
+          /
+          <a href="{% url 'accounts:register_company' %}" class="text-danger fw-semibold text-decoration-none">Recruiter</a>
+        </p>
+      </div>
+
     </div>
   </div>
 </div>
-
-<style>
-  /* Authentic Google Sign-In Button Styling */
-  .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
-    border: 1px solid #dadce0;
-    border-radius: 4px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    color: #3c4043;
-    font-weight: 500;
-    font-size: 14px;
-    padding: 10px 16px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-
-  .google-btn:hover {
-    background-color: #f7f8f8;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    color: #202124;
-  }
-
-  .google-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    height: 24px;
-    width: 24px;
-    margin-right: 10px;
-  }
-
-  .google-icon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .btn-text {
-    flex-grow: 1;
-    text-align: center;
-  }
-
-  /* Optional: rounded corners to match your Bootstrap theme */
-  .google-btn {
-    border-radius: 0.5rem;
-  }
-</style>
 {% endblock %}
