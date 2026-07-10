@@ -64,7 +64,7 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(LogoutView):
-    def get(self, request):
+    def dispatch(self, request, *args, **kwargs):
         logout(request)
         messages.success(request, "You have successfully logged out.")
         return redirect("accounts:login")
