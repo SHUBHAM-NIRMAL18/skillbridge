@@ -676,3 +676,20 @@ def feedback(request):
         return redirect("candidate:feedback")
 
     return render(request, "candidate/feedback.html")
+
+
+from website.models import EventRegistration
+
+@login_required
+def candidate_registered_events(request):
+    """
+    List events registered by the current candidate.
+    """
+    if getattr(request.user, "role", None) != 'candidate':
+        return redirect('accounts:login')
+        
+    registrations = EventRegistration.objects.filter(user=request.user).select_related('event__organizer').order_by('event__start_date')
+    
+    return render(request, 'candidate/registered_events.html', {
+        'registrations': registrations,
+    })
