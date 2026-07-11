@@ -13,6 +13,9 @@ urlpatterns = [
     path("jobs/", views.jobs_list_view, name="jobs_list"),
     path("jobs/<int:pk>/", views.job_detail_view, name="job_detail"),
     path("companies/<int:pk>/", views.company_detail_view, name="company_detail"),
+    path("events/", views.events_list_view, name="events_list"),
+    path("events/<int:pk>/", views.event_detail_view, name="event_detail"),
+    path("events/<int:pk>/register/", views.event_register_toggle, name="event_register_toggle"),
     # Add other URL patterns for the website app here as needed
 ]
 
