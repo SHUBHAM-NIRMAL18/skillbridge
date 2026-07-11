@@ -510,3 +510,44 @@ class CustomPasswordChangeForm(PasswordChangeForm):
                 'class': 'form-control',
                 'placeholder': field.label,
             })
+
+
+from website.models import Event
+
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = [
+            'title', 'description', 'cover_image', 'event_type',
+            'location_type', 'location', 'start_date', 'end_date'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Event Title'}),
+            'description': CKEditorWidget(config_name='default'),
+            'cover_image': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'event_type': forms.Select(attrs={'class': 'form-select'}),
+            'location_type': forms.Select(attrs={'class': 'form-select'}),
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Meeting URL or physical address'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }
+        labels = {
+            'cover_image': 'Cover Image (Optional)',
+            'location_type': 'Location Type',
+            'location': 'Location details / Link',
+            'start_date': 'Start Date & Time',
+            'end_date': 'End Date & Time',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date >= end_date:
+                raise forms.ValidationError("End date and time must be after the start date and time.")
+            if start_date < timezone.now():
+                raise forms.ValidationError("Start date and time cannot be in the past.")
+        return cleaned_data
+
