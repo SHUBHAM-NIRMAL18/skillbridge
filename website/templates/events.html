@@ -1,0 +1,220 @@
+{% extends "website/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Events - SkillBridge{% endblock %}
+
+{% block content %}
+<!-- Hero Header Section -->
+<div class="events-hero bg-dark text-white py-5 mb-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e1e2f 0%, #11111d 100%);">
+  <div class="container py-4 position-relative z-1">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase fw-semibold tracking-wider">SkillBridge Events</span>
+        <h1 class="display-4 fw-bold mb-3">Connect, Learn, and Grow</h1>
+        <p class="lead text-white-50 mb-0">Discover webinars, workshops, hackathons, and hiring events hosted by top companies.</p>
+      </div>
+      <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+        {% if user.role == 'company' %}
+          <a href="{% url 'company:event_create' %}" class="btn btn-danger btn-lg px-4 py-3 rounded-pill shadow-lg hover-scale">
+            <i class="bi bi-plus-circle-fill me-2"></i>Organize an Event
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="hero-bg-accent position-absolute" style="top: -100px; right: -100px; width: 300px; height: 300px; background: rgba(220, 53, 69, 0.1); filter: blur(100px); border-radius: 50%;"></div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4">
+    <!-- LEFT COLUMN: Filters -->
+    <aside class="col-lg-3">
+      <div class="card border-0 shadow-sm p-4 sticky-top" style="top: 24px; border-radius: 16px;">
+        <h5 class="fw-bold mb-4 d-flex align-items-center">
+          <i class="bi bi-funnel text-danger me-2"></i>Filters
+        </h5>
+        
+        <form method="get" action="{% url 'website:events_list' %}">
+          <!-- Search input -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-muted small uppercase">Keyword Search</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" name="q" value="{{ q }}" class="form-control bg-light border-0" placeholder="Search events...">
+            </div>
+          </div>
+
+          <!-- Event Type -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-muted small uppercase">Event Type</label>
+            <select name="event_type" class="form-select bg-light border-0">
+              <option value="">All Types</option>
+              {% for val, name in event_types %}
+                <option value="{{ val }}" {% if selected_event_type == val %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Location Type -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-muted small uppercase">Format</label>
+            <select name="location_type" class="form-select bg-light border-0">
+              <option value="">All Formats</option>
+              {% for val, name in location_types %}
+                <option value="{{ val }}" {% if selected_location_type == val %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Sorting -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-muted small uppercase">Sort By</label>
+            <div class="d-flex flex-column gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortSoonest" value="soonest" {% if sort == 'soonest' %}checked{% endif %}>
+                <label class="form-check-label text-muted" for="sortSoonest">Soonest Date</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortLatest" value="latest" {% if sort == 'latest' %}checked{% endif %}>
+                <label class="form-check-label text-muted" for="sortLatest">Recently Added</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sort" id="sortPast" value="past" {% if sort == 'past' %}checked{% endif %}>
+                <label class="form-check-label text-muted" for="sortPast">Past Events</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2 pt-2">
+            <button type="submit" class="btn btn-danger rounded-pill py-2">Apply Filters</button>
+            <a href="{% url 'website:events_list' %}" class="btn btn-outline-secondary rounded-pill py-2">Reset</a>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- RIGHT COLUMN: Events Grid -->
+    <main class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-dark mb-0">
+          {% if sort == 'past' %}Past Events{% else %}Upcoming Events{% endif %}
+          <span class="fs-6 text-muted fw-normal">({{ events.count }} found)</span>
+        </h4>
+      </div>
+
+      {% if events %}
+        <div class="row g-4">
+          {% for event in events %}
+            <div class="col-md-6">
+              <div class="card h-100 border-0 shadow-sm event-card overflow-hidden" style="border-radius: 16px; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                <!-- Cover Image -->
+                <div class="position-relative event-card-img" style="height: 180px;">
+                  {% if event.cover_image %}
+                    <img src="{{ event.cover_image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ event.title }}">
+                  {% else %}
+                    <div class="w-100 h-100 bg-secondary d-flex align-items-center justify-content-center text-white" style="background: linear-gradient(45deg, #2b303a, #3f4756);">
+                      <i class="bi bi-calendar3 fs-1 opacity-50"></i>
+                    </div>
+                  {% endif %}
+                  
+                  <!-- Format Badge -->
+                  <div class="position-absolute top-0 start-0 m-3">
+                    <span class="badge {% if event.location_type == 'online' %}bg-success{% else %}bg-primary{% endif %} px-3 py-2 rounded-pill fw-semibold shadow-sm text-capitalize">
+                      <i class="bi {% if event.location_type == 'online' %}bi-laptop{% else %}bi-geo-alt{% endif %} me-1"></i>
+                      {{ event.location_type }}
+                    </span>
+                  </div>
+
+                  <!-- Event Type Badge -->
+                  <div class="position-absolute bottom-0 start-0 m-3">
+                    <span class="badge bg-dark px-3 py-2 rounded-pill fw-semibold opacity-90 text-capitalize">
+                      {{ event.get_event_type_display }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body p-4 d-flex flex-column">
+                  <!-- Date / Time -->
+                  <div class="d-flex align-items-center text-danger fw-semibold small mb-2">
+                    <i class="bi bi-clock-fill me-2"></i>
+                    {{ event.start_date|date:"M d, Y @ h:i A" }}
+                  </div>
+
+                  <!-- Title -->
+                  <h5 class="card-title fw-bold text-dark mb-3 line-clamp-2">{{ event.title }}</h5>
+
+                  <!-- Organizer Info -->
+                  <div class="d-flex align-items-center mb-3 mt-auto">
+                    {% if event.organizer.logo %}
+                      <img src="{{ event.organizer.logo.url }}" alt="Logo" class="rounded-circle me-2 border" style="width: 28px; height: 28px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle me-2 bg-light border d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                        <i class="bi bi-building text-muted small"></i>
+                      </div>
+                    {% endif %}
+                    <span class="small text-muted">
+                      {% if event.organizer %}
+                        {{ event.organizer.first_name }} {{ event.organizer.last_name }}
+                      {% else %}
+                        SkillBridge Official
+                      {% endif %}
+                    </span>
+                  </div>
+
+                  <!-- Separator -->
+                  <hr class="text-muted opacity-20 my-3">
+
+                  <!-- Footer Actions -->
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="small text-muted">
+                      <i class="bi bi-people-fill text-danger me-1"></i>
+                      <span>{{ event.registrations.count }} attending</span>
+                    </div>
+
+                    <a href="{% url 'website:event_detail' event.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                      Details <i class="bi bi-arrow-right-short"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card border-0 shadow-sm p-5 text-center" style="border-radius: 16px;">
+          <div class="py-4">
+            <i class="bi bi-calendar-x text-muted display-4 mb-3"></i>
+            <h5 class="fw-bold">No Events Found</h5>
+            <p class="text-muted max-w-md mx-auto">We couldn't find any events matching your selected filters. Try adjusting your settings or search query.</p>
+            <a href="{% url 'website:events_list' %}" class="btn btn-danger btn-sm rounded-pill px-4 py-2 mt-2">Clear Filters</a>
+          </div>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+
+<style>
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.tracking-wider {
+  letter-spacing: 0.08em;
+}
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+</style>
+{% endblock %}
