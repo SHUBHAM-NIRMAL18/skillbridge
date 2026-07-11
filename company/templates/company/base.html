@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   {% bootstrap_css %}
-  <link href="{% static 'company/css/dashboard.css' %}" rel="stylesheet" />
+  <link href="{% static 'company/css/dashboard.css' %}?v=1.1" rel="stylesheet" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon.ico' %}" />
@@ -44,24 +44,24 @@
       </a>
     </div>
     <!-- Nav items: wrapped in a flex‐growing container -->
-    <div class="nav-items">
+    <div class="nav-items flex-grow-1">
       <ul class="nav flex-column">
         <!-- Dashboard -->
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'company:dashboard' %}">
-            <i class="bi bi-speedometer2"></i> Dashboard
+            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
           </a>
         </li>
         <!-- Company Profile -->
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'company:profile' %}">
-            <i class="bi bi-building"></i> Company Profile
+            <i class="bi bi-building"></i> <span>Company Profile</span>
           </a>
         </li>
         <!-- Internships/Jobs (with collapse) -->
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name in 'company_all_jobs,company_post_choice' %}active{% endif %}" data-bs-toggle="collapse" href="#collapseInternships" role="button" aria-expanded="{% if request.resolver_match.url_name in 'company_all_jobs,company_post_choice' %}true{% else %}false{% endif %}" aria-controls="collapseInternships">
-            <i class="bi bi-briefcase"></i> Internships/Jobs
+            <i class="bi bi-briefcase"></i> <span>Internships/Jobs</span>
             <i class="bi bi-chevron-down float-end"></i>
           </a>
           <div class="collapse {% if request.resolver_match.url_name in 'company_all_jobs,company_post_choice' %}show{% endif %} ps-4" id="collapseInternships">
@@ -81,7 +81,7 @@
             data-bs-toggle="collapse" href="#collapseEvents" role="button"
             aria-expanded="{% if request.resolver_match.url_name in 'events_list,event_create,event_edit' %}true{% else %}false{% endif %}"
             aria-controls="collapseEvents">
-            <i class="bi bi-calendar4-event"></i> Manage Events
+            <i class="bi bi-calendar4-event"></i> <span>Manage Events</span>
             <i class="bi bi-chevron-down float-end"></i>
           </a>
           <div class="collapse ps-4 {% if request.resolver_match.url_name in 'events_list,event_create,event_edit' %}show{% endif %}" id="collapseEvents">
@@ -101,7 +101,7 @@
               data-bs-toggle="collapse" href="#collapseApplicants" role="button"
               aria-expanded="{% if request.resolver_match.url_name in 'applicants_all,applicants_new,applicants_shortlisted' %}true{% else %}false{% endif %}"
               aria-controls="collapseApplicants">
-              <i class="bi bi-people"></i> Manage Applicants
+              <i class="bi bi-people"></i> <span>Manage Applicants</span>
               <i class="bi bi-chevron-down float-end"></i>
             </a>
             <div class="collapse ps-4 {% if request.resolver_match.url_name in 'applicants_all,applicants_new,applicants_shortlisted' %}show{% endif %}" id="collapseApplicants">
@@ -127,7 +127,7 @@
      role="button"
      aria-expanded="{% if request.resolver_match.namespace == 'membership' %}true{% else %}false{% endif %}"
      aria-controls="collapseMembership">
-    <i class="bi bi-card-checklist me-2"></i> Membership
+    <i class="bi bi-card-checklist me-2"></i> <span>Membership</span>
     {% if wallet_balance is not None %}
       <span class="badge bg-primary-subtle text-primary border ms-2">{{ wallet_balance|default:0 }}</span>
     {% endif %}
@@ -156,7 +156,7 @@
         <!-- Contact Us (with collapse) -->
         <li class="nav-item">
           <a class="nav-link" data-bs-toggle="collapse" href="#collapseContact" role="button" aria-expanded="false" aria-controls="collapseContact">
-            <i class="bi bi-chat-dots"></i> Contact Us
+            <i class="bi bi-chat-dots"></i> <span>Contact Us</span>
             <i class="bi bi-chevron-down float-end"></i>
           </a>
           <div class="collapse ps-4" id="collapseContact">
@@ -173,7 +173,7 @@
         <!-- Setting -->
         <li class="nav-item">
           <a class="nav-link" href="{% url 'company:company_settings'%}">
-            <i class="bi bi-gear"></i> Setting
+            <i class="bi bi-gear"></i> <span>Setting</span>
           </a>
         </li>
       </ul>
@@ -181,7 +181,7 @@
     <!-- Logout: stays pinned at bottom -->
     <div class="logout-container">
       <a class="nav-link text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-        <i class="bi bi-box-arrow-right"></i> Logout
+        <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
       </a>
     </div>
   </nav>
@@ -190,6 +190,13 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom mb-4">
       <div class="container-fluid px-3">
+        <!-- Sidebar Toggle Hamburger -->
+        <button class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                id="sidebarToggle" style="width: 40px; height: 40px;" type="button"
+                onclick="window.toggleSidebar()">
+          <i class="bi bi-list fs-4 text-dark"></i>
+        </button>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -246,10 +253,50 @@
   
   {% bootstrap_javascript %}
 <script>
+  window.toggleSidebar = function() {
+    var body = document.body;
+    if (window.innerWidth >= 992) {
+      body.classList.toggle("sidebar-collapsed");
+      localStorage.setItem("sidebar-collapsed", body.classList.contains("sidebar-collapsed"));
+    } else {
+      body.classList.toggle("sidebar-mobile-show");
+      if (body.classList.contains("sidebar-mobile-show")) {
+        var existing = document.getElementById("sidebarBackdrop");
+        if (existing) existing.remove();
+        var backdrop = document.createElement("div");
+        backdrop.className = "sidebar-backdrop";
+        backdrop.id = "sidebarBackdrop";
+        document.body.appendChild(backdrop);
+        backdrop.addEventListener("click", function() {
+          body.classList.remove("sidebar-mobile-show");
+          var b = document.getElementById("sidebarBackdrop");
+          if (b) b.remove();
+        });
+      } else {
+        var b = document.getElementById("sidebarBackdrop");
+        if (b) b.remove();
+      }
+    }
+  };
+
   document.addEventListener("DOMContentLoaded", function() {
     var toastEls = document.querySelectorAll(".toast");
     toastEls.forEach(function(toastEl) {
       new bootstrap.Toast(toastEl).show();
+    });
+
+    // Restore collapsed sidebar on desktop
+    if (window.innerWidth >= 992 && localStorage.getItem("sidebar-collapsed") === "true") {
+      document.body.classList.add("sidebar-collapsed");
+    }
+
+    // Clean up on resize to desktop
+    window.addEventListener("resize", function() {
+      if (window.innerWidth >= 992) {
+        document.body.classList.remove("sidebar-mobile-show");
+        var b = document.getElementById("sidebarBackdrop");
+        if (b) b.remove();
+      }
     });
   });
 </script>
