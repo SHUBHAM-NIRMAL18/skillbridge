@@ -3,7 +3,8 @@ from django.urls import path
 from django.shortcuts import redirect
 from .views import (
     candidate_dashboard, ProfileWizardView, ProfileCompleteView,
-    ProfilePreviewView, recommended_demo, inbox, support, feedback
+    ProfilePreviewView, recommended_demo, inbox, support, feedback,
+    candidate_registered_events
 )
 from applications.views import my_applications
 
@@ -25,4 +26,5 @@ urlpatterns = [
     path('applications/', my_applications, name='applications'),
 
     path('recommended-demo/', recommended_demo, name='recommended_demo'),
+    path('events/', candidate_registered_events, name='registered_events'),
 ]
