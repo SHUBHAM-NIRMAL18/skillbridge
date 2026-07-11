@@ -1,6 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Q
+from django.contrib import messages
 from company.models import InternshipPost, JobPost, CompanyProfile
 from applications.models import Application
 from candidate.models import Profile
@@ -226,3 +227,121 @@ def job_detail_view(request, pk: int):
         "more_jobs": more_jobs,
         "has_applied_job": has_applied_job,
     })
+
+
+from django.contrib.auth.decorators import login_required
+from website.models import Event, EventRegistration
+
+def events_list_view(request):
+    """
+    Show all active events with search and filtering.
+    """
+    today = timezone.now()
+    q = request.GET.get('q', '').strip()
+    event_type = request.GET.get('event_type', '').strip()
+    location_type = request.GET.get('location_type', '').strip()
+    sort = request.GET.get('sort', 'soonest')
+
+    events = Event.objects.filter(is_active=True)
+
+    if q:
+        events = events.filter(
+            Q(title__icontains=q) |
+            Q(organizer__first_name__icontains=q) |
+            Q(organizer__last_name__icontains=q)
+        ).distinct()
+
+    if event_type:
+        events = events.filter(event_type=event_type)
+
+    if location_type:
+        events = events.filter(location_type=location_type)
+
+    # Sort
+    if sort == 'soonest':
+        events = events.order_by('start_date')
+    elif sort == 'latest':
+        events = events.order_by('-created_at')
+    elif sort == 'past':
+        events = events.filter(end_date__lt=today).order_by('-start_date')
+
+    # By default show upcoming events first
+    if sort != 'past':
+        events = events.filter(end_date__gte=today)
+
+    # Event types choice list for template
+    event_types = Event.EVENT_TYPE_CHOICES
+    location_types = Event.LOCATION_TYPE_CHOICES
+
+    return render(request, 'events.html', {
+        'events': events,
+        'q': q,
+        'selected_event_type': event_type,
+        'selected_location_type': location_type,
+        'sort': sort,
+        'event_types': event_types,
+        'location_types': location_types,
+    })
+
+def event_detail_view(request, pk: int):
+    """
+    Show detailed information about a single event.
+    """
+    event = get_object_or_404(Event.objects.select_related('organizer'), pk=pk)
+    
+    # Registration count
+    reg_count = event.registrations.count()
+    
+    is_registered = False
+    if request.user.is_authenticated:
+        is_registered = event.registrations.filter(user=request.user).exists()
+
+    # Determine if current user can view attendee list (organizer or staff)
+    can_view_attendees = False
+    attendees = []
+    if request.user.is_authenticated:
+        # Check if user is the organizer of the event
+        is_organizer = (event.organizer and event.organizer.user == request.user)
+        if is_organizer or request.user.is_staff or request.user.is_superuser:
+            can_view_attendees = True
+            attendees = event.registrations.select_related('user').order_by('-registered_at')
+
+    # Recommendation: show 3 other upcoming events
+    more_events = Event.objects.filter(is_active=True, end_date__gte=timezone.now()).exclude(pk=event.pk)[:3]
+
+    return render(request, 'view-event.html', {
+        'event': event,
+        'reg_count': reg_count,
+        'is_registered': is_registered,
+        'can_view_attendees': can_view_attendees,
+        'attendees': attendees,
+        'more_events': more_events,
+    })
+
+@login_required
+def event_register_toggle(request, pk: int):
+    """
+    Register or unregister the current user for an event.
+    Only candidates can register for events.
+    """
+    if getattr(request.user, "role", None) != 'candidate':
+        messages.error(request, "Only candidates can register for events.")
+        return redirect('website:event_detail', pk=pk)
+
+    event = get_object_or_404(Event, pk=pk, is_active=True)
+    
+    if event.end_date < timezone.now():
+        messages.error(request, "This event has already ended.")
+        return redirect('website:event_detail', pk=pk)
+
+    registration = EventRegistration.objects.filter(event=event, user=request.user)
+    
+    if registration.exists():
+        registration.delete()
+        messages.success(request, f"You have successfully cancelled your registration for '{event.title}'.")
+    else:
+        # Create new registration
+        EventRegistration.objects.create(event=event, user=request.user)
+        messages.success(request, f"You are now registered for '{event.title}'!")
+
+    return redirect('website:event_detail', pk=pk)
