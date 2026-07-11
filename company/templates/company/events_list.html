@@ -1,0 +1,163 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}Manage Events - Company Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+  .table-container {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    color: #495057;
+    border: none;
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+  .table td {
+    padding: 12px 8px;
+    vertical-align: middle;
+    border-color: #f1f3f4;
+    font-size: 0.85rem;
+  }
+  .btn-action {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    margin: 0 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold text-dark mb-1">Organized Events</h3>
+      <p class="text-muted mb-0 small">Create, edit, and manage company webinars, workshops, hackathons, and networking sessions.</p>
+    </div>
+    <a href="{% url 'company:event_create' %}" class="btn btn-danger rounded-pill px-4">
+      <i class="bi bi-plus-circle me-1"></i> Organize New Event
+    </a>
+  </div>
+
+  {% if events %}
+    <div class="table-container p-3 bg-white">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Event Info</th>
+              <th>Format</th>
+              <th>Date & Time</th>
+              <th>Location / Details</th>
+              <th class="text-center">Attendees</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden;" class="border flex-shrink-0 bg-light">
+                      {% if event.cover_image %}
+                        <img src="{{ event.cover_image.url }}" class="w-100 h-100 object-fit-cover" alt="Cover">
+                      {% else %}
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted">
+                          <i class="bi bi-calendar3 small"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">{{ event.title }}</div>
+                      <span class="badge bg-danger-subtle text-danger text-capitalize small" style="font-size: 0.7rem;">
+                        {{ event.get_event_type_display }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge {% if event.location_type == 'online' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %} text-capitalize px-2 py-1">
+                    {{ event.location_type }}
+                  </span>
+                </td>
+                <td>
+                  <div class="small fw-semibold text-dark">{{ event.start_date|date:"M d, Y" }}</div>
+                  <div class="small text-muted">{{ event.start_date|date:"h:i A" }} - {{ event.end_date|date:"h:i A" }}</div>
+                </td>
+                <td>
+                  {% if event.location_type == 'online' %}
+                    <span class="text-truncate d-inline-block small text-muted" style="max-width: 180px;">{{ event.location }}</span>
+                  {% else %}
+                    <span class="small text-dark">{{ event.location }}</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-bold">
+                    {{ event.registrations.count }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex justify-content-end gap-1">
+                    <a href="{% url 'website:event_detail' event.id %}" class="btn btn-outline-primary btn-action" title="View Details">
+                      <i class="bi bi-eye"></i> View
+                    </a>
+                    <a href="{% url 'company:event_edit' event.id %}" class="btn btn-outline-success btn-action" title="Edit Event">
+                      <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <button type="button" class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ event.id }}">
+                      <i class="bi bi-trash"></i> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Delete Confirmation Modal -->
+              <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ event.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header border-0">
+                      <h5 class="modal-title" id="deleteModalLabel{{ event.id }}">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Delete Event
+                      </h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-3 text-center">
+                      <p>Are you sure you want to delete the event <strong>"{{ event.title }}"</strong>?</p>
+                      <p class="text-muted small">This will delete all attendee registrations and cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center">
+                      <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                      <form method="post" action="{% url 'company:event_delete' event.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Delete Event</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="card border-0 shadow-sm p-5 text-center bg-white" style="border-radius: 16px;">
+      <div class="py-5">
+        <i class="bi bi-calendar4-event text-muted display-2 mb-3"></i>
+        <h4 class="fw-bold">No Events Posted Yet</h4>
+        <p class="text-muted max-w-md mx-auto">Host webinars, training sessions, virtual office hours, or networking workshops to attract top candidates.</p>
+        <a href="{% url 'company:event_create' %}" class="btn btn-danger rounded-pill px-4 py-2 mt-3">
+          <i class="bi bi-plus-circle me-1"></i> Post Your First Event
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
