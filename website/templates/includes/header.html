@@ -25,11 +25,12 @@
           <a class="nav-link{% if '/job' in request.path %} active{% endif %}" href="{% url 'website:jobs_list' %}">Jobs</a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="eventsDropdown" role="button" data-bs-toggle="dropdown"
+          <a class="nav-link dropdown-toggle{% if '/events/' in request.path %} active{% endif %}" href="#" id="eventsDropdown" role="button" data-bs-toggle="dropdown"
              aria-expanded="false">Events</a>
           <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="eventsDropdown">
-            <li><a class="dropdown-item" href="#">All Events</a></li>
-            <li><a class="dropdown-item" href="#">Upcoming</a></li>
+            <li><a class="dropdown-item" href="{% url 'website:events_list' %}">All Events</a></li>
+            <li><a class="dropdown-item" href="{% url 'website:events_list' %}?sort=soonest">Upcoming</a></li>
+            <li><a class="dropdown-item" href="{% url 'website:events_list' %}?sort=past">Past Events</a></li>
           </ul>
         </li>
 

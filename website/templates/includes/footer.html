@@ -34,7 +34,7 @@
         <ul class="list-unstyled">
           <li><a href="#">Build your CV and profile</a></li>
           <li><a href="#">Internship/Jobs</a></li>
-          <li><a href="#">Browse Events</a></li>
+          <li><a href="{% url 'website:events_list' %}">Browse Events</a></li>
         </ul>
       </div>
 
@@ -50,7 +50,7 @@
         <h5>For Institutes</h5>
         <ul class="list-unstyled">
           <li><a href="#">Register as Institute</a></li>
-          <li><a href="#">Organize an event</a></li>
+          <li><a href="{% url 'company:event_create' %}">Organize an event</a></li>
         </ul>
       </div>
 
