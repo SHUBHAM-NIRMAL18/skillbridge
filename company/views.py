@@ -738,3 +738,114 @@ def applicant_detail_partial(request, pk: int):
     }, request=request)
 
     return JsonResponse({"ok": True, "html": html, "title": f"{profile.first_name} {profile.last_name}".strip() or profile.user.username})
+
+
+from website.models import Event, EventRegistration
+from company.forms import EventForm
+
+@login_required
+def company_events_list(request):
+    """
+    List events organized by the current company.
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        messages.info(request, "Please complete your company profile first.")
+        return redirect('company:profile')
+
+    company = request.user.company_profile
+    events = Event.objects.filter(organizer=company).order_by('-start_date')
+    
+    return render(request, 'company/events_list.html', {
+        'events': events,
+        'wallet_balance': getattr(company, 'credits_balance', 0),
+    })
+
+@login_required
+def company_event_create(request):
+    """
+    Create a new event organized by the company.
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        messages.info(request, "Please complete your company profile first.")
+        return redirect('company:profile')
+
+    company = request.user.company_profile
+
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.organizer = company
+            event.save()
+            messages.success(request, f"Event '{event.title}' created successfully!")
+            return redirect('company:events_list')
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = EventForm()
+
+    return render(request, 'company/event_form.html', {
+        'form': form,
+        'action_name': 'Create',
+        'wallet_balance': getattr(company, 'credits_balance', 0),
+    })
+
+@login_required
+def company_event_edit(request, pk: int):
+    """
+    Edit an existing event.
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        return redirect('company:profile')
+
+    company = request.user.company_profile
+    event = get_object_or_404(Event, pk=pk, organizer=company)
+
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Event '{event.title}' updated successfully!")
+            return redirect('company:events_list')
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        form = EventForm(instance=event)
+        # Form field formatting helper
+        if event.start_date:
+            form.fields['start_date'].initial = event.start_date.strftime('%Y-%m-%dT%H:%M')
+        if event.end_date:
+            form.fields['end_date'].initial = event.end_date.strftime('%Y-%m-%dT%H:%M')
+
+    return render(request, 'company/event_form.html', {
+        'form': form,
+        'action_name': 'Edit',
+        'event': event,
+        'wallet_balance': getattr(company, 'credits_balance', 0),
+    })
+
+@login_required
+def company_event_delete(request, pk: int):
+    """
+    Delete an event.
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        return redirect('company:profile')
+
+    company = request.user.company_profile
+    event = get_object_or_404(Event, pk=pk, organizer=company)
+    
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, f"Event '{event.title}' deleted successfully.")
+        
+    return redirect('company:events_list')
+
