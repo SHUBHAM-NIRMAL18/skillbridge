@@ -1,0 +1,127 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}{{ action_name }} Event - Company Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <!-- Back link -->
+  <div class="mb-4">
+    <a href="{% url 'company:events_list' %}" class="text-danger text-decoration-none small fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i> Back to Events
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10">
+      <div class="card border-0 shadow-sm p-4 p-md-5 bg-white" style="border-radius: 16px;">
+        <div class="mb-4">
+          <h3 class="fw-bold text-dark mb-1">{{ action_name }} Event</h3>
+          <p class="text-muted small">Provide the event details below to host it on the SkillBridge platform.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger border-0 mb-4" style="border-radius: 12px;">
+              {% for error in form.non_field_errors %}
+                <p class="mb-0 small"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-4">
+            <!-- Title -->
+            <div class="col-12">
+              <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold text-dark small">Event Title</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Event Type & Format -->
+            <div class="col-md-6">
+              <label for="{{ form.event_type.id_for_label }}" class="form-label fw-semibold text-dark small">Event Category</label>
+              {{ form.event_type }}
+              {% if form.event_type.errors %}
+                <div class="text-danger small mt-1">{{ form.event_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="{{ form.location_type.id_for_label }}" class="form-label fw-semibold text-dark small">Location Format</label>
+              {{ form.location_type }}
+              {% if form.location_type.errors %}
+                <div class="text-danger small mt-1">{{ form.location_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Location details / link -->
+            <div class="col-12">
+              <label for="{{ form.location.id_for_label }}" class="form-label fw-semibold text-dark small">Location Details / URL</label>
+              {{ form.location }}
+              <div class="form-text small text-muted">Provide a joining link (e.g. Google Meet, Zoom) for online events, or a physical address for in-person events.</div>
+              {% if form.location.errors %}
+                <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Start & End Date -->
+            <div class="col-md-6">
+              <label for="{{ form.start_date.id_for_label }}" class="form-label fw-semibold text-dark small">Start Date & Time</label>
+              {{ form.start_date }}
+              {% if form.start_date.errors %}
+                <div class="text-danger small mt-1">{{ form.start_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="{{ form.end_date.id_for_label }}" class="form-label fw-semibold text-dark small">End Date & Time</label>
+              {{ form.end_date }}
+              {% if form.end_date.errors %}
+                <div class="text-danger small mt-1">{{ form.end_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Cover Image -->
+            <div class="col-12">
+              <label for="{{ form.cover_image.id_for_label }}" class="form-label fw-semibold text-dark small">Cover Image (Optional)</label>
+              {{ form.cover_image }}
+              {% if event.cover_image %}
+                <div class="mt-2 text-muted small">
+                  Currently: <a href="{{ event.cover_image.url }}" target="_blank">{{ event.cover_image.name }}</a>
+                </div>
+              {% endif %}
+              {% if form.cover_image.errors %}
+                <div class="text-danger small mt-1">{{ form.cover_image.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Description (Rich text) -->
+            <div class="col-12">
+              <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold text-dark small mb-2">Event Description</label>
+              <!-- Ensure correct rendering of CKEditor wrapper -->
+              <div class="border rounded p-1">
+                {{ form.media }}
+                {{ form.description }}
+              </div>
+              {% if form.description.errors %}
+                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+            <a href="{% url 'company:events_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+            <button type="submit" class="btn btn-danger rounded-pill px-4">
+              <i class="bi bi-check-circle me-1"></i> Save Event
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
