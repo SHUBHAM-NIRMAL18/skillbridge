@@ -69,6 +69,44 @@
     </div>
   </div>
 
+  <!-- Pending Bank Transfers Status -->
+  {% if pending_bank_orders %}
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card border-warning-subtle shadow-sm bg-warning bg-opacity-10">
+          <div class="card-body p-3">
+            <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-clock-history me-2"></i>Pending Bank/QR Payments</h6>
+            <div class="list-group list-group-flush rounded border border-warning-subtle">
+              {% for order in pending_bank_orders %}
+                <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center py-2 border-warning-subtle">
+                  <div class="small text-dark">
+                    <strong>#{{ order.code }}</strong> - {{ order.credits_qty }} Credits (Rs. {{ order.total_rupees|intcomma }})
+                    {% if order.payment and order.payment.status == "PENDING_VERIFICATION" %}
+                      <span class="badge bg-warning text-dark ms-2">Pending Verification</span>
+                    {% elif order.payment and order.payment.status == "FAILED" %}
+                      <span class="badge bg-danger text-white ms-2">Verification Failed</span>
+                    {% else %}
+                      <span class="badge bg-info text-dark ms-2">Receipt Awaiting Upload</span>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <a href="{% url 'membership:bank_order' order.code %}" class="btn btn-sm btn-warning text-dark font-semibold">
+                      {% if order.payment and order.payment.status == "PENDING_VERIFICATION" %}
+                        View Status
+                      {% else %}
+                        Upload Receipt
+                      {% endif %}
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   <!-- Enhanced Two-column Content -->
   <div class="row g-4">
 
