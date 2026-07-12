@@ -26,10 +26,19 @@ def membership_home(request):
     CompanyWallet.objects.get_or_create(company=company)
     balance = get_spendable_balance(company)
     txns = WalletTransaction.objects.filter(company=company).order_by("-created_at")[:25]
+    
+    # Query pending Bank/QR orders to display status warnings/actions on home dashboard
+    pending_bank_orders = Order.objects.filter(
+        company=company,
+        status=OrderStatus.PENDING,
+        method__in=[PayMethod.BANK, PayMethod.QR]
+    ).select_related("payment").order_by("-created_at")
+    
     return render(request, "membership/home.html", {
         "balance": balance,
         "transactions": txns,
         "job_cost": getattr(settings, "CREDITS_JOB_POST", 10),
+        "pending_bank_orders": pending_bank_orders,
     })
 
 
@@ -223,21 +232,70 @@ def bank_order(request, code: str):
         messages.error(request, "This order is not a Bank/QR payment.")
         return redirect(reverse("membership:home"))
 
+    if order.status == OrderStatus.PAID:
+        messages.info(request, "This order is already marked as paid.")
+        return redirect(reverse("membership:home"))
+
+    # Check if a payment record exists
+    payment = Payment.objects.filter(order=order).first()
+
+    if request.method == "POST":
+        receipt_file = request.FILES.get("receipt")
+        if receipt_file:
+            # Handle payment record creation/retrieval
+            payment, created = Payment.objects.get_or_create(
+                order=order,
+                defaults={
+                    "method": order.method,
+                    "status": PaymentStatus.INITIATED,
+                    "requested_amount_paisa": order.total_paisa,
+                },
+            )
+            payment.receipt = receipt_file
+            payment.status = PaymentStatus.PENDING_VERIFICATION
+            payment.save()
+            messages.success(request, "Payment receipt uploaded successfully! Admin will verify it shortly.")
+        else:
+            messages.warning(request, "Please select a receipt file to upload.")
+        return redirect(reverse("membership:bank_order", args=[order.code]))
+
     # Only pass the order and computed amount; the template will show static bank details.
     ctx = {
         "order": order,
         "amount_rupees": order.total_paisa // 100,
+        "payment": payment,
     }
     return render(request, "membership/bank_order.html", ctx)
 
 
 # ------------------------
-# Receipt upload stub (unchanged)
+# Receipt upload helper
 # ------------------------
 @login_required
-def upload_receipt(request):
-    messages.info(request, "Receipt upload coming soon. For now, email support with your proof of payment.")
-    return redirect(reverse("membership:home"))
+def upload_receipt(request, code: str = None):
+    company = request.user.company_profile
+    if code:
+        order = get_object_or_404(Order, code=code, company=company)
+        if order.method not in (PayMethod.BANK, PayMethod.QR):
+            messages.error(request, "This order is not a Bank/QR payment.")
+            return redirect(reverse("membership:home"))
+        return redirect(reverse("membership:bank_order", args=[order.code]))
+
+    # Find pending Bank/QR orders
+    pending_orders = Order.objects.filter(
+        company=company,
+        status=OrderStatus.PENDING,
+        method__in=[PayMethod.BANK, PayMethod.QR]
+    ).order_by("-created_at")
+
+    if not pending_orders.exists():
+        messages.info(request, "You have no pending Bank/QR orders. Please buy credits first.")
+        return redirect(reverse("membership:home"))
+
+    if pending_orders.count() == 1:
+        return redirect(reverse("membership:bank_order", args=[pending_orders.first().code]))
+
+    return render(request, "membership/select_bank_order.html", {"orders": pending_orders})
 
 
 
