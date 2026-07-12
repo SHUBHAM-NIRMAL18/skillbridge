@@ -55,13 +55,79 @@
             <div class="small text-muted mt-1">Scan to pay (preferred)</div>
           </div>
 
-          <div class="d-flex gap-2 mt-3">
-            <a class="btn btn-outline-secondary" href="{% url 'membership:home' %}">Done, Go Back</a>
-            <a class="btn btn-primary" href="{% url 'membership:upload_receipt' %}">Upload Receipt</a>
-          </div>
+          <!-- Payment Status / Form -->
+          {% if not payment or payment.status == "INITIATED" %}
+            <form method="post" enctype="multipart/form-data" action="{% url 'membership:bank_order' order.code %}" class="mt-3 p-3 bg-light rounded border border-primary-subtle">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="receipt" class="form-label fw-bold text-dark"><i class="bi bi-file-earmark-arrow-up me-1"></i>Upload Receipt</label>
+                <input class="form-control" type="file" id="receipt" name="receipt" accept="image/*,application/pdf" required>
+                <div class="form-text small">Supported formats: JPG, PNG, PDF. Max: 5MB.</div>
+              </div>
+              <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary w-50" href="{% url 'membership:home' %}">Go Back</a>
+                <button type="submit" class="btn btn-primary w-50">Submit Receipt</button>
+              </div>
+            </form>
+          {% elif payment.status == "PENDING_VERIFICATION" %}
+            <div class="alert alert-warning mt-3 border border-warning-subtle">
+              <div class="d-flex gap-2">
+                <i class="bi bi-clock-history fs-5 text-warning"></i>
+                <div>
+                  <strong class="d-block text-warning-emphasis">Receipt Verification Pending</strong>
+                  <span class="small text-muted">We have received your receipt. Our superadmin is verifying the payment. Credits will be automatically added after approval.</span>
+                </div>
+              </div>
+              {% if payment.receipt %}
+                <div class="mt-2 pt-2 border-top">
+                  <span class="small text-muted d-block mb-1">Your uploaded receipt:</span>
+                  <a href="{{ payment.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-file-earmark-image me-1"></i>View Uploaded File
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+            <div class="mt-3">
+              <a class="btn btn-outline-secondary w-100" href="{% url 'membership:home' %}">Done, Go Back</a>
+            </div>
+          {% elif payment.status == "COMPLETED" %}
+            <div class="alert alert-success mt-3 border border-success-subtle">
+              <div class="d-flex gap-2">
+                <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+                <div>
+                  <strong class="d-block text-success-emphasis">Payment Confirmed</strong>
+                  <span class="small text-muted">This order has been verified and processed. Thank you!</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <a class="btn btn-outline-secondary w-100" href="{% url 'membership:home' %}">Done, Go Back</a>
+            </div>
+          {% elif payment.status == "FAILED" %}
+            <div class="alert alert-danger mt-3 border border-danger-subtle">
+              <div class="d-flex gap-2 mb-2">
+                <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
+                <div>
+                  <strong class="d-block text-danger-emphasis">Verification Rejected</strong>
+                  <span class="small text-muted">The uploaded receipt could not be verified. Please try again.</span>
+                </div>
+              </div>
+              <form method="post" enctype="multipart/form-data" action="{% url 'membership:bank_order' order.code %}" class="mt-2 pt-2 border-top">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="receipt" class="form-label fw-bold text-dark">Upload Valid Receipt</label>
+                  <input class="form-control" type="file" id="receipt" name="receipt" accept="image/*,application/pdf" required>
+                </div>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-outline-secondary w-50" href="{% url 'membership:home' %}">Go Back</a>
+                  <button type="submit" class="btn btn-danger w-50">Re-upload Receipt</button>
+                </div>
+              </form>
+            </div>
+          {% endif %}
 
-          <div class="small text-muted mt-3">
-            Need help? Email <a href="mailto:support@skillbridge.com">support@skillbridge.com</a> with your order code and receipt.
+          <div class="small text-muted mt-3 text-center">
+            Need help? Email <a href="mailto:support@skillbridge.com">support@skillbridge.com</a> with your order code.
           </div>
         </div>
       </div>
