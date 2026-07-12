@@ -81,19 +81,25 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def total_rupees(self) -> int:
+        return self.total_paisa // 100
+
 class PaymentStatus(models.TextChoices):
     INITIATED = "INITIATED", "Initiated"
+    PENDING_VERIFICATION = "PENDING_VERIFICATION", "Pending Verification"
     COMPLETED = "COMPLETED", "Completed"
     FAILED    = "FAILED",    "Failed"
 
 class Payment(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="payment")
     method = models.CharField(max_length=10, choices=PayMethod.choices)
-    status = models.CharField(max_length=12, choices=PaymentStatus.choices, default=PaymentStatus.INITIATED)
+    status = models.CharField(max_length=24, choices=PaymentStatus.choices, default=PaymentStatus.INITIATED)
     requested_amount_paisa = models.IntegerField()
     verified_amount_paisa = models.IntegerField(null=True, blank=True)
     provider_ref = models.CharField(max_length=80, null=True, blank=True, db_index=True)  # Khalti pidx / eSewa txn uuid
     provider_txn_id = models.CharField(max_length=80, null=True, blank=True)  # e.g., eSewa refId
+    receipt = models.FileField(upload_to="payment_receipts/", null=True, blank=True)
     raw_payload = models.JSONField(default=dict, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
