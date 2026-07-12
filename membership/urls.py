@@ -11,6 +11,7 @@ urlpatterns = [
     path("receipt/<str:code>/", views.receipt_pdf, name="receipt_pdf"),
     path("order/<str:code>/bank/", views.bank_order, name="bank_order"),
     path("receipt/upload/", views.upload_receipt, name="upload_receipt"),
+    path("receipt/upload/<str:code>/", views.upload_receipt, name="upload_receipt_with_code"),
 
     path("esewa/success/", views.esewa_success, name="esewa_success"),
     path("esewa/failure/", views.esewa_failure, name="esewa_failure"),
