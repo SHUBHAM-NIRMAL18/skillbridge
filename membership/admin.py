@@ -1,6 +1,9 @@
 # membership/admin.py
 from django.contrib import admin
-from .models import CompanyWallet, CreditBatch, WalletTransaction, Order, Payment
+from django.utils.html import format_html
+from django.contrib import messages
+from .models import CompanyWallet, CreditBatch, WalletTransaction, Order, Payment, PaymentStatus, OrderStatus
+from .services import finalize_paid_order
 
 
 @admin.register(CompanyWallet)
@@ -47,10 +50,47 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ("order", "method", "status", "verified_amount_paisa", "provider_ref", "provider_txn_id", "verified_at")
+    list_display = ("order", "method", "status", "display_receipt", "verified_amount_paisa", "provider_ref", "provider_txn_id", "verified_at")
     list_filter = ("method", "status")
     search_fields = ("order__code", "provider_ref", "provider_txn_id")
     raw_id_fields = ("order",)
     list_select_related = ("order",)
+    readonly_fields = ("display_receipt",)
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
+    actions = ["approve_payments", "reject_payments"]
+
+    def display_receipt(self, obj):
+        if obj.receipt:
+            return format_html('<a href="{}" target="_blank">View Receipt</a>', obj.receipt.url)
+        return "No Receipt"
+    display_receipt.short_description = "Receipt File"
+
+    @admin.action(description="Approve selected payments (Grant credits)")
+    def approve_payments(self, request, queryset):
+        count = 0
+        for payment in queryset:
+            if payment.status in (PaymentStatus.INITIATED, PaymentStatus.PENDING_VERIFICATION):
+                finalize_paid_order(
+                    payment.order,
+                    provider_ref=f"MANUAL_{request.user.username}",
+                    amount_paisa=payment.requested_amount_paisa,
+                    payload={"verified_by": request.user.username}
+                )
+                count += 1
+        self.message_user(request, f"Successfully approved {count} payment(s). Credits granted.", messages.SUCCESS)
+
+    @admin.action(description="Reject selected payments (Cancel order)")
+    def reject_payments(self, request, queryset):
+        count = 0
+        for payment in queryset:
+            if payment.status in (PaymentStatus.INITIATED, PaymentStatus.PENDING_VERIFICATION):
+                payment.status = PaymentStatus.FAILED
+                payment.save(update_fields=["status"])
+                
+                order = payment.order
+                order.status = OrderStatus.FAILED
+                order.save(update_fields=["status"])
+                
+                count += 1
+        self.message_user(request, f"Successfully rejected {count} payment(s).", messages.WARNING)
