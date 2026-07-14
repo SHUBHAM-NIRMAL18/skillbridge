@@ -230,6 +230,58 @@ body.sidebar-collapsed .sidebar .logout-container {
   text-align: center;
 }
 
+/* Collapsed Sidebar Hover Sub-menus (Popovers) */
+body.sidebar-collapsed .sidebar {
+  overflow: visible !important;
+}
+
+body.sidebar-collapsed .sidebar .nav-items {
+  overflow: visible !important;
+}
+
+body.sidebar-collapsed .sidebar .nav-item {
+  position: relative;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse,
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse.show {
+  display: block !important;
+  position: absolute;
+  left: 70px;
+  top: 0;
+  width: 210px;
+  background-color: #ffffff !important;
+  border: 1px solid #dee2e6 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+  border-radius: 0 8px 8px 0 !important;
+  z-index: 1050 !important;
+  padding-left: 0 !important;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav {
+  padding: 0.5rem 0;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav-link {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  padding: 0.5rem 1.25rem !important;
+  font-size: 0.85rem !important;
+  color: #495057 !important;
+  display: block !important;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav-link:hover {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+}
+
+body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav-link.active {
+  font-weight: 600 !important;
+  background-color: rgba(220, 53, 69, 0.08) !important;
+  color: #dc3545 !important;
+}
+
 /* Mobile Sidebar behavior */
 @media (max-width: 991.98px) {
   .sidebar {

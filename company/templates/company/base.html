@@ -253,11 +253,47 @@
   
   {% bootstrap_javascript %}
 <script>
+  function updateSidebarCollapseAttributes() {
+    var isCollapsed = document.body.classList.contains("sidebar-collapsed");
+    var collapseLinks = document.querySelectorAll('.sidebar .nav-link');
+    collapseLinks.forEach(function(link) {
+      var toggleVal = link.getAttribute("data-bs-toggle") || link.getAttribute("data-custom-toggle");
+      if (toggleVal === "collapse") {
+        if (isCollapsed) {
+          link.setAttribute("data-custom-toggle", "collapse");
+          link.removeAttribute("data-bs-toggle");
+          
+          // Force close the target element instantly if open
+          var targetId = link.getAttribute("href") || link.getAttribute("data-bs-target");
+          if (targetId && targetId.startsWith("#")) {
+            var targetEl = document.querySelector(targetId);
+            if (targetEl) {
+              targetEl.classList.remove("show");
+            }
+          }
+        } else {
+          link.setAttribute("data-bs-toggle", "collapse");
+          link.removeAttribute("data-custom-toggle");
+          
+          // Re-add show class to open menus if the page URL matches active state
+          var targetId = link.getAttribute("href") || link.getAttribute("data-bs-target");
+          if (targetId && targetId.startsWith("#")) {
+            var targetEl = document.querySelector(targetId);
+            if (targetEl && link.classList.contains("active")) {
+              targetEl.classList.add("show");
+            }
+          }
+        }
+      }
+    });
+  }
+
   window.toggleSidebar = function() {
     var body = document.body;
     if (window.innerWidth >= 992) {
       body.classList.toggle("sidebar-collapsed");
       localStorage.setItem("sidebar-collapsed", body.classList.contains("sidebar-collapsed"));
+      updateSidebarCollapseAttributes();
     } else {
       body.classList.toggle("sidebar-mobile-show");
       if (body.classList.contains("sidebar-mobile-show")) {
@@ -289,6 +325,7 @@
     if (window.innerWidth >= 992 && localStorage.getItem("sidebar-collapsed") === "true") {
       document.body.classList.add("sidebar-collapsed");
     }
+    updateSidebarCollapseAttributes();
 
     // Clean up on resize to desktop
     window.addEventListener("resize", function() {
