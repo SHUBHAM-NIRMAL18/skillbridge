@@ -125,6 +125,13 @@ def internship_detail_view(request, pk: int):
             has_applied_intern = Application.objects.filter(
                 candidate=prof, internship_post=internship
         ).exclude(status__in=["withdrawn", "rejected"]).exists()
+    if request.GET.get('ajax') == '1':
+        return render(request, "internship_detail_partial.html", {
+            "internship": internship,
+            "skills_names": skills_names,
+            "has_applied_intern": has_applied_intern,
+        })
+
     return render(request, "view-intern.html", {
         "internship": internship,
         "more_internships": more_internships,
