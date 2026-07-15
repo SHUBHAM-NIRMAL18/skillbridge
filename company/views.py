@@ -27,7 +27,7 @@ from .forms import (
 )
 from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
-from candidate.models import Profile
+from candidate.models import Profile, Feedback
 
 # Membership wallet helpers
 from membership.services import spend_credits, get_spendable_balance
@@ -848,4 +848,48 @@ def company_event_delete(request, pk: int):
         messages.success(request, f"Event '{event.title}' deleted successfully.")
         
     return redirect('company:events_list')
+
+
+@login_required
+def company_support(request):
+    """
+    Static/Mock support information guide page for companies
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        return redirect('company:profile')
+    return render(request, "company/support.html")
+
+
+@login_required
+def company_feedback(request):
+    """
+    Logic-backed platform feedback form handler for companies
+    """
+    if getattr(request.user, "role", None) != 'company':
+        return redirect('accounts:login')
+    if not hasattr(request.user, "company_profile"):
+        return redirect('company:profile')
+
+    if request.method == "POST":
+        rating = request.POST.get("rating")
+        liked_features_list = request.POST.getlist("liked_features")
+        comments = request.POST.get("comments", "").strip()
+
+        if not rating:
+            messages.error(request, "Please select a star rating.")
+            return render(request, "company/feedback.html")
+
+        # Save to database
+        Feedback.objects.create(
+            user=request.user,
+            rating=int(rating),
+            liked_features=", ".join(liked_features_list),
+            comments=comments
+        )
+        messages.success(request, "Thank you for your feedback! It has been submitted successfully.")
+        return redirect("company:feedback")
+
+    return render(request, "company/feedback.html")
 
