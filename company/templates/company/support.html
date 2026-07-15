@@ -1,0 +1,154 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Employer Help & Support</h2>
+      <p class="text-muted small mb-0">Find quick guides on credit usage, posting opportunities, and recruiting talent.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Contacts & Guidelines -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3 text-dark">Employer Desk</h5>
+          <p class="text-muted small mb-4">Need help with custom corporate membership packages, credit billing, or recruiting support? Contact us.</p>
+
+          <!-- Email Support -->
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="bg-light-danger text-danger rounded p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
+              <i class="bi bi-envelope-fill fs-5"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Employer Support</h6>
+              <a href="mailto:corporate@skillbridge.com" class="text-danger small text-decoration-none fw-semibold">corporate@skillbridge.com</a>
+              <p class="text-muted xsmall mb-0" style="font-size: 0.72rem;">Priority response within 12 hours</p>
+            </div>
+          </div>
+
+          <!-- Phone Support -->
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <div class="bg-light-success text-success rounded p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
+              <i class="bi bi-telephone-fill fs-5"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Employer Helpline</h6>
+              <span class="text-success small fw-semibold">+977-1-4400001</span>
+              <p class="text-muted xsmall mb-0" style="font-size: 0.72rem;">Available Sun - Fri, 9:00 AM - 6:00 PM</p>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="d-flex align-items-start gap-3">
+            <div class="bg-light-info text-info rounded p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
+              <i class="bi bi-geo-alt-fill fs-5"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Headquarters</h6>
+              <p class="text-dark small mb-0 fw-medium">SkillBridge Nepal Pvt. Ltd.</p>
+              <p class="text-muted xsmall mb-0" style="font-size: 0.72rem;">Mid-Baneshwor, Kathmandu, Nepal</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Wallet Promo Card -->
+      <div class="card border-0 bg-light-danger-grad rounded-3 shadow-sm">
+        <div class="card-body p-4 text-center">
+          <i class="bi bi-wallet2 fs-1 text-danger mb-2"></i>
+          <h6 class="fw-bold text-dark">Wallet & Credits</h6>
+          <p class="text-muted small mb-0" style="font-size: 0.78rem;">Postings consume credits from your active membership pack. Check your wallet balance or upgrade membership packages under the Billing / Membership section.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: FAQs Accordion -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-dark mb-4"><i class="bi bi-question-circle text-danger me-2"></i>Employer FAQs</h5>
+
+          <div class="accordion accordion-flush" id="employerFaqAccordion">
+            <!-- FAQ 1 -->
+            <div class="accordion-item border-bottom border-light py-2">
+              <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="font-size: 0.92rem;">
+                  How do I post a new Job or Internship opportunity?
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#employerFaqAccordion">
+                <div class="accordion-body px-0 py-2 text-muted small" style="line-height: 1.6;">
+                  Go to <strong>Post Opportunities</strong> section (or select choice from the dashboard), select either Job or Internship, and complete the guided steps in the Creation Wizard (e.g. basic details, skills, reviews, and submission). Postings are published immediately.
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="accordion-item border-bottom border-light py-2">
+              <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" style="font-size: 0.92rem;">
+                  How do credits work and how can I top up?
+                </button>
+              </h2>
+              <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#employerFaqAccordion">
+                <div class="accordion-body px-0 py-2 text-muted small" style="line-height: 1.6;">
+                  Posting a job or internship consumes wallet credits based on your active membership level. To top up, navigate to the <strong>Membership</strong> page and select a bank or digital payment gateway (Khalti/eSewa) to complete the transaction safely.
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="accordion-item border-bottom border-light py-2">
+              <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" style="font-size: 0.92rem;">
+                  How do I update applicant status?
+                </button>
+              </h2>
+              <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#employerFaqAccordion">
+                <div class="accordion-body px-0 py-2 text-muted small" style="line-height: 1.6;">
+                  Under the <strong>Applicants</strong> dashboard list (or specific posting details), view individual applicant profiles. You can change their status (e.g., Shortlisted, Under Review, Offered, Rejected) using the inline status dropdowns, which updates the candidate instantly.
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div class="accordion-item border-bottom border-light py-2">
+              <h2 class="accordion-header" id="headingFour">
+                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour" style="font-size: 0.92rem;">
+                  Can I edit or close a job posting early?
+                </button>
+              </h2>
+              <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#employerFaqAccordion">
+                <div class="accordion-body px-0 py-2 text-muted small" style="line-height: 1.6;">
+                  Yes. Under <strong>All Jobs / Postings</strong>, click the <strong>Edit</strong> or <strong>Delete</strong> buttons on the posting cards to modify description details, skills requirements, or remove listings from the platform index.
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ 5 -->
+            <div class="accordion-item py-2">
+              <h2 class="accordion-header" id="headingFive">
+                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive" style="font-size: 0.92rem;">
+                  How can I organize online recruitment events?
+                </button>
+              </h2>
+              <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#employerFaqAccordion">
+                <div class="accordion-body px-0 py-2 text-muted small" style="line-height: 1.6;">
+                  Navigate to the <strong>Events</strong> page. Click on <strong>Create Event</strong>, supply registration dates, target topics, event URLs, and submit the details. Active candidates will see your events on their personalized dashboards.
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
