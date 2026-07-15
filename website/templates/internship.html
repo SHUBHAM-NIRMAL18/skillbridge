@@ -6,10 +6,10 @@
 
 {% block content %}
 <div class="container py-5">
-  <div class="row">
+  <div class="row g-4">
 
-    <!-- LEFT: controls + dynamic cards -->
-    <aside class="col-md-4">
+    <!-- LEFT: controls + dynamic cards list -->
+    <aside class="col-lg-5 col-md-6">
       <!-- Top controls -->
       <div class="d-flex mb-4 align-items-center">
         <!-- Internship dropdown -->
@@ -20,7 +20,7 @@
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item fs-6" href="{% url 'website:internship' %}">All Internships</a></li>
-              <li><a class="dropdown-item fs-6" href="#">My Applications</a></li>
+              <li><a class="dropdown-item fs-6" href="{% url 'applications:my_applications' %}">My Applications</a></li>
             </ul>
           </div>
         </div>
@@ -41,28 +41,29 @@
                 <a href="{% url 'website:internship' %}?sort=oldest" class="btn btn-outline-secondary btn-sm">Oldest</a>
                 <a href="{% url 'website:internship' %}?sort=deadline" class="btn btn-outline-secondary btn-sm">Nearest Deadline</a>
               </div>
-              <div class="dropdown-divider"></div>
-              <a class="btn btn-danger btn-sm w-100" href="#">Show Results</a>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Dynamic internship cards -->
-      <div class="mb-4">
+      <div class="d-flex flex-column gap-3 mb-4">
         {% if internships %}
           {% for intern in internships %}
-            <div class="card {% if forloop.first %}border-danger{% endif %} mb-4 h-100 shadow-sm">
+            <div class="card internship-card-item mb-2 shadow-sm border-0 rounded-3 cursor-pointer transition-all" 
+                 data-id="{{ intern.id }}"
+                 onclick="loadInternshipDetail({{ intern.id }}, this)"
+                 style="cursor: pointer;">
               <div class="card-body p-4">
                 <div class="d-flex">
                   {% if intern.company.logo %}
-                    <img src="{{ intern.company.logo.url }}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px; object-fit:cover;">
+                    <img src="{{ intern.company.logo.url }}" alt="Company logo" class="rounded me-3 border border-light" style="width:54px; height:54px; object-fit:cover;">
                   {% else %}
-                    <img src="{% static 'icons/sb-logo.png' %}" alt="Company logo" class="rounded me-3" style="width:64px; height:64px;">
+                    <img src="{% static 'icons/sb-logo.png' %}" alt="Company logo" class="rounded me-3 border border-light" style="width:54px; height:54px;">
                   {% endif %}
-                  <div>
-                    <h6 class="card-title mb-1 fs-6">{{ intern.title }}</h6>
-                    <p class="text-danger mb-2 small">
+                  <div class="flex-grow-1">
+                    <h6 class="card-title fw-bold text-dark mb-1 fs-6">{{ intern.title }}</h6>
+                    <p class="text-danger mb-2 small fw-semibold">
                       {{ intern.company.first_name }} {{ intern.company.last_name }}
                     </p>
                     <div class="d-flex flex-wrap gap-1">
@@ -74,28 +75,37 @@
                     </div>
                   </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
+                <div class="d-flex justify-content-between align-items-center text-muted small mt-3 pt-2 border-top">
                   <div>
-                    <i class="bi-clock me-1"></i>
+                    <i class="bi bi-clock me-1 text-danger"></i>
                     {% if intern.days_left > 0 %}{{ intern.days_left }} days left{% else %}Closed{% endif %}
                   </div>
-                  <a href="{% url 'website:internship_detail' intern.id %}" class="text-danger text-decoration-none small">View Details →</a>
+                  <span class="text-danger small fw-semibold">View Preview <i class="bi bi-arrow-right ms-0.5"></i></span>
                 </div>
               </div>
             </div>
           {% endfor %}
         {% else %}
-          <div class="alert alert-light border">No internships available right now.</div>
+          <div class="alert alert-light border rounded-3 text-muted text-center py-4">
+            <i class="bi bi-inbox fs-2 mb-2 d-block text-muted"></i>
+            No internships available right now.
+          </div>
         {% endif %}
       </div>
     </aside>
 
-    <!-- RIGHT: simple placeholder -->
-    <div class="col-md-8">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body p-5 text-center text-muted">
-          <i class="bi bi-search fs-1 d-block mb-3"></i>
-          <div class="fs-6">Click “View Details →” on any internship to open the full page.</div>
+    <!-- RIGHT: Sticky details container panel -->
+    <div class="col-lg-7 col-md-6 d-none d-md-block">
+      <div class="sticky-top" style="top: 24px; max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 4px;">
+        <div id="detailPaneContainer">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-5 text-center text-muted">
+              <div class="spinner-border text-danger mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="small mb-0">Loading details...</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -104,7 +114,186 @@
 </div>
 
 <style>
-.card.shadow-sm { border-radius: 14px; }
-.badge.text-bg-light { background: #f8f9fa; }
+/* Transitions & Active Card outlines */
+.internship-card-item {
+  transition: all 0.25s ease-in-out;
+  border-left: 4px solid transparent !important;
+}
+.internship-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.06) !important;
+}
+.internship-card-item.border-danger {
+  border-left: 4px solid #dc3545 !important;
+  background-color: #fff8f8 !important;
+}
+
+/* Premium detail view styling inside right pane */
+.hero-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.hero-content {
+  padding: 2rem;
+}
+.company-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+.company-link {
+  font-size: 0.95rem;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+}
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.2s ease;
+}
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.stat-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+.stat-subtitle {
+  font-size: 0.65rem;
+}
+
+/* Content cards styles */
+.content-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.content-header {
+  font-weight: 600;
+}
+.content-header i {
+  font-size: 1rem;
+}
+.content-body {
+  line-height: 1.6;
+}
+.bg-light-purple {
+  background-color: #f3e8ff !important;
+}
+.text-purple {
+  color: #7e22ce !important;
+}
+.company-details .detail-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function loadInternshipDetail(id, element) {
+    // Highlight the active card
+    document.querySelectorAll('.internship-card-item').forEach(card => {
+      card.classList.remove('border-danger', 'shadow-md');
+      card.classList.add('shadow-sm');
+    });
+    if (element) {
+      element.classList.add('border-danger', 'shadow-md');
+      element.classList.remove('shadow-sm');
+    }
+
+    const container = document.getElementById('detailPaneContainer');
+    container.innerHTML = `
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-5 text-center text-muted">
+          <div class="spinner-border text-danger mb-3" role="status"></div>
+          <p class="small mb-0">Loading details...</p>
+        </div>
+      </div>
+    `;
+
+    fetch(`/internships/${id}/?ajax=1`)
+      .then(response => response.text())
+      .then(html => {
+        container.innerHTML = html;
+        
+        // Re-bind the js-apply-btn events on newly loaded content if applicable
+        if (typeof bindApplyEvents === 'function') {
+          bindApplyEvents();
+        }
+      })
+      .catch(err => {
+        container.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-5 text-center text-danger">
+              <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
+              <p class="small mb-0">Failed to load details. Please click again.</p>
+            </div>
+          </div>
+        `;
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-load details of the first internship in the list on page load
+    const firstCard = document.querySelector('.internship-card-item');
+    if (firstCard) {
+      const id = firstCard.getAttribute('data-id');
+      loadInternshipDetail(id, firstCard);
+    } else {
+      const container = document.getElementById('detailPaneContainer');
+      if (container) {
+        container.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-5 text-center text-muted">
+              <i class="bi bi-search fs-1 mb-3 d-block"></i>
+              <p class="small mb-0">No internships available right now.</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+  });
+</script>
 {% endblock %}
