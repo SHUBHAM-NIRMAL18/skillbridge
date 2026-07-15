@@ -309,4 +309,148 @@ body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav-link.active {
     to { opacity: 1; }
   }
 }
+
+/* ----------------------------------------------------
+   Multi-step Wizard Premium Design Styles
+---------------------------------------------------- */
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  max-width: 650px;
+  margin: 0 auto 3rem auto;
+  padding: 0 1rem;
+}
+.wizard-steps::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #f1f3f5;
+  border-radius: 2px;
+  z-index: 1;
+}
+.wizard-progress-bar {
+  position: absolute;
+  top: 22px;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #dc3545, #fd7e14);
+  border-radius: 2px;
+  z-index: 2;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+.wizard-step-item {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+}
+.wizard-step-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 4px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #adb5bd;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.wizard-step-item.active .wizard-step-circle {
+  border-color: #dc3545;
+  color: #dc3545;
+  background-color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 5px rgba(220, 53, 69, 0.12), 0 4px 10px rgba(220, 53, 69, 0.15);
+}
+.wizard-step-item.completed .wizard-step-circle {
+  border-color: #198754;
+  color: #fff;
+  background-color: #198754;
+  box-shadow: 0 4px 8px rgba(25, 135, 84, 0.2);
+}
+.wizard-step-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: 0.7rem;
+  color: #868e96;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transition: color 0.3s ease;
+}
+.wizard-step-item.active .wizard-step-label {
+  color: #dc3545;
+}
+.wizard-step-item.completed .wizard-step-label {
+  color: #198754;
+}
+
+/* Premium Form Card Wrapper */
+.wizard-card {
+  border: 0 !important;
+  border-radius: 16px !important;
+  background-color: #ffffff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05) !important;
+  border-top: 4px solid #dc3545 !important;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.wizard-card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #f1f3f5;
+  padding: 2rem 2.5rem;
+}
+.wizard-card-body {
+  padding: 2.5rem;
+}
+.wizard-form-label {
+  font-weight: 600;
+  color: #343a40;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.2px;
+}
+.form-control, .form-select {
+  padding: 0.65rem 1rem !important;
+  font-size: 0.9rem !important;
+  border-radius: 8px !important;
+  border: 1px solid #ced4da !important;
+  background-color: #fcfcfd !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out !important;
+}
+.form-control:hover, .form-select:hover {
+  background-color: #f8f9fa !important;
+  border-color: #adb5bd !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #f1aeb5 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.2) !important;
+}
+
+/* Step subheadings decoration */
+.wizard-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #495057;
+  border-bottom: 2px solid #f1f3f5;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.wizard-section-title i {
+  color: #dc3545;
+}
+
 
