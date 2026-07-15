@@ -1,124 +1,155 @@
 {% extends "company/base.html" %}
 {% load static %}
-{% block title %}1. Basic Details{% endblock %}
+{% block title %}Create Internship – Step 1 of 3{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <h2 class="mb-4 text-center">Create Internship – Step 1 of 3</h2>
+<div class="container py-4" style="max-width: 900px;">
+  <!-- Title and context header -->
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-dark">Create Internship Posting</h2>
+    <p class="text-muted small">Fill out the basic details to start sourcing quality talent.</p>
+  </div>
 
-  <ul class="nav justify-content-center mb-5">
-    <li class="nav-item"><span class="nav-link active">1. Basic Details</span></li>
-    <li class="nav-item"><span class="nav-link text-muted">2. Skills &amp; Requirements</span></li>
-    <li class="nav-item"><span class="nav-link text-muted">3. Review &amp; Submit</span></li>
-  </ul>
+  <!-- Multi-step Wizard Custom Indicator -->
+  <div class="wizard-steps">
+    <div class="wizard-progress-bar" style="width: 0%;"></div>
+    
+    <div class="wizard-step-item active">
+      <div class="wizard-step-circle">1</div>
+      <div class="wizard-step-label">Basic Details</div>
+    </div>
+    <div class="wizard-step-item">
+      <div class="wizard-step-circle">2</div>
+      <div class="wizard-step-label">Skills &amp; Req</div>
+    </div>
+    <div class="wizard-step-item">
+      <div class="wizard-step-circle">3</div>
+      <div class="wizard-step-label">Review</div>
+    </div>
+  </div>
 
   <form method="post" novalidate>
     {% csrf_token %}
     {{ wizard.management_form }}
 
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.title.label_tag }}
+    <div class="card wizard-card mb-4 shadow-sm">
+      <div class="card-header wizard-card-header bg-white">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-info-circle text-danger me-2"></i>Step 1: General Information</h5>
+      </div>
+      
+      <div class="card-body wizard-card-body">
+        
+        <!-- Section 1: Overview Information -->
+        <div class="wizard-section-title">
+          <i class="bi bi-file-earmark-text me-2"></i>Overview Information
+        </div>
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-title">Internship Title <span class="text-danger">*</span></label>
             {{ wizard.form.title }}
             {% for e in wizard.form.title.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.city.label_tag }}
-            {{ wizard.form.city }}
-            {% for e in wizard.form.city.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.location.label_tag }}
-            {{ wizard.form.location }}
-            {% for e in wizard.form.location.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.sector.label_tag }}
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-sector">Sector / Industry Field <span class="text-danger">*</span></label>
             {{ wizard.form.sector }}
             {% for e in wizard.form.sector.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.application_deadline.label_tag }}
-            {{ wizard.form.application_deadline }}
-            {% for e in wizard.form.application_deadline.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.type.label_tag }}
-            {{ wizard.form.type }}
-            {% for e in wizard.form.type.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.level.label_tag }}
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-level">Experience Level Required <span class="text-danger">*</span></label>
             {{ wizard.form.level }}
             {% for e in wizard.form.level.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.openings.label_tag }}
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-openings">Number of Openings <span class="text-danger">*</span></label>
             {{ wizard.form.openings }}
             {% for e in wizard.form.openings.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.comp_min.label_tag }}
+        <!-- Section 2: Location & Schedule -->
+        <div class="wizard-section-title">
+          <i class="bi bi-geo-alt me-2"></i>Location &amp; Schedule
+        </div>
+        <div class="row g-4 mb-4">
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-city">Target City / District <span class="text-danger">*</span></label>
+            {{ wizard.form.city }}
+            {% for e in wizard.form.city.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-location">Location Mode <span class="text-danger">*</span></label>
+            {{ wizard.form.location }}
+            {% for e in wizard.form.location.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-type">Internship Type <span class="text-danger">*</span></label>
+            {{ wizard.form.type }}
+            {% for e in wizard.form.type.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label wizard-form-label" for="id_basic-application_deadline">Application Deadline <span class="text-danger">*</span></label>
+            {{ wizard.form.application_deadline }}
+            {% for e in wizard.form.application_deadline.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Section 3: Compensation details -->
+        <div class="wizard-section-title">
+          <i class="bi bi-cash-coin me-2"></i>Compensation Details
+        </div>
+        <div class="row g-4 mb-3">
+          <div class="col-md-4">
+            <label class="form-label wizard-form-label" for="id_basic-comp_min">Minimum Stipend (NPR) <span class="text-danger">*</span></label>
             {{ wizard.form.comp_min }}
             {% for e in wizard.form.comp_min.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.comp_max.label_tag }}
+          <div class="col-md-4">
+            <label class="form-label wizard-form-label" for="id_basic-comp_max">Maximum Stipend (NPR) <span class="text-danger">*</span></label>
             {{ wizard.form.comp_max }}
             {% for e in wizard.form.comp_max.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label wizard-form-label" for="id_basic-comp_frequency">Payment Frequency <span class="text-danger">*</span></label>
+            {{ wizard.form.comp_frequency }}
+            {% for e in wizard.form.comp_frequency.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.comp_frequency.label_tag }}
-            {{ wizard.form.comp_frequency }}
-            {% for e in wizard.form.comp_frequency.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-          <div class="col-md-6"></div>
-        </div>
       </div>
     </div>
 
-    <div class="d-flex justify-content-between">
-      <button type="button" class="btn btn-secondary" disabled>Prev</button>
-      <button type="submit" class="btn btn-primary">Continue</button>
+    <!-- Wizard Navigation buttons -->
+    <div class="d-flex justify-content-between mt-4">
+      <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold border" disabled><i class="bi bi-arrow-left me-2"></i>Back</button>
+      <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-xs">Next Step: Skills <i class="bi bi-arrow-right ms-2"></i></button>
     </div>
   </form>
 </div>
