@@ -65,4 +65,8 @@ urlpatterns = [
     path("events/create/", views.company_event_create, name="event_create"),
     path("events/<int:pk>/edit/", views.company_event_edit, name="event_edit"),
     path("events/<int:pk>/delete/", views.company_event_delete, name="event_delete"),
+
+    # Contact Us Support & Feedback
+    path('support/', views.company_support, name='support'),
+    path('feedback/', views.company_feedback, name='feedback'),
 ]
