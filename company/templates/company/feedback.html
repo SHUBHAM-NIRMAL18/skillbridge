@@ -1,0 +1,147 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+  /* Star Rating Gold Highlights */
+  .star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .star-rating input {
+    display: none;
+  }
+  .star-rating label {
+    font-size: 2.2rem;
+    color: #e9ecef;
+    cursor: pointer;
+    transition: color 0.15s ease-in-out, transform 0.15s ease-in-out;
+  }
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: #ffc107;
+  }
+  .star-rating label:active {
+    transform: scale(0.9);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Platform Feedback</h2>
+      <p class="text-muted small mb-0">Help us improve SkillBridge corporate recruiting by sharing your experience.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Guide Information -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <h5 class="fw-bold text-dark mb-3">Partnering for Excellence</h5>
+            <p class="text-muted small mb-3">We strive to deliver the smoothest candidate sourcing, matching, and selection workflows. Your suggestions directly impact how we improve credit packages and wizard forms.</p>
+
+            <div class="bg-light p-3 rounded border mb-4">
+              <h6 class="fw-bold text-dark mb-2" style="font-size: 0.88rem;"><i class="bi bi-gift text-danger me-2"></i>How we prioritize suggestions:</h6>
+              <ul class="text-muted small ps-3 mb-0" style="line-height: 1.6;">
+                <li>Reduce wizard step validation issues.</li>
+                <li>Enhance candidate listing filtering criteria.</li>
+                <li>Optimize payment gateway integration configurations.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 bg-light-danger-grad p-3 rounded-3 border-0 mt-3">
+            <i class="bi bi-emoji-smile fs-2 text-danger"></i>
+            <div>
+              <h6 class="fw-bold text-dark mb-0 small">Thank You!</h6>
+              <span class="text-muted xsmall">Our product management evaluates every submission.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Feedback Submission Form -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-3 bg-white">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-dark mb-4"><i class="bi bi-chat-left-heart text-danger me-2"></i>Corporate Feedback Form</h5>
+
+          <form method="POST" action="{% url 'company:feedback' %}">
+            {% csrf_token %}
+
+            <!-- 1. Star Rating Section -->
+            <div class="mb-4">
+              <label class="form-label fw-bold text-dark mb-1">1. Rate your recruiting experience</label>
+              <p class="text-muted xsmall mb-2" style="font-size: 0.75rem;">Click a star to choose your rating (1 Star = Poor, 5 Stars = Excellent)</p>
+              <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5">
+                <label for="star5" title="Excellent"><i class="bi bi-star-fill"></i></label>
+                <input type="radio" id="star4" name="rating" value="4">
+                <label for="star4" title="Good"><i class="bi bi-star-fill"></i></label>
+                <input type="radio" id="star3" name="rating" value="3">
+                <label for="star3" title="Average"><i class="bi bi-star-fill"></i></label>
+                <input type="radio" id="star2" name="rating" value="2">
+                <label for="star2" title="Fair"><i class="bi bi-star-fill"></i></label>
+                <input type="radio" id="star1" name="rating" value="1">
+                <label for="star1" title="Poor"><i class="bi bi-star-fill"></i></label>
+              </div>
+            </div>
+
+            <!-- 2. Checklist Features -->
+            <div class="mb-4">
+              <label class="form-label fw-bold text-dark mb-2">2. What did you like the most about the employer workspace?</label>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <div class="form-check p-2 bg-light rounded border h-100 d-flex align-items-center">
+                    <input class="form-check-input ms-1 me-2" type="checkbox" name="liked_features" value="Posting Wizard" id="likeWizard">
+                    <label class="form-check-label small text-dark fw-medium" for="likeWizard">Job/Internship Wizard</label>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check p-2 bg-light rounded border h-100 d-flex align-items-center">
+                    <input class="form-check-input ms-1 me-2" type="checkbox" name="liked_features" value="Candidate Sourcing" id="likeSourcing">
+                    <label class="form-check-label small text-dark fw-medium" for="likeSourcing">Candidate Sourcing</label>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check p-2 bg-light rounded border h-100 d-flex align-items-center">
+                    <input class="form-check-input ms-1 me-2" type="checkbox" name="liked_features" value="Membership & Wallet" id="likeWallet">
+                    <label class="form-check-label small text-dark fw-medium" for="likeWallet">Membership & Wallet</label>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check p-2 bg-light rounded border h-100 d-flex align-items-center">
+                    <input class="form-check-input ms-1 me-2" type="checkbox" name="liked_features" value="Events Management" id="likeEvents">
+                    <label class="form-check-label small text-dark fw-medium" for="likeEvents">Events Management</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Written Comments -->
+            <div class="mb-4">
+              <label for="comments" class="form-label fw-bold text-dark mb-1">3. Do you have any suggestions or comments?</label>
+              <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Tell us how we can make candidate recruiting easier..." required style="font-size: 0.88rem;"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-xs">
+              Submit Feedback <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
