@@ -1,8 +1,6 @@
-{# templates/company/internship_wizard_skills.html #}
 {% extends "company/base.html" %}
 {% load static %}
-
-{% block title %}2. Skills & Requirements{% endblock %}
+{% block title %}Create Internship – Step 2 of 3{% endblock %}
 
 {% block extra_head %}
   {# django-ckeditor will inject its JS/CSS here #}
@@ -10,70 +8,108 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  {# Step indicator #}
-  <ul class="nav justify-content-center mb-5">
-    <li class="nav-item"><span class="nav-link text-muted">1. Basic Details</span></li>
-    <li class="nav-item"><span class="nav-link active">2. Skills &amp; Requirements</span></li>
-    <li class="nav-item"><span class="nav-link text-muted">3. Review &amp; Submit</span></li>
-  </ul>
+<div class="container py-4" style="max-width: 900px;">
+  <!-- Title and context header -->
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-dark">Create Internship Posting</h2>
+    <p class="text-muted small">Define required skills and list duties to matching candidates.</p>
+  </div>
+
+  <!-- Multi-step Wizard Custom Indicator -->
+  <div class="wizard-steps">
+    <div class="wizard-progress-bar" style="width: 50%;"></div>
+    
+    <div class="wizard-step-item completed">
+      <div class="wizard-step-circle"><i class="bi bi-check-lg"></i></div>
+      <div class="wizard-step-label">Basic Details</div>
+    </div>
+    <div class="wizard-step-item active">
+      <div class="wizard-step-circle">2</div>
+      <div class="wizard-step-label">Skills &amp; Req</div>
+    </div>
+    <div class="wizard-step-item">
+      <div class="wizard-step-circle">3</div>
+      <div class="wizard-step-label">Review</div>
+    </div>
+  </div>
 
   <form method="post">
     {% csrf_token %}
     {{ wizard.management_form }}
 
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <div class="row">
-          {# Skills multi‑select #}
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.skills.label_tag }}
+    <div class="card wizard-card mb-4 shadow-sm">
+      <div class="card-header wizard-card-header bg-white">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-check2-circle text-danger me-2"></i>Step 2: Skills &amp; Responsibilities</h5>
+      </div>
+      
+      <div class="card-body wizard-card-body">
+        
+        <!-- Section 1: Skill Tags -->
+        <div class="wizard-section-title">
+          <i class="bi bi-tags me-2"></i>Skill Classification
+        </div>
+        <div class="row mb-5">
+          <div class="col-12">
+            <label class="form-label wizard-form-label" for="id_skills-skills">Required Candidate Skills <span class="text-danger">*</span></label>
+            <p class="text-muted xsmall mb-2" style="font-size: 0.75rem;">Hold down Control (Ctrl) or Command (Cmd) to select multiple skill preferences.</p>
             {{ wizard.form.skills }}
             {% for e in wizard.form.skills.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
+        </div>
 
-          {# Responsibilities with rich editor #}
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.responsibilities.label_tag }}
-            {{ wizard.form.responsibilities }}
+        <!-- Section 2: Job Requirements (Rich Editors) -->
+        <div class="wizard-section-title">
+          <i class="bi bi-card-checklist me-2"></i>Detailed Specifications
+        </div>
+        
+        <div class="row g-4 mb-4">
+          <div class="col-12">
+            <label class="form-label wizard-form-label" for="id_skills-responsibilities">Key Responsibilities <span class="text-danger">*</span></label>
+            <div class="editor-wrapper shadow-xs rounded border border-light-gray overflow-hidden">
+              {{ wizard.form.responsibilities }}
+            </div>
             {% for e in wizard.form.responsibilities.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
         </div>
 
-        <div class="row">
-          {# Qualifications with rich editor #}
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.qualifications.label_tag }}
-            {{ wizard.form.qualifications }}
+        <div class="row g-4 mb-4">
+          <div class="col-12">
+            <label class="form-label wizard-form-label" for="id_skills-qualifications">Required Qualifications <span class="text-danger">*</span></label>
+            <div class="editor-wrapper shadow-xs rounded border border-light-gray overflow-hidden">
+              {{ wizard.form.qualifications }}
+            </div>
             {% for e in wizard.form.qualifications.errors %}
-              <div class="text-danger small">{{ e }}</div>
-            {% endfor %}
-          </div>
-
-          {# Benefits with rich editor #}
-          <div class="col-md-6 mb-3">
-            {{ wizard.form.benefits.label_tag }}
-            {{ wizard.form.benefits }}
-            {% for e in wizard.form.benefits.errors %}
-              <div class="text-danger small">{{ e }}</div>
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
             {% endfor %}
           </div>
         </div>
+
+        <div class="row g-4 mb-3">
+          <div class="col-12">
+            <label class="form-label wizard-form-label" for="id_skills-benefits">Compensation &amp; Benefits Offered</label>
+            <div class="editor-wrapper shadow-xs rounded border border-light-gray overflow-hidden">
+              {{ wizard.form.benefits }}
+            </div>
+            {% for e in wizard.form.benefits.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <div class="d-flex justify-content-between">
-      <button name="wizard_goto_step"
-              value="{{ wizard.steps.prev }}"
-              class="btn btn-secondary">
-        Prev
+    <!-- Wizard Navigation buttons -->
+    <div class="d-flex justify-content-between mt-4">
+      <button type="submit" name="wizard_goto_step" value="{{ wizard.steps.prev }}" class="btn btn-light rounded-pill px-4 fw-semibold border">
+        <i class="bi bi-arrow-left me-2"></i>Back
       </button>
-      <button type="submit" class="btn btn-primary">
-        Continue
+      <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-xs">
+        Next Step: Review <i class="bi bi-arrow-right ms-2"></i>
       </button>
     </div>
   </form>
