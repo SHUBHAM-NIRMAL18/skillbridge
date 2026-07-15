@@ -1,0 +1,224 @@
+{% load static %}
+{% load humanize %}
+
+<div class="internship-detail-wrapper animate-fade-in">
+  <!-- Hero Card Header -->
+  <div class="hero-card mb-4">
+    <div class="hero-content">
+      <div class="d-flex align-items-start gap-4">
+        <div class="company-logo-wrapper d-none d-sm-block">
+          {% if internship.company.logo %}
+            <img src="{{ internship.company.logo.url }}" alt="Logo" class="company-logo">
+          {% else %}
+            <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="company-logo">
+          {% endif %}
+        </div>
+        
+        <div class="flex-grow-1">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+            <div>
+              <h3 class="fw-bold text-dark mb-1">{{ internship.title }}</h3>
+              <div class="job-meta">
+                <a href="{% url 'website:company_detail' internship.company.id %}" class="company-link text-danger fw-semibold text-decoration-none d-inline-block mb-2">
+                  <i class="bi bi-building me-1"></i>
+                  {{ internship.company.first_name }} {{ internship.company.last_name }}
+                </a>
+                <div class="meta-items d-flex flex-wrap gap-3 mt-1">
+                  <span class="meta-item text-muted small">
+                    <i class="bi bi-geo-alt me-1 text-danger"></i>{{ internship.city }}
+                  </span>
+                  <span class="meta-item text-muted small">
+                    <i class="bi bi-briefcase me-1 text-danger"></i>{{ internship.type }}
+                  </span>
+                  <span class="meta-item text-muted small">
+                    <i class="bi bi-clock me-1 text-danger"></i>{{ internship.location }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Apply Button Wrapper -->
+            <div class="apply-button-container">
+              {% if not request.user.is_authenticated %}
+                <a href="{% url 'accounts:login' %}?next={% url 'website:internship' %}"
+                  class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                  <i class="bi bi-person-check me-2"></i>Login to Apply
+                </a>
+              {% else %}
+                {% if internship.status != "Active" %}
+                  <button class="btn btn-secondary btn-sm rounded-pill px-4" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Closed
+                  </button>
+                {% elif has_applied_intern %}
+                  <div class="d-flex flex-column align-items-end">
+                    <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold" disabled>
+                      <i class="bi bi-check-circle-fill me-2"></i>Applied
+                    </button>
+                    <a href="{% url 'applications:my_applications' %}" class="text-danger small mt-2 fw-semibold text-decoration-none">
+                      View Applications →
+                    </a>
+                  </div>
+                {% else %}
+                  <a href="#"
+                    class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-xs js-apply-btn"
+                    data-type="intern"
+                    data-id="{{ internship.id }}"
+                    data-auth="1"
+                    data-login="{% url 'accounts:login' %}"
+                    data-next="{% url 'website:internship' %}">
+                    <i class="bi bi-send-fill me-2"></i>Apply Now
+                  </a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid mt-4">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-cash-coin"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Compensation</div>
+            <div class="stat-value">Rs {{ internship.comp_min|intcomma }}–{{ internship.comp_max|intcomma }}</div>
+            <div class="stat-subtitle text-muted">{{ internship.comp_frequency }}</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-bar-chart-steps"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Level</div>
+            <div class="stat-value">{{ internship.level|default:"Entry Level"|title }}</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Openings</div>
+            <div class="stat-value">{{ internship.openings }} positions</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Status</div>
+            <div class="stat-value">
+              {% if internship.days_left > 0 %}
+                <span class="text-success">{{ internship.days_left }} days left</span>
+              {% else %}
+                <span class="text-danger">Closed</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section Accordion Cards -->
+  <div class="content-cards-container d-flex flex-column gap-4">
+    <!-- Skills Required -->
+    <div class="content-card">
+      <div class="content-header py-3 px-4 bg-light border-bottom d-flex align-items-center">
+        <i class="bi bi-code-square text-danger me-2"></i>
+        <h6 class="mb-0 fw-bold text-dark">Required Skills</h6>
+      </div>
+      <div class="content-body p-4">
+        <div class="skills-container d-flex flex-wrap gap-2">
+          {% if skills_names %}
+            {% for name in skills_names %}
+              <span class="badge bg-light-purple text-purple px-2.5 py-1.5 rounded-pill font-medium text-xs border border-light">#{{ name }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small italic">No specific skills specified</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Responsibilities -->
+    {% if internship.responsibilities %}
+    <div class="content-card">
+      <div class="content-header py-3 px-4 bg-light border-bottom d-flex align-items-center">
+        <i class="bi bi-list-task text-danger me-2"></i>
+        <h6 class="mb-0 fw-bold text-dark">Key Responsibilities</h6>
+      </div>
+      <div class="content-body p-4 text-muted small" style="line-height: 1.6;">
+        {{ internship.responsibilities|safe }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Qualifications -->
+    {% if internship.qualifications %}
+    <div class="content-card">
+      <div class="content-header py-3 px-4 bg-light border-bottom d-flex align-items-center">
+        <i class="bi bi-check-circle text-danger me-2"></i>
+        <h6 class="mb-0 fw-bold text-dark">Requirements &amp; Qualifications</h6>
+      </div>
+      <div class="content-body p-4 text-muted small" style="line-height: 1.6;">
+        {{ internship.qualifications|safe }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Benefits -->
+    {% if internship.benefits %}
+    <div class="content-card">
+      <div class="content-header py-3 px-4 bg-light border-bottom d-flex align-items-center">
+        <i class="bi bi-gift text-danger me-2"></i>
+        <h6 class="mb-0 fw-bold text-dark">Benefits &amp; Perks</h6>
+      </div>
+      <div class="content-body p-4 text-muted small" style="line-height: 1.6;">
+        {{ internship.benefits|safe }}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- About Company -->
+    <div class="content-card mb-4">
+      <div class="content-header py-3 px-4 bg-light border-bottom d-flex align-items-center">
+        <i class="bi bi-building text-danger me-2"></i>
+        <h6 class="mb-0 fw-bold text-dark">About {{ internship.company.first_name }} {{ internship.company.last_name }}</h6>
+      </div>
+      <div class="content-body p-4">
+        {% if internship.company.about_company %}
+          <p class="text-muted small mb-3" style="line-height: 1.6;">{{ internship.company.about_company|linebreaksbr }}</p>
+        {% else %}
+          <p class="text-muted small mb-3 fst-italic">Company description not available.</p>
+        {% endif %}
+
+        <div class="company-details d-flex flex-column gap-2 border-top pt-3 mt-3">
+          <div class="detail-item small text-muted">
+            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+            <span>{{ internship.company.current_address }}, {{ internship.company.city }}, {{ internship.company.province }}</span>
+          </div>
+          <div class="detail-item small text-muted">
+            <i class="bi bi-telephone-fill text-danger me-2"></i>
+            <span>{{ internship.company.phone }}</span>
+          </div>
+          {% if internship.company.website_url %}
+          <div class="detail-item small text-muted">
+            <i class="bi bi-globe text-danger me-2"></i>
+            <a href="{{ internship.company.website_url }}" target="_blank" rel="noopener" class="text-danger fw-semibold text-decoration-none">
+              Visit Company Website <i class="bi bi-arrow-up-right ms-0.5"></i>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
