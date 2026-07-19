@@ -113,6 +113,21 @@
   </div>
 </div>
 
+<!-- Mobile Detail Modal -->
+<div class="modal fade animate-fade-in" id="mobileDetailModal" tabindex="-1" aria-labelledby="mobileDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content border-0 rounded-4">
+      <div class="modal-header border-bottom bg-light px-4 py-3">
+        <h5 class="modal-title fw-bold text-dark" id="mobileDetailModalLabel">Internship Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" id="mobileDetailPaneContainer">
+        <!-- Loaded via AJAX -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
 /* Transitions & Active Card outlines */
 .internship-card-item {
@@ -132,81 +147,97 @@
 .hero-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0,0,0,0.03);
 }
 .hero-content {
-  padding: 2rem;
+  padding: 1.5rem;
+}
+.hero-content h3 {
+  font-size: 1.25rem !important;
 }
 .company-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
   object-fit: cover;
   border: 1px solid #e2e8f0;
 }
 .company-link {
-  font-size: 0.95rem;
+  font-size: 0.85rem !important;
+}
+.meta-items .meta-item {
+  font-size: 0.75rem !important;
 }
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.75rem;
 }
 .stat-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 10px;
+  padding: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   transition: transform 0.2s ease;
 }
 .stat-icon {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   background: rgba(220, 53, 69, 0.1);
   color: #dc3545;
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.85rem;
   flex-shrink: 0;
 }
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #64748b;
   text-transform: uppercase;
   font-weight: 600;
 }
 .stat-value {
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #1e293b;
 }
 .stat-subtitle {
-  font-size: 0.65rem;
+  font-size: 0.60rem;
 }
 
 /* Content cards styles */
 .content-card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 .content-header {
   font-weight: 600;
+  padding: 0.75rem 1.25rem !important;
+}
+.content-header h6 {
+  font-size: 0.85rem !important;
 }
 .content-header i {
-  font-size: 1rem;
+  font-size: 0.85rem;
 }
 .content-body {
-  line-height: 1.6;
+  line-height: 1.5;
+  padding: 1.25rem !important;
+  font-size: 0.8rem !important;
+}
+.skills-container .badge {
+  font-size: 0.7rem !important;
+  padding: 0.35rem 0.65rem !important;
 }
 .bg-light-purple {
   background-color: #f3e8ff !important;
@@ -232,6 +263,8 @@
 
 {% block extra_js %}
 <script>
+  let activeMobileModal = null;
+
   function loadInternshipDetail(id, element) {
     // Highlight the active card
     document.querySelectorAll('.internship-card-item').forEach(card => {
@@ -243,15 +276,24 @@
       element.classList.remove('shadow-sm');
     }
 
-    const container = document.getElementById('detailPaneContainer');
+    const isMobile = window.innerWidth < 768;
+    const container = document.getElementById(isMobile ? 'mobileDetailPaneContainer' : 'detailPaneContainer');
+    
     container.innerHTML = `
-      <div class="card border-0 shadow-sm rounded-3">
+      <div class="card border-0">
         <div class="card-body p-5 text-center text-muted">
           <div class="spinner-border text-danger mb-3" role="status"></div>
           <p class="small mb-0">Loading details...</p>
         </div>
       </div>
     `;
+
+    if (isMobile) {
+      if (!activeMobileModal) {
+        activeMobileModal = new bootstrap.Modal(document.getElementById('mobileDetailModal'));
+      }
+      activeMobileModal.show();
+    }
 
     fetch(`/internships/${id}/?ajax=1`)
       .then(response => response.text())
@@ -265,7 +307,7 @@
       })
       .catch(err => {
         container.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-3">
+          <div class="card border-0">
             <div class="card-body p-5 text-center text-danger">
               <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
               <p class="small mb-0">Failed to load details. Please click again.</p>
@@ -276,22 +318,24 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    // Auto-load details of the first internship in the list on page load
-    const firstCard = document.querySelector('.internship-card-item');
-    if (firstCard) {
-      const id = firstCard.getAttribute('data-id');
-      loadInternshipDetail(id, firstCard);
-    } else {
-      const container = document.getElementById('detailPaneContainer');
-      if (container) {
-        container.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body p-5 text-center text-muted">
-              <i class="bi bi-search fs-1 mb-3 d-block"></i>
-              <p class="small mb-0">No internships available right now.</p>
+    // Auto-load details of the first internship in the list on page load for desktop
+    if (window.innerWidth >= 768) {
+      const firstCard = document.querySelector('.internship-card-item');
+      if (firstCard) {
+        const id = firstCard.getAttribute('data-id');
+        loadInternshipDetail(id, firstCard);
+      } else {
+        const container = document.getElementById('detailPaneContainer');
+        if (container) {
+          container.innerHTML = `
+            <div class="card border-0 shadow-sm rounded-3">
+              <div class="card-body p-5 text-center text-muted">
+                <i class="bi bi-search fs-1 mb-3 d-block"></i>
+                <p class="small mb-0">No internships available right now.</p>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
     }
   });
