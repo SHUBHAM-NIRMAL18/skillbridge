@@ -33,6 +33,10 @@
             <li><a class="dropdown-item" href="{% url 'website:events_list' %}?sort=past">Past Events</a></li>
           </ul>
         </li>
+        <li class="nav-item">
+          <a class="nav-link{% if '/blogs' in request.path %} active{% endif %}" href="{% url 'website:blog_list' %}">Blogs</a>
+        </li>
+
 
         {% if user.is_authenticated %}
           <!-- User Dropdown -->
