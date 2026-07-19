@@ -5,6 +5,7 @@ from django.contrib import messages
 from company.models import InternshipPost, JobPost, CompanyProfile
 from applications.models import Application
 from candidate.models import Profile
+from website.models import BlogPost
 
 
 # Create your views here.
@@ -26,10 +27,18 @@ def home_view(request):
         .order_by('application_deadline')[:6]
     )
 
+    latest_blogs = (
+        BlogPost.objects
+        .filter(is_verified=True)
+        .order_by('-created_at')[:3]
+    )
+
     return render(request, 'index.html', {
         'internships': internships,
         'jobs':        jobs,
+        'blogs':       latest_blogs,
     })
+
 
 # def login_view(request):
 #     """
@@ -351,4 +360,135 @@ def event_register_toggle(request, pk: int):
         EventRegistration.objects.create(event=event, user=request.user)
         messages.success(request, f"You are now registered for '{event.title}'!")
 
-    return redirect('website:event_detail', pk=pk)
+    return redirect('website:event_detail', pk=pk)
+
+
+from django.core.paginator import Paginator
+from website.forms import BlogPostForm
+
+def blog_list_view(request):
+    """
+    Render a public listing of all verified blog posts.
+    Supports searching by title or content.
+    """
+    q = request.GET.get('q', '').strip()
+    blogs = BlogPost.objects.filter(is_verified=True).order_by('-created_at')
+    
+    if q:
+        blogs = blogs.filter(Q(title__icontains=q) | Q(content__icontains=q)).distinct()
+    
+    # Pagination
+    paginator = Paginator(blogs, 6) # 6 blogs per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'website/blog_list.html', {
+        'page_obj': page_obj,
+        'q': q,
+    })
+
+def blog_detail_view(request, slug):
+    """
+    Render a detail view of a blog post.
+    Authors and staff/superusers can view their own unverified blog posts.
+    """
+    blog = get_object_or_404(BlogPost, slug=slug)
+    
+    # Check permission to view
+    if not blog.is_verified:
+        if not request.user.is_authenticated or (request.user != blog.author and not request.user.is_staff):
+            messages.error(request, "This blog post is pending admin verification.")
+            return redirect('website:blog_list')
+            
+    # Optional recommendation: show 3 other verified blogs
+    more_blogs = BlogPost.objects.filter(is_verified=True).exclude(pk=blog.pk)[:3]
+
+    return render(request, 'website/blog_detail.html', {
+        'blog': blog,
+        'more_blogs': more_blogs,
+    })
+
+@login_required
+def blog_create_view(request):
+    """
+    Form view for authenticated users to create a blog post.
+    All posts default to unverified.
+    """
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST, request.FILES)
+        if form.is_valid():
+            blog = form.save(commit=False)
+            blog.author = request.user
+            blog.is_verified = False  # Explicitly set to False
+            blog.save()
+            messages.success(request, "Your blog post has been submitted and is pending administrator verification.")
+            return redirect('website:my_blogs')
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = BlogPostForm()
+        
+    return render(request, 'website/blog_form.html', {
+        'form': form,
+        'action_name': 'Create',
+    })
+
+@login_required
+def blog_edit_view(request, slug):
+    """
+    Edit view for the blog author. Sets is_verified to False upon edit.
+    """
+    blog = get_object_or_404(BlogPost, slug=slug)
+    if blog.author != request.user and not request.user.is_staff:
+        messages.error(request, "You are not authorized to edit this blog post.")
+        return redirect('website:blog_list')
+        
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST, request.FILES, instance=blog)
+        if form.is_valid():
+            blog = form.save(commit=False)
+            blog.is_verified = False # Must be re-verified
+            blog.save()
+            messages.success(request, "Your blog post has been updated and is pending administrator verification.")
+            return redirect('website:my_blogs')
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = BlogPostForm(instance=blog)
+        
+    return render(request, 'website/blog_form.html', {
+        'form': form,
+        'action_name': 'Edit',
+        'blog': blog,
+    })
+
+@login_required
+def blog_delete_view(request, slug):
+    """
+    Delete view for the blog author.
+    """
+    blog = get_object_or_404(BlogPost, slug=slug)
+    if blog.author != request.user and not request.user.is_staff:
+        messages.error(request, "You are not authorized to delete this blog post.")
+        return redirect('website:blog_list')
+        
+    if request.method == 'POST':
+        title = blog.title
+        blog.delete()
+        messages.success(request, f"Blog post '{title}' deleted successfully.")
+        return redirect('website:my_blogs')
+        
+    return render(request, 'website/blog_confirm_delete.html', {
+        'blog': blog,
+    })
+
+@login_required
+def my_blogs_view(request):
+    """
+    Display a list of blog posts written by the logged-in user.
+    """
+    blogs = BlogPost.objects.filter(author=request.user).order_by('-created_at')
+    return render(request, 'website/my_blogs.html', {
+        'blogs': blogs,
+    })
+

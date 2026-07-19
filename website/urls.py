@@ -16,6 +16,12 @@ urlpatterns = [
     path("events/", views.events_list_view, name="events_list"),
     path("events/<int:pk>/", views.event_detail_view, name="event_detail"),
     path("events/<int:pk>/register/", views.event_register_toggle, name="event_register_toggle"),
-    # Add other URL patterns for the website app here as needed
+    path("blogs/", views.blog_list_view, name="blog_list"),
+    path("blogs/create/", views.blog_create_view, name="blog_create"),
+    path("blogs/my-blogs/", views.my_blogs_view, name="my_blogs"),
+    path("blogs/<slug:slug>/", views.blog_detail_view, name="blog_detail"),
+    path("blogs/<slug:slug>/edit/", views.blog_edit_view, name="blog_edit"),
+    path("blogs/<slug:slug>/delete/", views.blog_delete_view, name="blog_delete"),
 ]
+
 
