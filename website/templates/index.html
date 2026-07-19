@@ -340,26 +340,46 @@
     <h3 class="fw-bold mb-2">From Our Blogs</h3>
     <p class="text-muted mb-5 max-width-600 mx-auto">Get career advice, industry updates, and expert tips to guide your professional journey.</p>
 
-    <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4">
-        <div class="card blog-card-premium border-0 h-100">
-          <img 
-            src="{% static 'icons/blog.png' %}" 
-            class="card-img-top object-fit-cover" 
-            alt="SkillBridge Blog" 
-            style="height: 200px;"
-            onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=400&q=80'" />
-          <div class="card-body text-start p-4 d-flex flex-column">
-            <span class="text-danger text-xs fw-semibold text-uppercase mb-2">Recruitment</span>
-            <h5 class="card-title fw-bold mb-2 text-dark">Unlocking Success: 10 Reasons To Hire An Intern</h5>
-            <p class="small text-muted mb-3"><i class="bi bi-person me-1"></i> Ram &bull; <i class="bi bi-calendar3 me-1"></i> 09 Jun 2025</p>
-            <p class="card-text text-muted small mb-4">Discover why bringing interns on board can supercharge your team’s productivity, inject fresh perspectives, and fuel long-term growth.</p>
-            <a href="#" class="text-danger fw-bold text-decoration-none d-inline-flex align-items-center gap-1 mt-auto">
-              Read Post <i class="bi bi-arrow-right"></i>
-            </a>
+    <div class="row justify-content-center g-4">
+      {% for blog in blogs %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card blog-card-premium border-0 h-100 shadow-sm">
+            {% if blog.cover_image %}
+              <img 
+                src="{{ blog.cover_image.url }}" 
+                class="card-img-top object-fit-cover" 
+                alt="{{ blog.title }}" 
+                style="height: 200px;" />
+            {% else %}
+              <img 
+                src="{% static 'icons/blog.png' %}" 
+                class="card-img-top object-fit-cover" 
+                alt="{{ blog.title }}" 
+                style="height: 200px;"
+                onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=400&q=80'" />
+            {% endif %}
+            <div class="card-body text-start p-4 d-flex flex-column">
+              <span class="text-danger text-xs fw-semibold text-uppercase mb-2">Resource</span>
+              <h5 class="card-title fw-bold mb-2 text-dark text-truncate-2" title="{{ blog.title }}">{{ blog.title }}</h5>
+              <p class="small text-muted mb-3">
+                <i class="bi bi-person me-1"></i> {{ blog.author.get_full_name|default:blog.author.username }} &bull; 
+                <i class="bi bi-calendar3 me-1"></i> {{ blog.created_at|date:"d M Y" }}
+              </p>
+              <p class="card-text text-muted small mb-4" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 54px;">
+                {{ blog.content|striptags }}
+              </p>
+              <a href="{% url 'website:blog_detail' blog.slug %}" class="text-danger fw-bold text-decoration-none d-inline-flex align-items-center gap-1 mt-auto">
+                Read Post <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      {% empty %}
+        <div class="col-12 text-center text-muted py-5">
+          <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+          <span>No blogs available right now. Check back later!</span>
+        </div>
+      {% endfor %}
     </div>
   </div>
 </section>
