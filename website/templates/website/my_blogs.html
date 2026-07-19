@@ -1,0 +1,102 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block title %}My Blogs | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Top Row -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">My Blog Posts</h2>
+      <p class="text-muted mb-0">Manage your drafted, pending, and published articles.</p>
+    </div>
+    <div>
+      <a href="{% url 'website:blog_create' %}" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+        <i class="bi bi-pencil-square me-1"></i> Write a Blog
+      </a>
+    </div>
+  </div>
+
+  <!-- Blogs Table/List Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+      {% if blogs %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th scope="col" class="ps-4 py-3">Article</th>
+                <th scope="col" class="py-3">Status</th>
+                <th scope="col" class="py-3">Date Created</th>
+                <th scope="col" class="py-3 text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for blog in blogs %}
+                <tr>
+                  <!-- Title and Thumbnail -->
+                  <td class="ps-4 py-3">
+                    <div class="d-flex align-items-center gap-3">
+                      {% if blog.cover_image %}
+                        <img src="{{ blog.cover_image.url }}" class="rounded shadow-sm object-fit-cover" style="width: 60px; height: 45px;" alt="" />
+                      {% else %}
+                        <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=80" class="rounded shadow-sm object-fit-cover" style="width: 60px; height: 45px;" alt="" />
+                      {% endif %}
+                      <div>
+                        <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 320px;">{{ blog.title }}</h6>
+                        <a href="{% url 'website:blog_detail' blog.slug %}" class="small text-danger text-decoration-none" target="_blank">
+                          Preview Post <i class="bi bi-box-arrow-up-right font-xs"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <!-- Status -->
+                  <td class="py-3">
+                    {% if blog.is_verified %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 small">
+                        <i class="bi bi-check-circle-fill me-1"></i> Verified & Live
+                      </span>
+                    {% else %}
+                      <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-2 small">
+                        <i class="bi bi-clock-history me-1"></i> Pending Verification
+                      </span>
+                    {% endif %}
+                  </td>
+                  
+                  <!-- Date -->
+                  <td class="py-3 text-muted small">
+                    {{ blog.created_at|date:"F d, Y @ H:i" }}
+                  </td>
+                  
+                  <!-- Actions -->
+                  <td class="py-3 text-end pe-4">
+                    <div class="d-inline-flex gap-2">
+                      <a href="{% url 'website:blog_edit' blog.slug %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-pencil me-1"></i> Edit
+                      </a>
+                      <a href="{% url 'website:blog_delete' blog.slug %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-trash3 me-1"></i> Delete
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-journals fs-1 d-block mb-3 text-muted"></i>
+          <h5 class="fw-bold text-dark">You haven't written any blogs yet</h5>
+          <p class="text-muted mb-4">Share your knowledge, tips, or experiences to build your professional brand.</p>
+          <a href="{% url 'website:blog_create' %}" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+            <i class="bi bi-pencil-square me-1"></i> Create Your First Post
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
