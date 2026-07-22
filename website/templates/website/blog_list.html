@@ -21,7 +21,7 @@
           <i class="bi bi-folder2 me-1"></i> My Blogs
         </a>
       {% else %}
-        <a href="{% url 'accounts:login' %}?next={% url 'website:blog_create' %}" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm">
+        <a href="{% url 'accounts:login' %}?next={% url 'website:blog_create' %}&reason=blog" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm">
           <i class="bi bi-pencil-square me-1"></i> Write a Blog
         </a>
       {% endif %}
