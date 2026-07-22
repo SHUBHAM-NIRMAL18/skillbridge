@@ -24,7 +24,8 @@
     const nextUrl = btn.dataset.next || window.location.pathname + window.location.search;
 
     if (!isAuth) {
-      window.location.href = `${loginUrl}?next=${encodeURIComponent(nextUrl)}`;
+      const reason = kind === "job" ? "job" : "internship";
+      window.location.href = `${loginUrl}?next=${encodeURIComponent(nextUrl)}&reason=${reason}`;
       return;
     }
 
