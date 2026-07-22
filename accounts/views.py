@@ -40,6 +40,31 @@ class CustomLoginView(LoginView):
     template_name       = "accounts/login.html"
     authentication_form = EmailAuthenticationForm
 
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            next_url = request.GET.get('next', '')
+            reason = request.GET.get('reason', '')
+            
+            # Check if messages already exist in storage
+            storage = messages.get_messages(request)
+            existing_msgs = list(storage)
+            for m in existing_msgs:
+                messages.add_message(request, m.level, m.message, extra_tags=m.extra_tags)
+                
+            if not existing_msgs:
+                if reason == 'blog' or '/blogs/create' in next_url:
+                    messages.info(request, "Please log in to continue and write a blog post.")
+                elif reason == 'job' or '/job/' in next_url or '/jobs/' in next_url:
+                    messages.info(request, "Please log in to continue and apply for jobs.")
+                elif reason == 'internship' or '/internship/' in next_url or '/internships/' in next_url:
+                    messages.info(request, "Please log in to continue and apply for internships.")
+                elif reason == 'event' or '/events/' in next_url or '/event/' in next_url:
+                    messages.info(request, "Please log in to continue and register for events.")
+                elif next_url:
+                    messages.info(request, "Please log in to continue.")
+
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         # first let Django log in the user
         response = super().form_valid(form)
