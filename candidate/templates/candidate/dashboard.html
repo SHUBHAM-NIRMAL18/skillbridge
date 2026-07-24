@@ -218,56 +218,150 @@
   </div>
 
   <!-- Recommendations Row -->
-  {% if recommended_jobs %}
   <div class="row mt-2 mb-4">
     <div class="col-12">
-      <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold"><i class="bi bi-magic me-2 text-danger"></i>Recommended Opportunities</h5>
-          <a href="{% url 'candidate:recommended_demo' %}" class="btn btn-link btn-sm text-danger text-decoration-none fw-semibold">View All &rarr;</a>
-        </div>
-        <div class="card-body p-0">
-          <div class="row g-0">
-            {% for rec in recommended_jobs %}
-            <div class="col-md-4 border-end-md">
-              <div class="p-4 h-100 d-flex flex-column justify-content-between rec-card position-relative">
-                <span class="position-absolute top-0 end-0 m-3 badge bg-light-purple text-purple px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
-                  <i class="bi bi-lightning-fill"></i> {{ rec.score }}% Match
-                </span>
-                <div class="pe-5">
-                  <div class="d-flex align-items-center mb-3">
-                    <div class="bg-light rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                      {% if rec.obj.company.logo %}
-                        <img src="{{ rec.obj.company.logo.url }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
-                      {% else %}
-                        <i class="bi bi-building fs-4 text-muted"></i>
-                      {% endif %}
-                    </div>
-                    <div>
-                      <h6 class="fw-bold mb-0 text-dark text-truncate" style="max-width: 150px; font-size: 0.9rem;" title="{{ rec.obj.title }}">{{ rec.obj.title }}</h6>
-                      <small class="text-muted text-truncate d-block" style="max-width: 150px;">{{ rec.obj.company.first_name }} {{ rec.obj.company.last_name }}</small>
-                    </div>
-                  </div>
-                  <p class="text-muted small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;">
-                    {{ rec.why|default:"Matches your skills and location preferences." }}
-                  </p>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-light">
-                  <span class="badge bg-light text-dark border-light" style="font-size: 0.7rem;">
-                    {% if rec.is_job %}{{ rec.obj.get_job_type_display }}{% else %}{{ rec.obj.get_type_display }}{% endif %}
-                  </span>
-                  <a href="{% if rec.is_job %}{% url 'website:job_detail' rec.obj.id %}{% else %}{% url 'website:internship_detail' rec.obj.id %}{% endif %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" style="font-size: 0.75rem;">
-                    Apply Now
-                  </a>
-                </div>
-              </div>
+      <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-light-purple text-purple rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+              <i class="bi bi-magic fs-5"></i>
             </div>
+            <div>
+              <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0 fw-bold text-dark">Recommended Opportunities</h5>
+                <span class="badge badge-match-glow px-2.5 py-1 rounded-pill">
+                  <i class="bi bi-stars me-1"></i>AI Matched
+                </span>
+              </div>
+              <small class="text-muted" style="font-size: 0.78rem;">Personalized for your skills and career preferences</small>
+            </div>
+          </div>
+          <a href="{% url 'candidate:recommended_demo' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-semibold text-xs text-nowrap">
+            View All Matches <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+        <div class="card-body p-4 bg-light-gray">
+          {% if recommended_jobs %}
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            {% for rec in recommended_jobs %}
+              {% include "candidate/partials/recommended_card.html" with rec=rec %}
             {% endfor %}
           </div>
+          {% else %}
+          <div class="text-center py-5 bg-white rounded-3 border border-light">
+            <div class="bg-light-purple text-purple rounded-circle mx-auto p-3 mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+              <i class="bi bi-person-gear fs-2"></i>
+            </div>
+            <h6 class="fw-bold text-dark mb-1">Update Your Profile for Personalized Matches</h6>
+            <p class="text-muted small mb-3">Add your skills, designation, and target sectors to start receiving tailored job and internship recommendations.</p>
+            <a href="{% url 'candidate:profile_index' %}" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold">
+              Update Profile Now <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
-  {% endif %}
+
+  <!-- Remote Opportunities Section -->
+  <div class="row mt-2 mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-header bg-white py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-light-primary text-primary rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+              <i class="bi bi-globe fs-5"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0 fw-bold text-dark">Remote Opportunities</h5>
+                <span class="badge badge-remote-glow px-2.5 py-1 rounded-pill">
+                  <i class="bi bi-wifi me-1"></i>100% Remote
+                </span>
+              </div>
+              <small class="text-muted" style="font-size: 0.78rem;">Work from anywhere with top hiring companies</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <ul class="nav nav-pills remote-nav-pills mb-0" id="remoteTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="remote-all-tab" data-bs-toggle="pill" data-bs-target="#remote-all" type="button" role="tab">
+                  All ({{ remote_opportunities|length }})
+                </button>
+              </li>
+              {% if remote_jobs_count > 0 %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="remote-jobs-tab" data-bs-toggle="pill" data-bs-target="#remote-jobs" type="button" role="tab">
+                  Jobs ({{ remote_jobs_count }})
+                </button>
+              </li>
+              {% endif %}
+              {% if remote_internships_count > 0 %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="remote-internships-tab" data-bs-toggle="pill" data-bs-target="#remote-internships" type="button" role="tab">
+                  Internships ({{ remote_internships_count }})
+                </button>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-body p-4 bg-light-gray">
+          {% if remote_opportunities %}
+          <div class="tab-content" id="remoteTabsContent">
+            <!-- All Tab -->
+            <div class="tab-pane fade show active" id="remote-all" role="tabpanel">
+              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for item in remote_opportunities %}
+                  {% include "candidate/partials/remote_card.html" with item=item %}
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Jobs Tab -->
+            {% if remote_jobs_count > 0 %}
+            <div class="tab-pane fade" id="remote-jobs" role="tabpanel">
+              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for item in remote_opportunities %}
+                  {% if item.is_job %}
+                    {% include "candidate/partials/remote_card.html" with item=item %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Internships Tab -->
+            {% if remote_internships_count > 0 %}
+            <div class="tab-pane fade" id="remote-internships" role="tabpanel">
+              <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for item in remote_opportunities %}
+                  {% if not item.is_job %}
+                    {% include "candidate/partials/remote_card.html" with item=item %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="text-center py-5 bg-white rounded-3 border border-light">
+            <div class="bg-light-primary text-primary rounded-circle mx-auto p-3 mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+              <i class="bi bi-laptop fs-2"></i>
+            </div>
+            <h6 class="fw-bold text-dark mb-1">No Remote Positions Active Right Now</h6>
+            <p class="text-muted small mb-3">Check back soon or explore onsite and hybrid opportunities available in your area.</p>
+            <a href="{% url 'website:index' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-semibold">
+              Browse All Listings <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

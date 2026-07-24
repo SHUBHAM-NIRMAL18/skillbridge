@@ -156,12 +156,122 @@ def candidate_dashboard(request):
         for r in recs:
             ct = ContentType.objects.get_for_id(r.ct_id)
             obj = ct.get_object_for_this_type(id=r.obj_id)
+            is_job = (ct.model == 'jobpost')
+            skills_list = [s.name for s in obj.skills.all()[:3]] if hasattr(obj, 'skills') else []
+
+            comp_str = ""
+            comp_period = ""
+            if is_job:
+                if getattr(obj, 'salary_min', None) and getattr(obj, 'salary_max', None):
+                    comp_str = f"NPR {int(obj.salary_min):,} - {int(obj.salary_max):,}"
+                elif getattr(obj, 'salary_min', None):
+                    comp_str = f"NPR {int(obj.salary_min):,}+"
+                else:
+                    comp_str = "Negotiable"
+                comp_period = obj.get_salary_period_display() if hasattr(obj, 'get_salary_period_display') else "Monthly"
+                location_str = getattr(obj, 'location_type', 'Onsite')
+                type_str = obj.get_job_type_display() if hasattr(obj, 'get_job_type_display') else obj.job_type
+                level_str = obj.get_job_level_display() if hasattr(obj, 'get_job_level_display') else obj.job_level
+            else:
+                if getattr(obj, 'comp_min', None) and getattr(obj, 'comp_max', None):
+                    comp_str = f"NPR {obj.comp_min:,} - {obj.comp_max:,}"
+                elif getattr(obj, 'comp_min', None):
+                    comp_str = f"NPR {obj.comp_min:,}+"
+                else:
+                    comp_str = "Stipend Provided"
+                comp_period = obj.get_comp_frequency_display() if hasattr(obj, 'get_comp_frequency_display') else "Monthly"
+                location_str = getattr(obj, 'location', 'Onsite')
+                type_str = obj.get_type_display() if hasattr(obj, 'get_type_display') else obj.type
+                level_str = obj.get_level_display() if hasattr(obj, 'get_level_display') and obj.level else "Entry"
+
             recommended_items.append({
                 'obj': obj,
                 'score': int(r.score * 100) if getattr(r, 'score', None) is not None else None,
                 'why': getattr(r, 'why', ''),
-                'is_job': ct.model == 'jobpost',
+                'is_job': is_job,
+                'company_name': f"{obj.company.first_name} {obj.company.last_name}".strip() if getattr(obj, 'company', None) else "Company",
+                'type_display': type_str,
+                'level_display': level_str,
+                'location_display': location_str,
+                'city': getattr(obj, 'city', ''),
+                'compensation': comp_str,
+                'compensation_period': comp_period,
+                'skills': skills_list,
+                'days_left': getattr(obj, 'days_left', 0),
             })
+    except Exception:
+        pass
+
+    # Remote Opportunities (Jobs & Internships)
+    from company.models import JobPost, InternshipPost
+    remote_opportunities = []
+
+    try:
+        r_jobs = JobPost.objects.filter(
+            location_type__iexact="Remote",
+            is_active=True,
+            application_deadline__gte=timezone.localdate()
+        ).select_related('company').order_by('-created_at')[:6]
+
+        for job in r_jobs:
+            skills_list = [s.name for s in job.skills.all()[:3]] if hasattr(job, 'skills') else []
+            salary_str = ""
+            if job.salary_min and job.salary_max:
+                salary_str = f"NPR {int(job.salary_min):,} - {int(job.salary_max):,}"
+            elif job.salary_min:
+                salary_str = f"NPR {int(job.salary_min):,}+"
+            else:
+                salary_str = "Negotiable"
+
+            remote_opportunities.append({
+                'id': job.id,
+                'title': job.title,
+                'company': job.company,
+                'company_name': f"{job.company.first_name} {job.company.last_name}".strip() if job.company else "Company",
+                'is_job': True,
+                'type_display': job.get_job_type_display() if hasattr(job, 'get_job_type_display') else job.job_type,
+                'level_display': job.get_job_level_display() if hasattr(job, 'get_job_level_display') else job.job_level,
+                'sector': job.sector,
+                'compensation': salary_str,
+                'compensation_period': job.get_salary_period_display() if hasattr(job, 'get_salary_period_display') else 'Monthly',
+                'skills': skills_list,
+                'days_left': job.days_left,
+                'created_at': job.created_at,
+            })
+
+        r_internships = InternshipPost.objects.filter(
+            location__iexact="Remote",
+            is_active=True,
+            application_deadline__gte=timezone.localdate()
+        ).select_related('company').order_by('-created_at')[:6]
+
+        for intern in r_internships:
+            skills_list = [s.name for s in intern.skills.all()[:3]] if hasattr(intern, 'skills') else []
+            comp_str = ""
+            if intern.comp_min and intern.comp_max:
+                comp_str = f"NPR {intern.comp_min:,} - {intern.comp_max:,}"
+            elif intern.comp_min:
+                comp_str = f"NPR {intern.comp_min:,}+"
+            else:
+                comp_str = "Stipend Provided"
+
+            remote_opportunities.append({
+                'id': intern.id,
+                'title': intern.title,
+                'company': intern.company,
+                'company_name': f"{intern.company.first_name} {intern.company.last_name}".strip() if intern.company else "Company",
+                'is_job': False,
+                'type_display': intern.get_type_display() if hasattr(intern, 'get_type_display') else intern.type,
+                'level_display': intern.get_level_display() if hasattr(intern, 'get_level_display') and intern.level else "Entry",
+                'sector': intern.sector,
+                'compensation': comp_str,
+                'compensation_period': intern.get_comp_frequency_display() if hasattr(intern, 'get_comp_frequency_display') else 'Monthly',
+                'skills': skills_list,
+                'days_left': intern.days_left,
+                'created_at': intern.created_at,
+            })
+
+        remote_opportunities.sort(key=lambda x: x['created_at'], reverse=True)
     except Exception:
         pass
 
@@ -172,6 +282,9 @@ def candidate_dashboard(request):
         'recent_applications': recent_applications,
         'activities': activities,
         'recommended_jobs': recommended_items,
+        'remote_opportunities': remote_opportunities,
+        'remote_jobs_count': sum(1 for x in remote_opportunities if x['is_job']),
+        'remote_internships_count': sum(1 for x in remote_opportunities if not x['is_job']),
     }
     return render(request, "candidate/dashboard.html", context)
 
