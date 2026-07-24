@@ -513,6 +513,114 @@ body.sidebar-collapsed .sidebar .logout-container {
   border-color: #e9ecef !important;
 }
 
+/* ----------------------------------------------------
+   Remote Opportunities Modern UI Styling
+---------------------------------------------------- */
+.remote-op-card {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-top: 3px solid #dc3545;
+  border-radius: 12px !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.remote-op-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 24px rgba(220, 53, 69, 0.12) !important;
+  border-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+.badge-remote-glow {
+  background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.7rem !important;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.25) !important;
+}
+
+.badge-intern-glow {
+  background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.7rem !important;
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.25) !important;
+}
+
+.comp-badge {
+  background-color: rgba(25, 135, 84, 0.08) !important;
+  color: #198754 !important;
+  border: 1px solid rgba(25, 135, 84, 0.2) !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.65rem !important;
+}
+
+.skill-pill {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 12px !important;
+  font-size: 0.72rem !important;
+  padding: 2px 8px !important;
+  font-weight: 500 !important;
+}
+
+.remote-nav-pills .nav-link {
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 20px !important;
+  padding: 5px 14px !important;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.remote-nav-pills .nav-link:hover {
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+.remote-nav-pills .nav-link.active {
+  background-color: #dc3545 !important;
+  color: #ffffff !important;
+  border-color: #dc3545 !important;
+  box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25) !important;
+}
+
+/* ----------------------------------------------------
+   Recommended Opportunities Custom UI Styling
+---------------------------------------------------- */
+.rec-op-card {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-top: 3px solid #6f42c1;
+  border-radius: 12px !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.rec-op-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 24px rgba(111, 66, 193, 0.12) !important;
+  border-color: rgba(111, 66, 193, 0.3) !important;
+}
+
+.badge-match-glow {
+  background: linear-gradient(135deg, #6f42c1 0%, #dc3545 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.7rem !important;
+  box-shadow: 0 2px 8px rgba(111, 66, 193, 0.25) !important;
+}
+
+.match-insight-box {
+  background-color: rgba(111, 66, 193, 0.05) !important;
+  border: 1px dashed rgba(111, 66, 193, 0.2) !important;
+}
+
+
+
 
 
 
