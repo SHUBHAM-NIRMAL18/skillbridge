@@ -1,0 +1,89 @@
+<div class="col">
+  <div class="card h-100 rec-op-card p-3 d-flex flex-column justify-content-between position-relative shadow-sm">
+    <div>
+      <!-- Header: Logo + Title + Match Badge -->
+      <div class="d-flex align-items-start justify-content-between mb-3 gap-2">
+        <div class="d-flex align-items-center gap-2 overflow-hidden">
+          <div class="bg-light rounded-3 p-1.5 border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+            {% if rec.obj.company.logo %}
+              <img src="{{ rec.obj.company.logo.url }}" alt="{{ rec.company_name }}" style="width: 100%; height: 100%; object-fit: cover;" class="rounded">
+            {% else %}
+              <i class="bi bi-building fs-4 text-secondary"></i>
+            {% endif %}
+          </div>
+          <div class="overflow-hidden">
+            <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 0.92rem;" title="{{ rec.obj.title }}">{{ rec.obj.title }}</h6>
+            <span class="text-muted xsmall text-truncate d-block">{{ rec.company_name }}</span>
+          </div>
+        </div>
+        {% if rec.score %}
+          <span class="badge badge-match-glow px-2.5 py-1 rounded-pill flex-shrink-0" style="font-size: 0.68rem;">
+            <i class="bi bi-stars me-1"></i>{{ rec.score }}% Match
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Match Insight Box -->
+      <div class="match-insight-box mb-3 p-2 rounded-3">
+        <div class="d-flex align-items-start gap-1.5">
+          <i class="bi bi-lightning-charge-fill text-danger mt-0.5" style="font-size: 0.75rem;"></i>
+          <span class="text-dark-subtle xsmall lh-sm" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ rec.why|default:"Matches your skills and career preferences." }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Key details badges -->
+      <div class="d-flex flex-wrap align-items-center gap-1.5 mb-3">
+        {% if rec.is_job %}
+          <span class="badge bg-light-primary text-primary border border-primary-subtle" style="font-size: 0.7rem;">
+            <i class="bi bi-briefcase me-1"></i>Job
+          </span>
+        {% else %}
+          <span class="badge badge-intern-glow" style="font-size: 0.7rem;">
+            <i class="bi bi-mortarboard me-1"></i>Internship
+          </span>
+        {% endif %}
+        <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">
+          <i class="bi bi-clock me-1 text-muted"></i>{{ rec.type_display }}
+        </span>
+        <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">
+          <i class="bi bi-geo-alt me-1 text-muted"></i>{{ rec.location_display }}
+        </span>
+      </div>
+
+      <!-- Compensation badge -->
+      <div class="mb-3">
+        <span class="comp-badge d-inline-flex align-items-center gap-1">
+          <i class="bi bi-cash-stack"></i>
+          {{ rec.compensation }} {% if rec.compensation_period %}<span class="fw-normal text-muted" style="font-size: 0.68rem;">/ {{ rec.compensation_period }}</span>{% endif %}
+        </span>
+      </div>
+
+      <!-- Skill pills -->
+      {% if rec.skills %}
+      <div class="d-flex flex-wrap gap-1 mb-3">
+        {% for s in rec.skills %}
+          <span class="skill-pill"><i class="bi bi-check2-circle me-1 text-success"></i>{{ s }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Card Footer -->
+    <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle">
+      <span class="text-muted xsmall">
+        <i class="bi bi-hourglass-split me-1 text-warning"></i>{{ rec.days_left }} days left
+      </span>
+      {% if rec.is_job %}
+        <a href="{% url 'website:job_detail' rec.obj.id %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-semibold text-xs shadow-sm">
+          Apply Now <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      {% else %}
+        <a href="{% url 'website:internship_detail' rec.obj.id %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-semibold text-xs shadow-sm">
+          Apply Now <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
