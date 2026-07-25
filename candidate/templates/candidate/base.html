@@ -99,8 +99,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'candidate:recommended_demo' %}">
-            <i class="bi bi-graph-up-arrow"></i> <span>Recommended Jobs</span>
+          <a class="nav-link {% if request.resolver_match.url_name == 'recommendations' or request.resolver_match.url_name == 'recommended_demo' %}active{% endif %}" href="{% url 'candidate:recommendations' %}">
+            <i class="bi bi-stars"></i> <span>Recommendations</span>
           </a>
         </li>
         <li class="nav-item">
