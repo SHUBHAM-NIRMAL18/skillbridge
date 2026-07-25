@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
+from django.http import Http404, JsonResponse
+from django.views.decorators.http import require_POST
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import FormView, TemplateView
@@ -150,55 +151,13 @@ def candidate_dashboard(request):
     # Recommendations
     recommended_items = []
     try:
-        from recommendations.simple_hybrid import recommend_jobs_for_candidate
-        from django.contrib.contenttypes.models import ContentType
-        recs = recommend_jobs_for_candidate(request.user, limit=3)
+        from recommendations.simple_hybrid import recommend_all_for_candidate
+        today = timezone.now().date()
+        recs = recommend_all_for_candidate(request.user, limit=4)
         for r in recs:
-            ct = ContentType.objects.get_for_id(r.ct_id)
-            obj = ct.get_object_for_this_type(id=r.obj_id)
-            is_job = (ct.model == 'jobpost')
-            skills_list = [s.name for s in obj.skills.all()[:3]] if hasattr(obj, 'skills') else []
-
-            comp_str = ""
-            comp_period = ""
-            if is_job:
-                if getattr(obj, 'salary_min', None) and getattr(obj, 'salary_max', None):
-                    comp_str = f"NPR {int(obj.salary_min):,} - {int(obj.salary_max):,}"
-                elif getattr(obj, 'salary_min', None):
-                    comp_str = f"NPR {int(obj.salary_min):,}+"
-                else:
-                    comp_str = "Negotiable"
-                comp_period = obj.get_salary_period_display() if hasattr(obj, 'get_salary_period_display') else "Monthly"
-                location_str = getattr(obj, 'location_type', 'Onsite')
-                type_str = obj.get_job_type_display() if hasattr(obj, 'get_job_type_display') else obj.job_type
-                level_str = obj.get_job_level_display() if hasattr(obj, 'get_job_level_display') else obj.job_level
-            else:
-                if getattr(obj, 'comp_min', None) and getattr(obj, 'comp_max', None):
-                    comp_str = f"NPR {obj.comp_min:,} - {obj.comp_max:,}"
-                elif getattr(obj, 'comp_min', None):
-                    comp_str = f"NPR {obj.comp_min:,}+"
-                else:
-                    comp_str = "Stipend Provided"
-                comp_period = obj.get_comp_frequency_display() if hasattr(obj, 'get_comp_frequency_display') else "Monthly"
-                location_str = getattr(obj, 'location', 'Onsite')
-                type_str = obj.get_type_display() if hasattr(obj, 'get_type_display') else obj.type
-                level_str = obj.get_level_display() if hasattr(obj, 'get_level_display') and obj.level else "Entry"
-
-            recommended_items.append({
-                'obj': obj,
-                'score': int(r.score * 100) if getattr(r, 'score', None) is not None else None,
-                'why': getattr(r, 'why', ''),
-                'is_job': is_job,
-                'company_name': f"{obj.company.first_name} {obj.company.last_name}".strip() if getattr(obj, 'company', None) else "Company",
-                'type_display': type_str,
-                'level_display': level_str,
-                'location_display': location_str,
-                'city': getattr(obj, 'city', ''),
-                'compensation': comp_str,
-                'compensation_period': comp_period,
-                'skills': skills_list,
-                'days_left': getattr(obj, 'days_left', 0),
-            })
+            item_data = _format_rec_item(r, today)
+            if item_data:
+                recommended_items.append(item_data)
     except Exception:
         pass
 
@@ -656,55 +615,149 @@ class ProfilePreviewView(LoginRequiredMixin, TemplateView):
             ctx['skills_list'] = []
         return ctx
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
-from django.shortcuts import render
-from recommendations.simple_hybrid import recommend_jobs_for_candidate
-from django.utils import timezone
+def _format_rec_item(r, today):
+    from django.contrib.contenttypes.models import ContentType
+    try:
+        ct = ContentType.objects.get_for_id(r.ct_id)
+        obj = ct.get_object_for_this_type(id=r.obj_id)
+    except Exception:
+        return None
+
+    is_job = (ct.model == 'jobpost')
+    obj_days_left = getattr(obj, "days_left", None)
+    deadline = getattr(obj, "application_deadline", None)
+
+    if obj_days_left is None and deadline:
+        try:
+            computed_days_left = max(0, (deadline - today).days)
+        except Exception:
+            computed_days_left = 0
+    else:
+        computed_days_left = obj_days_left or 0
+
+    skills_list = [s.name for s in obj.skills.all()] if hasattr(obj, 'skills') else []
+
+    comp_str = ""
+    comp_period = ""
+    if is_job:
+        if getattr(obj, 'salary_min', None) and getattr(obj, 'salary_max', None):
+            comp_str = f"NPR {int(obj.salary_min):,} - {int(obj.salary_max):,}"
+        elif getattr(obj, 'salary_min', None):
+            comp_str = f"NPR {int(obj.salary_min):,}+"
+        else:
+            comp_str = "Negotiable"
+        comp_period = obj.get_salary_period_display() if hasattr(obj, 'get_salary_period_display') else "Monthly"
+        location_str = getattr(obj, 'location_type', 'Onsite')
+        type_str = obj.get_job_type_display() if hasattr(obj, 'get_job_type_display') else getattr(obj, 'job_type', 'Full-Time')
+        level_str = obj.get_job_level_display() if hasattr(obj, 'get_job_level_display') else getattr(obj, 'job_level', 'Entry')
+    else:
+        if getattr(obj, 'comp_min', None) and getattr(obj, 'comp_max', None):
+            comp_str = f"NPR {obj.comp_min:,} - {obj.comp_max:,}"
+        elif getattr(obj, 'comp_min', None):
+            comp_str = f"NPR {obj.comp_min:,}+"
+        else:
+            comp_str = "Stipend Provided"
+        comp_period = obj.get_comp_frequency_display() if hasattr(obj, 'get_comp_frequency_display') else "Monthly"
+        location_str = getattr(obj, 'location', 'Onsite')
+        type_str = obj.get_type_display() if hasattr(obj, 'get_type_display') else getattr(obj, 'type', 'Internship')
+        level_str = obj.get_level_display() if hasattr(obj, 'get_level_display') and obj.level else "Entry"
+
+    company_obj = getattr(obj, 'company', None)
+    company_name = "Company"
+    company_logo = None
+    if company_obj:
+        company_name = f"{company_obj.first_name} {company_obj.last_name}".strip() or getattr(company_obj, 'industry', 'Company')
+        if getattr(company_obj, 'logo', None):
+            try:
+                company_logo = company_obj.logo.url
+            except Exception:
+                company_logo = None
+
+    score_pct = int(round(r.score * 100)) if getattr(r, 'score', None) is not None else 0
+
+    return {
+        "obj": obj,
+        "score": score_pct,
+        "raw_score": r.score,
+        "why": getattr(r, "why", ""),
+        "ct_id": r.ct_id,
+        "obj_id": r.obj_id,
+        "is_job": is_job,
+        "is_internship": not is_job,
+        "company_name": company_name,
+        "company_logo": company_logo,
+        "type_display": type_str,
+        "level_display": level_str,
+        "location_display": location_str,
+        "city": getattr(obj, 'city', ''),
+        "sector": getattr(obj, 'sector', ''),
+        "compensation": comp_str,
+        "compensation_period": comp_period,
+        "matched_skills": getattr(r, "matched_skills", []),
+        "missing_skills": getattr(r, "missing_skills", []),
+        "all_skills": skills_list,
+        "days_left": computed_days_left,
+    }
+
 
 @login_required
 def recommended_demo(request):
     """
-    Build a list of recommendation items with safe defaults so the template
-    can render without relying on filters like default:[] for lists.
+    Renders personalized job and internship recommendations for candidate.
     """
-    recs = recommend_jobs_for_candidate(request.user, limit=20)
-
-    items = []
+    from recommendations.simple_hybrid import (
+        recommend_jobs_for_candidate,
+        recommend_internships_for_candidate,
+        recommend_all_for_candidate
+    )
     today = timezone.now().date()
 
-    for r in recs:
-        ct = ContentType.objects.get_for_id(r.ct_id)
-        obj = ct.get_object_for_this_type(id=r.obj_id)  # JobPost or InternshipPost
+    rec_jobs_raw = recommend_jobs_for_candidate(request.user, limit=20)
+    rec_interns_raw = recommend_internships_for_candidate(request.user, limit=20)
+    rec_all_raw = recommend_all_for_candidate(request.user, limit=30)
 
-        # Try to use existing days_left; if missing, compute from application_deadline
-        obj_days_left = getattr(obj, "days_left", None)
-        deadline = getattr(obj, "application_deadline", None)
-
-        if obj_days_left is None and deadline:
-            try:
-                computed_days_left = (deadline - today).days
-            except Exception:
-                computed_days_left = None
-        else:
-            computed_days_left = obj_days_left
-
-        items.append({
-            "obj": obj,
-            "score": getattr(r, "score", None),
-            "why": getattr(r, "why", ""),
-            "ct_id": r.ct_id,
-            # May be None → template handles that gracefully
-            "matched_skills": getattr(r, "matched_skills", None),
-            "missing_skills": getattr(r, "missing_skills", None),
-            "days_left": computed_days_left,
-        })
+    recommended_jobs = [item for item in [_format_rec_item(r, today) for r in rec_jobs_raw] if item]
+    recommended_internships = [item for item in [_format_rec_item(r, today) for r in rec_interns_raw] if item]
+    recommended_all = [item for item in [_format_rec_item(r, today) for r in rec_all_raw] if item]
 
     return render(
         request,
         "candidate/recommended_demo.html",
-        {"recommended_jobs": items}
+        {
+            "recommended_jobs": recommended_jobs,
+            "recommended_internships": recommended_internships,
+            "recommended_all": recommended_all,
+            "total_count": len(recommended_all),
+            "jobs_count": len(recommended_jobs),
+            "internships_count": len(recommended_internships),
+        }
     )
+
+
+@login_required
+@require_POST
+def log_candidate_event(request):
+    """
+    API endpoint for logging user interaction events (view, save, apply, dismiss).
+    """
+    from recommendations.models import CandidateEvent
+    ct_id = request.POST.get("ct_id")
+    obj_id = request.POST.get("obj_id")
+    event_type = request.POST.get("event_type", "view")
+
+    if ct_id and obj_id and event_type in ["view", "save", "apply", "dismiss"]:
+        try:
+            CandidateEvent.objects.create(
+                user=request.user,
+                item_content_type_id=int(ct_id),
+                item_object_id=int(obj_id),
+                event_type=event_type
+            )
+            return JsonResponse({"status": "ok"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "error", "message": "Invalid parameters"}, status=400)
+
 
 @login_required
 def inbox(request):
