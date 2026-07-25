@@ -1,0 +1,30 @@
+<div class="col-12">
+  <div class="text-center py-5">
+    <div class="bg-white rounded-4 shadow-sm p-5 mx-auto border" style="max-width: 460px;">
+      <div class="mb-3 text-danger">
+        {% if type == "internship" %}
+          <i class="bi bi-mortarboard-fill" style="font-size: 3.5rem;"></i>
+        {% elif type == "job" %}
+          <i class="bi bi-briefcase-fill" style="font-size: 3.5rem;"></i>
+        {% else %}
+          <i class="bi bi-stars" style="font-size: 3.5rem;"></i>
+        {% endif %}
+      </div>
+      <h4 class="fw-bold text-dark mb-2">
+        {% if type == "internship" %}
+          No Internship Matches Yet
+        {% elif type == "job" %}
+          No Job Matches Yet
+        {% else %}
+          No Recommendations Found
+        {% endif %}
+      </h4>
+      <p class="text-muted mb-4 small lh-base">
+        Complete your candidate profile details, add your target skills, designation, and field of study to get instant AI-matched opportunities.
+      </p>
+      <a href="{% url 'candidate:profile_index' %}" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-person-gear me-1"></i> Update Your Profile
+      </a>
+    </div>
+  </div>
+</div>
