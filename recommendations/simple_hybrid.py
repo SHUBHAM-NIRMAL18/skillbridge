@@ -130,6 +130,7 @@ class JobLike:
     exp_max: float
     created_at: timezone.datetime
     deadline: Optional[timezone.date]  # application deadline
+    is_internship: bool = False
 
 def _to_joblike(obj) -> JobLike:
     ct = ContentType.objects.get_for_model(obj).id
@@ -146,6 +147,7 @@ def _to_joblike(obj) -> JobLike:
             exp_min=jmin, exp_max=jmax,
             created_at=getattr(obj, "created_at", timezone.now()),
             deadline=getattr(obj, "application_deadline", None),
+            is_internship=False,
         )
     # InternshipPost
     jmin, jmax = _job_years_range(obj)
@@ -153,24 +155,40 @@ def _to_joblike(obj) -> JobLike:
     return JobLike(
         ct_id=ct, obj_id=obj.id, title=obj.title,
         sector=getattr(obj, "sector", None),
-        province=getattr(obj, "province", None),     # if you don't store, leave None (still works)
+        province=getattr(obj, "province", None),     # if you don't store, leave None
         city=getattr(obj, "city", None),
         workplace=getattr(obj, "location", None),
         skills=_norm_skills(skills),
         exp_min=jmin, exp_max=jmax,
         created_at=getattr(obj, "created_at", timezone.now()),
         deadline=getattr(obj, "application_deadline", None),
+        is_internship=True,
     )
 
-def _iter_open_joblikes() -> List[JobLike]:
+def _iter_open_joblikes(filter_type: Optional[str] = None) -> List[JobLike]:
+    """
+    filter_type: None (all), 'jobs' (JobPost only), or 'internships' (InternshipPost only)
+    """
     today = timezone.localdate()
     out: List[JobLike] = []
-    for cls in (JobPost(), InternshipPost()):
-        for o in cls.objects.filter(is_active=True):
-            dl = getattr(o, "application_deadline", None)
-            if dl and dl < today:
-                continue
-            out.append(_to_joblike(o))
+    
+    classes_to_check = []
+    if filter_type == "jobs":
+        classes_to_check = [JobPost()]
+    elif filter_type == "internships":
+        classes_to_check = [InternshipPost()]
+    else:
+        classes_to_check = [JobPost(), InternshipPost()]
+
+    for cls in classes_to_check:
+        try:
+            for o in cls.objects.filter(is_active=True):
+                dl = getattr(o, "application_deadline", None)
+                if dl and dl < today:
+                    continue
+                out.append(_to_joblike(o))
+        except Exception:
+            continue
     return out
 
 # ——————————————————————————————————————————
@@ -180,12 +198,48 @@ def _iter_open_joblikes() -> List[JobLike]:
 class ContentResult:
     score: float
     why: str
+    matched_skills: List[str]
+    missing_skills: List[str]
+
+def _build_match_reason(skills_sim: float, sector_s: float, loc_s: float, exp_s: float, title_sim: float, edu_sim: float = 0.0, is_internship: bool = False) -> str:
+    reasons = []
+    if skills_sim >= 0.5:
+        reasons.append(f"Strong skill match ({int(skills_sim * 100)}%)")
+    elif skills_sim > 0.0:
+        reasons.append(f"Partial skill overlap ({int(skills_sim * 100)}%)")
+    
+    if is_internship and edu_sim >= 0.4:
+        reasons.append("Matches education & field of study")
+
+    if sector_s >= 0.9:
+        reasons.append("Matches preferred sector")
+
+    if loc_s >= 0.8:
+        reasons.append("Location preference match")
+    elif loc_s >= 0.6:
+        reasons.append("Location fit")
+
+    if exp_s >= 0.9:
+        reasons.append("Experience level fit")
+
+    if title_sim >= 0.4:
+        reasons.append("Role title alignment")
+
+    if not reasons:
+        return "Recommended based on overall candidate profile alignment"
+    return " • ".join(reasons)
 
 def _content_score(profile, j: JobLike) -> ContentResult:
     # candidate features
     cand_sectors = [s.strip().lower() for s in (getattr(profile, "sectors_list", []) or []) if s.strip()]
     cand_skills = _norm_skills(getattr(profile, "skills_list", []) or [])
     c_years = _candidate_years(profile)
+
+    # matched / missing skills
+    j_skills_set = set(j.skills)
+    c_skills_set = set(cand_skills)
+    matched_skills = sorted(list(c_skills_set & j_skills_set))
+    missing_skills = sorted(list(j_skills_set - c_skills_set))
 
     # content sub-scores
     skills_sim = _cosine_binary(cand_skills, j.skills)
@@ -194,20 +248,47 @@ def _content_score(profile, j: JobLike) -> ContentResult:
     loc_s = _location_fit(getattr(profile, "province", None), getattr(profile, "city", None),
                           j.province, j.city, j.workplace)
 
-    # tiny title/designation overlap (no TF-IDF)
-    p_title_tokens = {w for w in re.findall(r"[a-zA-Z]{3,}", (profile.designation or "").lower())}
-    j_title_tokens = {w for w in re.findall(r"[a-zA-Z]{3,}", (j.title or "").lower())}
-    title_sim = _cosine_binary(p_title_tokens, j_title_tokens)
+    # Education / Title alignment for Internships
+    edu_sim = 0.0
+    if j.is_internship:
+        edu_fields = []
+        if hasattr(profile, "educations"):
+            edu_fields = [e.field_of_study.lower() for e in profile.educations.all() if e.field_of_study]
+        title_tokens = set(re.findall(r"[a-zA-Z]{3,}", (j.title or "").lower()))
+        designation_tokens = set(re.findall(r"[a-zA-Z]{3,}", (profile.designation or "").lower()))
+        for ef in edu_fields:
+            designation_tokens.update(re.findall(r"[a-zA-Z]{3,}", ef))
+        edu_sim = _cosine_binary(designation_tokens, title_tokens)
 
-    score = (
-        0.50 * skills_sim +
-        0.15 * sector_s +
-        0.15 * loc_s +
-        0.10 * exp_s +
-        0.10 * title_sim
+        # Internship scoring formula (prioritizes education, skills, location fit)
+        score = (
+            0.45 * skills_sim +
+            0.20 * edu_sim +
+            0.15 * sector_s +
+            0.10 * loc_s +
+            0.10 * exp_s
+        )
+    else:
+        p_title_tokens = {w for w in re.findall(r"[a-zA-Z]{3,}", (profile.designation or "").lower())}
+        j_title_tokens = {w for w in re.findall(r"[a-zA-Z]{3,}", (j.title or "").lower())}
+        title_sim = _cosine_binary(p_title_tokens, j_title_tokens)
+
+        # Standard Job scoring formula
+        score = (
+            0.50 * skills_sim +
+            0.15 * sector_s +
+            0.15 * loc_s +
+            0.10 * exp_s +
+            0.10 * title_sim
+        )
+
+    why = _build_match_reason(skills_sim, sector_s, loc_s, exp_s, title_sim=edu_sim if j.is_internship else title_sim, edu_sim=edu_sim, is_internship=j.is_internship)
+    return ContentResult(
+        score=float(round(score, 6)),
+        why=why,
+        matched_skills=matched_skills,
+        missing_skills=missing_skills
     )
-    why = f"skills≈{skills_sim:.2f}; sector≈{sector_s:.2f}; location≈{loc_s:.2f}; exp≈{exp_s:.2f}; title≈{title_sim:.2f}"
-    return ContentResult(score=float(round(score, 6)), why=why)
 
 # ——————————————————————————————————————————
 # Collaborative (cosine on user–item matrix) — on the fly
@@ -294,24 +375,27 @@ class Ranked:
     obj_id: int
     score: float
     why: str
+    matched_skills: List[str] = None
+    missing_skills: List[str] = None
+    is_internship: bool = False
 
-def recommend_jobs_for_candidate(user, limit: int = 20) -> List[Ranked]:
+def _recommend_for_candidate(user, filter_type: Optional[str] = None, limit: int = 20) -> List[Ranked]:
     # 0) fetch candidate profile
     try:
-        profile = Profile().objects.select_related("user").prefetch_related("experiences").get(user=user)
+        profile = Profile().objects.select_related("user").prefetch_related("experiences", "educations").get(user=user)
     except Profile().DoesNotExist:
         return []
 
-    # 1) gather all open items
-    items = _iter_open_joblikes()
+    # 1) gather open items
+    items = _iter_open_joblikes(filter_type=filter_type)
     if not items:
         return []
 
     # 2) content scores
-    content_parts: List[Tuple[ItemKey, float, str]] = []
+    content_map: Dict[ItemKey, ContentResult] = {}
     for j in items:
         c = _content_score(profile, j)
-        content_parts.append(((j.ct_id, j.obj_id), c.score, c.why))
+        content_map[(j.ct_id, j.obj_id)] = c
 
     # 3) collaborative scores (optional, from events)
     events = _fetch_events_all_users()
@@ -320,28 +404,58 @@ def recommend_jobs_for_candidate(user, limit: int = 20) -> List[Ranked]:
     if events:
         src = _user_source_items(user.id, events)
         if src:
-            sims = _cosine_item_sims_for_sources(events, src)  # dst_item -> sim
-            cf_scores = sims  # already in [0,1] approximately; no further scaling
+            sims = _cosine_item_sims_for_sources(events, src)
+            cf_scores = sims
 
     # 4) hybrid + rank
+    item_by_key = {(j.ct_id, j.obj_id): j for j in items}
     ranked = []
-    for key, cscore, why in content_parts:
+    for key, cres in content_map.items():
         cf = cf_scores.get(key, 0.0)
-        score = (1 - alpha) * cscore + alpha * cf
-        ranked.append((key, score, f"{why}" + (f"; cf≈{cf:.2f}" if cf else "")))
+        score = (1 - alpha) * cres.score + alpha * cf
+        why_str = cres.why + (f" • Collaborative activity boost" if cf > 0 else "")
+        j_item = item_by_key[key]
+        ranked.append((
+            key,
+            score,
+            why_str,
+            cres.matched_skills,
+            cres.missing_skills,
+            j_item.is_internship
+        ))
 
     ranked.sort(key=lambda x: x[1], reverse=True)
     ranked = ranked[:limit]
 
     # 5) wrap
-    return [Ranked(ct_id=k[0], obj_id=k[1], score=float(round(s, 6)), why=why) for (k, s, why) in ranked]
+    return [
+        Ranked(
+            ct_id=k[0],
+            obj_id=k[1],
+            score=float(round(s, 6)),
+            why=why,
+            matched_skills=m_skills or [],
+            missing_skills=miss_skills or [],
+            is_internship=is_intern
+        )
+        for (k, s, why, m_skills, miss_skills, is_intern) in ranked
+    ]
+
+def recommend_jobs_for_candidate(user, limit: int = 20) -> List[Ranked]:
+    return _recommend_for_candidate(user, filter_type="jobs", limit=limit)
+
+def recommend_internships_for_candidate(user, limit: int = 20) -> List[Ranked]:
+    return _recommend_for_candidate(user, filter_type="internships", limit=limit)
+
+def recommend_all_for_candidate(user, limit: int = 20) -> List[Ranked]:
+    return _recommend_for_candidate(user, filter_type=None, limit=limit)
 
 def recommend_candidates_for_job(job_obj, limit: int = 50) -> List[Ranked]:
     # 0) item unify
     j = _to_joblike(job_obj)
 
     # 1) candidate pool
-    profs = Profile().objects.all().prefetch_related("experiences", "projects")
+    profs = Profile().objects.all().prefetch_related("experiences", "projects", "educations")
     if not profs.exists():
         return []
 
@@ -349,18 +463,16 @@ def recommend_candidates_for_job(job_obj, limit: int = 50) -> List[Ranked]:
     tmp = []
     for p in profs:
         c = _content_score(p, j)
-        tmp.append((p.id, c.score, c.why))
+        tmp.append((p.id, c.score, c.why, c.matched_skills, c.missing_skills))
 
     # 3) collaborative lift: users who interacted with items similar to this job
     events = _fetch_events_all_users()
     cf_map_user: Dict[int, float] = defaultdict(float)
     if events:
-        # compute sims from THIS job to other items
         ct = ContentType.objects.get_for_model(job_obj).id
         src = [(ct, job_obj.id)]
-        sims = _cosine_item_sims_for_sources(events, src)  # dst_item -> sim
+        sims = _cosine_item_sims_for_sources(events, src)
 
-        # for each user, if they interacted with dst items, accumulate cf score
         by_user = _user_items_weighted(events)
         for uid, lst in by_user.items():
             s = 0.0
@@ -369,19 +481,32 @@ def recommend_candidates_for_job(job_obj, limit: int = 50) -> List[Ranked]:
                 if sim > 0 and w > 0:
                     s += sim * w
             if s > 0:
-                cf_map_user[uid] = min(1.0, s)  # clip to [0,1] for stability
+                cf_map_user[uid] = min(1.0, s)
 
     alpha = 0.25
     ranked = []
     prof_ct = ContentType.objects.get_for_model(Profile())
     id_to_user = dict(profs.values_list("id", "user_id"))
 
-    for pid, cscore, why in tmp:
+    for pid, cscore, why, m_skills, miss_skills in tmp:
         uid = id_to_user.get(pid)
         cf = cf_map_user.get(uid, 0.0)
         score = (1 - alpha) * cscore + alpha * cf
-        ranked.append(((prof_ct.id, pid), score, f"{why}" + (f"; cf≈{cf:.2f}" if cf else "")))
+        why_str = why + (f" • Collaborative activity boost" if cf > 0 else "")
+        ranked.append(((prof_ct.id, pid), score, why_str, m_skills, miss_skills, False))
 
     ranked.sort(key=lambda x: x[1], reverse=True)
     ranked = ranked[:limit]
-    return [Ranked(ct_id=k[0], obj_id=k[1], score=float(round(s, 6)), why=why) for (k, s, why) in ranked]
+    return [
+        Ranked(
+            ct_id=k[0],
+            obj_id=k[1],
+            score=float(round(s, 6)),
+            why=why,
+            matched_skills=m_skills or [],
+            missing_skills=miss_skills or [],
+            is_internship=is_intern
+        )
+        for (k, s, why, m_skills, miss_skills, is_intern) in ranked
+    ]
+
