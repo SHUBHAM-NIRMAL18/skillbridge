@@ -61,11 +61,24 @@
       </div>
 
       <!-- Skill pills -->
-      {% if rec.skills %}
+      {% if rec.matched_skills or rec.all_skills %}
       <div class="d-flex flex-wrap gap-1 mb-3">
-        {% for s in rec.skills %}
-          <span class="skill-pill"><i class="bi bi-check2-circle me-1 text-success"></i>{{ s }}</span>
+        {% for s in rec.matched_skills|slice:":3" %}
+          <span class="skill-pill bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">
+            <i class="bi bi-check-circle-fill me-1"></i>{{ s }}
+          </span>
+        {% empty %}
+          {% for s in rec.all_skills|slice:":3" %}
+            <span class="skill-pill bg-light text-muted border px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">
+              {{ s }}
+            </span>
+          {% endfor %}
         {% endfor %}
+        {% if rec.missing_skills %}
+          <span class="skill-pill bg-light text-muted border px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;" title="Missing: {{ rec.missing_skills|join:', ' }}">
+            +{{ rec.missing_skills|length }} gap
+          </span>
+        {% endif %}
       </div>
       {% endif %}
     </div>
