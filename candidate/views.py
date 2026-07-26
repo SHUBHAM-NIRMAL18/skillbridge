@@ -117,9 +117,10 @@ def candidate_dashboard(request):
         # 3. Application activities
         for app in profile.applications.select_related('job_post', 'internship_post', 'company').all():
             target_name = app.job_post.title if app.is_job else app.internship_post.title
+            company_name = getattr(app.company, 'company_name', f"{app.company.first_name} {app.company.last_name}")
             activities.append({
                 'title': f'Applied to {target_name}',
-                'desc': f'Submitted application to {app.company.company_name}',
+                'desc': f'Submitted application to {company_name}',
                 'date': app.applied_at,
                 'icon': 'bi-send',
                 'badge_class': 'bg-success'

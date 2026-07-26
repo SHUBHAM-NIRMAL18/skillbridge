@@ -86,8 +86,13 @@ class CompanyProfile(models.Model):
         return f"{self.first_name} {self.last_name} ({self.industry})"
 
     @property
+    def company_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
+    @property
     def email(self):
         return self.user.email
+
 
     def save(self, *args, **kwargs):
         # keep the real user.is_active in sync
