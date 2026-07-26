@@ -8,11 +8,14 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from datetime import timedelta
 from candidate.models import Profile
 from company.models import CompanyProfile, JobPost, InternshipPost
-from .models import Application
+from .models import Application, OfferLetter
+from .forms import OfferLetterForm
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
+
 
 
 def _get_target(kind: str, pk: int):
@@ -305,3 +308,148 @@ def application_detail(request, pk: int):
         return HttpResponseForbidden("Not allowed.")
     
     return render(request, "applications/_application_detail.html", {"app": app})
+
+
+# ==========================================
+# OFFER LETTER WORKFLOW VIEWS
+# ==========================================
+
+@login_required(login_url="accounts:login")
+def create_offer_letter(request, app_id: int):
+    """
+    Company-side view to create or edit an Offer Letter for a candidate application.
+    """
+    if not hasattr(request.user, "company_profile"):
+        return HttpResponseForbidden("Company profile required.")
+
+    company = request.user.company_profile
+    app = get_object_or_404(
+        Application.objects.select_related("candidate__user", "company", "job_post", "internship_post"),
+        pk=app_id,
+        company=company
+    )
+
+    offer, created = OfferLetter.objects.get_or_create(
+        application=app,
+        defaults={
+            "company": company,
+            "candidate": app.candidate,
+            "job_title": app.target_title,
+            "offered_salary": "NPR 35,000 / month",
+            "joining_date": timezone.localdate() + timedelta(days=14),
+            "expiration_date": timezone.localdate() + timedelta(days=7),
+            "work_location": getattr(app.job_post or app.internship_post, "city", "Kathmandu"),
+            "employment_type": "Full Time Job" if app.is_job else "Internship",
+            "hr_name": f"{company.first_name} {company.last_name}",
+            "hr_designation": "Hiring Manager",
+            "terms_and_conditions": (
+                "1. Working hours: 9:00 AM to 5:00 PM (Mon-Fri).\n"
+                "2. Probation Period: 3 Months standard probation.\n"
+                "3. Confidentiality: Maintain strict confidentiality regarding company intellectual property and client data.\n"
+                "4. Notice Period: 15-day prior notice required for termination from either party."
+            )
+        }
+    )
+
+    if request.method == "POST":
+        form = OfferLetterForm(request.POST, request.FILES, instance=offer)
+        if form.is_valid():
+            offer_obj = form.save(commit=False)
+            offer_obj.status = "pending"
+            offer_obj.save()
+
+            # Update Application status to offered
+            app.status = "offered"
+            app.save(update_fields=["status", "updated_at"])
+
+            messages.success(request, f"Offer Letter successfully issued to {app.candidate.first_name}!")
+            return redirect("company:applicants_all")
+    else:
+        form = OfferLetterForm(instance=offer)
+
+    return render(request, "applications/offer_form.html", {
+        "form": form,
+        "app": app,
+        "offer": offer,
+    })
+
+
+@login_required(login_url="accounts:login")
+def view_offer_letter(request, app_id: int):
+    """
+    View offer letter detail (accessible by Candidate or issuing Company).
+    """
+    app = get_object_or_404(
+        Application.objects.select_related("candidate__user", "company", "job_post", "internship_post"),
+        pk=app_id
+    )
+
+    # Authorization: user must be candidate or company owner
+    is_candidate = hasattr(request.user, "profile") and app.candidate.user_id == request.user.id
+    is_company = hasattr(request.user, "company_profile") and app.company.user_id == request.user.id
+
+    if not (is_candidate or is_company):
+        return HttpResponseForbidden("Access denied.")
+
+    try:
+        offer = app.offer_letter
+    except OfferLetter.DoesNotExist:
+        messages.error(request, "No offer letter has been issued for this application yet.")
+        if is_company:
+            return redirect("company:applicants_all")
+        return redirect("applications:my_applications")
+
+    # Auto-expire check
+    if offer.is_expired:
+        offer.status = "expired"
+        offer.save(update_fields=["status", "updated_at"])
+
+    return render(request, "applications/offer_detail.html", {
+        "app": app,
+        "offer": offer,
+        "is_candidate": is_candidate,
+        "is_company": is_company,
+    })
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def respond_offer_letter(request, app_id: int):
+    """
+    Candidate response (Accept / Decline) to an offer letter.
+    """
+    app = get_object_or_404(Application.objects.select_related("candidate__user"), pk=app_id)
+
+    if app.candidate.user_id != request.user.id:
+        return HttpResponseForbidden("Access denied.")
+
+    offer = get_object_or_404(OfferLetter, application=app)
+
+    if offer.status != "pending" or offer.is_expired:
+        messages.error(request, "This offer is no longer pending or has expired.")
+        return redirect("applications:view_offer", app_id=app.id)
+
+    action = request.POST.get("action")
+    notes = request.POST.get("notes", "").strip()
+
+    if action == "accept":
+        offer.status = "accepted"
+        offer.accepted_at = timezone.now()
+        offer.candidate_response_notes = notes
+        offer.save()
+
+        app.status = "accepted"
+        app.save(update_fields=["status", "updated_at"])
+
+        messages.success(request, "🎉 Congratulations! You have accepted the Offer Letter. The employer has been notified.")
+    elif action == "decline":
+        offer.status = "declined"
+        offer.candidate_response_notes = notes
+        offer.save()
+
+        app.status = "rejected"
+        app.save(update_fields=["status", "updated_at"])
+
+        messages.info(request, "You have declined the offer letter.")
+
+    return redirect("applications:view_offer", app_id=app.id)
