@@ -48,6 +48,19 @@
           </div>
         </div>
         
+        {% if app.offer_letter %}
+          <div class="alert alert-warning border-0 shadow-xs rounded-3 d-flex align-items-center justify-content-between my-3">
+            <div>
+              <i class="bi bi-file-earmark-check-fill text-warning fs-5 me-2"></i>
+              <strong>Official Offer Letter Issued!</strong>
+              <small class="d-block text-muted">Issued on {{ app.offer_letter.created_at|date:"M d, Y" }}</small>
+            </div>
+            <a href="{% url 'applications:view_offer' app.id %}" class="btn btn-warning btn-sm fw-bold px-3 shadow-xs">
+              View Offer Letter
+            </a>
+          </div>
+        {% endif %}
+
         <!-- Application Timeline -->
         <div class="row text-center py-2 bg-light rounded-3">
           <div class="col border-end border-white">

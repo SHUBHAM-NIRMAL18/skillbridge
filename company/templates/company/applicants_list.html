@@ -284,12 +284,24 @@
               </td>
 
               <td>
-                <button type="button"
-                        class="btn btn-outline-secondary btn-sm js-view-applicant"
-                        data-app="{{ a.id }}">
-                  View
-                </button>
+                <div class="d-flex gap-1 align-items-center">
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-sm js-view-applicant"
+                          data-app="{{ a.id }}">
+                    View
+                  </button>
+                  {% if a.offer_letter %}
+                    <a href="{% url 'applications:view_offer' a.id %}" class="btn btn-sm btn-outline-success" title="View Issued Offer Letter">
+                      <i class="bi bi-file-check me-1"></i> Offer
+                    </a>
+                  {% else %}
+                    <a href="{% url 'applications:create_offer' a.id %}" class="btn btn-sm btn-warning text-dark fw-semibold" title="Issue Offer Letter">
+                      <i class="bi bi-file-earmark-plus me-1"></i> Offer
+                    </a>
+                  {% endif %}
+                </div>
               </td>
+
             </tr>
 
             {% if a.cover_letter %}
@@ -512,7 +524,14 @@ document.addEventListener('change', async (e) => {
         }
 
         showToast('Status updated', 'success');
+        if (value === 'offered') {
+          showToast('Redirecting to create Offer Letter...', 'info');
+          setTimeout(() => {
+            window.location.href = `{% url 'applications:create_offer' 0 %}`.replace('/0/', `/${appId}/`);
+          }, 800);
+        }
       } else {
+
         showToast(data.error || 'Failed to update.', 'danger');
       }
     } catch (err) {

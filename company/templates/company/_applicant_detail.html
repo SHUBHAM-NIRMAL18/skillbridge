@@ -61,9 +61,22 @@
           <option value="{{ value }}" {% if value == app.status %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
+
+      <div class="mt-2">
+        {% if app.offer_letter %}
+          <a href="{% url 'applications:view_offer' app.id %}" class="btn btn-sm btn-outline-success w-100 fw-semibold" target="_blank">
+            <i class="bi bi-file-check me-1"></i> View Issued Offer Letter
+          </a>
+        {% else %}
+          <a href="{% url 'applications:create_offer' app.id %}" class="btn btn-sm btn-warning w-100 fw-bold text-dark" target="_blank">
+            <i class="bi bi-file-earmark-plus me-1"></i> Issue Offer Letter
+          </a>
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>
+
 
 <div class="p-3 border-bottom">
   <div class="small text-muted mb-1">Posting</div>

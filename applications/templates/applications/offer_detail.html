@@ -1,0 +1,319 @@
+{% extends is_candidate|yesno:"candidate/base.html,company/base.html" %}
+{% load static %}
+
+{% block title %}Official Offer Letter - {{ offer.job_title }}{% endblock %}
+
+{% block content %}
+<style>
+/* Print Optimized Styles */
+@media print {
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-family: 'Times New Roman', Times, serif;
+    }
+    .no-print, nav, header, footer, .btn, .alert {
+        display: none !important;
+    }
+    .offer-document-card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+}
+
+.offer-letter-container {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.document-header {
+    border-bottom: 2px solid #dc3545;
+    padding-bottom: 1.5rem;
+}
+
+.terms-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #dc3545;
+    padding: 1.25rem;
+    font-size: 0.95rem;
+    white-space: pre-line;
+}
+</style>
+
+<div class="container py-4">
+    <!-- Top Action Bar (No Print) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print offer-letter-container">
+        <div>
+            {% if is_candidate %}
+                <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Applications
+                </a>
+            {% else %}
+                <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Applicants List
+                </a>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-dark shadow-sm">
+                <i class="bi bi-printer me-2"></i> Print / Download PDF
+            </button>
+            {% if is_company %}
+                <a href="{% url 'applications:create_offer' app.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i> Edit Offer Details
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Candidate Decision Alert (No Print) -->
+    {% if is_candidate and offer.status == 'pending' and not offer.is_expired %}
+        <div class="alert alert-warning shadow-sm border-0 offer-letter-container mb-4 no-print">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-bell-fill me-2 text-warning"></i> Action Required: Respond to Offer</h5>
+                    <p class="mb-0 text-muted small">Please review the formal offer letter below. You must accept or decline before <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-success fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#acceptModal">
+                        <i class="bi bi-check-circle me-1"></i> Accept Offer
+                    </button>
+                    <button type="button" class="btn btn-outline-danger fw-bold px-3" data-bs-toggle="modal" data-bs-target="#declineModal">
+                        <i class="bi bi-x-circle me-1"></i> Decline
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Status Banner -->
+    <div class="offer-letter-container mb-3 no-print">
+        {% if offer.status == 'accepted' %}
+            <div class="alert alert-success border-0 shadow-sm d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+                <div>
+                    <strong class="d-block">Offer Accepted by Candidate</strong>
+                    <small>Accepted on {{ offer.accepted_at|date:"F d, Y \a\t h:i A" }}</small>
+                </div>
+            </div>
+        {% elif offer.status == 'declined' %}
+            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center">
+                <i class="bi bi-x-circle-fill fs-4 me-3 text-danger"></i>
+                <div>
+                    <strong class="d-block">Offer Declined</strong>
+                    {% if offer.candidate_response_notes %}<small>Reason: {{ offer.candidate_response_notes }}</small>{% endif %}
+                </div>
+            </div>
+        {% elif offer.status == 'expired' or offer.is_expired %}
+            <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center">
+                <i class="bi bi-clock-history fs-4 me-3 text-secondary"></i>
+                <div>
+                    <strong class="d-block">Offer Expired</strong>
+                    <small>The deadline to accept this offer ({{ offer.expiration_date|date:"M d, Y" }}) has passed.</small>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Official Printable Offer Letter Card -->
+    <div class="card border-0 shadow-lg offer-document-card offer-letter-container bg-white p-5">
+        <div class="card-body p-0">
+            
+            <!-- Document Header & Logo -->
+            <div class="d-flex justify-content-between align-items-start document-header mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">{{ offer.company.first_name }} {{ offer.company.last_name }}</h2>
+                    <p class="text-muted mb-0 small">{{ offer.company.industry }} Sector</p>
+                    <p class="text-muted mb-0 small">{{ offer.company.current_address }}, {{ offer.company.city }}, {{ offer.company.province }}</p>
+                    {% if offer.company.phone %}<p class="text-muted mb-0 small">Phone: {{ offer.company.phone }}</p>{% endif %}
+                </div>
+                <div class="text-end">
+                    {% if offer.company.logo %}
+                        <img src="{{ offer.company.logo.url }}" alt="{{ offer.company.first_name }}" style="max-height: 75px;" class="mb-2">
+                    {% else %}
+                        <div class="badge bg-danger fs-5 px-3 py-2">SkillBridge Verified Employer</div>
+                    {% endif %}
+                    <p class="text-muted small mb-0 mt-2">Date: <strong>{{ offer.created_at|date:"F d, Y" }}</strong></p>
+                </div>
+            </div>
+
+            <!-- Recipient Address Block -->
+            <div class="mb-4">
+                <p class="mb-1 text-uppercase fw-bold text-muted small">To:</p>
+                <h5 class="fw-bold text-dark mb-1">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</h5>
+                <p class="text-muted mb-0 small">Email: {{ offer.candidate.email }}</p>
+                {% if offer.candidate.phone_number %}<p class="text-muted mb-0 small">Phone: {{ offer.candidate.phone_number }}</p>{% endif %}
+                {% if offer.candidate.current_address %}<p class="text-muted mb-0 small">{{ offer.candidate.current_address }}, {{ offer.candidate.city }}</p>{% endif %}
+            </div>
+
+            <!-- Subject Line -->
+            <div class="my-4 py-2 border-top border-bottom border-light">
+                <h5 class="fw-bold text-dark text-center mb-0">
+                    SUBJECT: FORMAL OFFER OF {{ offer.employment_type|upper }} – {{ offer.job_title|upper }}
+                </h5>
+            </div>
+
+            <!-- Body Content -->
+            <div class="lh-lg text-dark mb-4" style="font-size: 1rem;">
+                <p>Dear <strong>{{ offer.candidate.first_name }}</strong>,</p>
+                
+                <p>On behalf of <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>, we are pleased to offer you the position of <strong>{{ offer.job_title }}</strong>. We were immensely impressed by your profile, experience, and skills demonstrated during our evaluation process, and we believe you will make a key contribution to our team.</p>
+                
+                <p>Below is a summary of the terms and conditions of your employment offer:</p>
+            </div>
+
+            <!-- Offer Details Table -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <tbody class="small">
+                        <tr>
+                            <th class="bg-light w-35 text-dark">Position Title:</th>
+                            <td class="fw-bold text-dark">{{ offer.job_title }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Compensation / Stipend:</th>
+                            <td class="fw-bold text-danger">{{ offer.offered_salary }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Start / Joining Date:</th>
+                            <td><strong class="text-dark">{{ offer.joining_date|date:"F d, Y" }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Employment Type:</th>
+                            <td>{{ offer.employment_type }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Work Location:</th>
+                            <td>{{ offer.work_location }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Offer Acceptance Deadline:</th>
+                            <td><strong class="text-danger">{{ offer.expiration_date|date:"F d, Y" }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Terms & Conditions Section -->
+            {% if offer.terms_and_conditions %}
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-2">Terms, Probation & Key Duties:</h6>
+                    <div class="terms-box rounded">
+                        {{ offer.terms_and_conditions }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Closing Text -->
+            <div class="lh-lg text-dark mb-5" style="font-size: 0.95rem;">
+                <p>Please confirm your acceptance of this offer by reviewing and signing/accepting digitally via your SkillBridge candidate portal prior to <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
+                <p class="mb-0">We look forward to welcoming you to our team!</p>
+            </div>
+
+            <!-- Signatures Section -->
+            <div class="row pt-4 border-top border-light">
+                <!-- Employer Signature -->
+                <div class="col-6">
+                    <p class="text-muted small mb-2">Sincerely,</p>
+                    {% if offer.hr_signature %}
+                        <img src="{{ offer.hr_signature.url }}" alt="HR Signature" style="max-height: 60px; object-fit: contain;" class="d-block mb-2">
+                    {% else %}
+                        <div style="height: 50px;" class="d-flex align-items-center">
+                            <span class="fst-italic text-muted me-2" style="font-family: cursive; font-size: 1.2rem;">{{ offer.hr_name }}</span>
+                            <i class="bi bi-patch-check-fill text-primary ms-1" title="Digital Signature Verified"></i>
+                        </div>
+                    {% endif %}
+                    <p class="fw-bold text-dark mb-0">{{ offer.hr_name }}</p>
+                    <p class="text-muted small mb-0">{{ offer.hr_designation }}</p>
+                    <p class="text-muted small mb-0">{{ offer.company.first_name }} {{ offer.company.last_name }}</p>
+                </div>
+
+                <!-- Candidate Acceptance Block -->
+                <div class="col-6 text-end">
+                    <p class="text-muted small mb-2">Candidate Acceptance:</p>
+                    {% if offer.status == 'accepted' %}
+                        <div class="d-inline-block text-center p-2 border border-success rounded bg-light mb-2">
+                            <i class="bi bi-check-circle-fill text-success fs-5 me-1"></i>
+                            <span class="fw-bold text-success">DIGITALLY ACCEPTED</span>
+                            <small class="d-block text-muted">{{ offer.accepted_at|date:"Y-m-d H:i" }}</small>
+                        </div>
+                        <p class="fw-bold text-dark mb-0">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</p>
+                    {% else %}
+                        <div class="p-3 border border-dashed rounded text-center text-muted small" style="height: 70px;">
+                            [ Pending Candidate Acceptance ]
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Candidate Acceptance Modal (No Print) -->
+{% if is_candidate and offer.status == 'pending' %}
+<div class="modal fade no-print" id="acceptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="post" action="{% url 'applications:respond_offer' app.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accept">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-check-circle me-2"></i> Accept Offer Letter</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-dark">Are you sure you want to accept this offer for <strong>{{ offer.job_title }}</strong> at <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>?</p>
+                    <p class="small text-muted mb-3">Accepting this offer will update your application status to <strong>Accepted / Hired</strong>.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Optional Note to Employer</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for this opportunity! I look forward to starting on {{ offer.joining_date|date:'M d, Y' }}."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4">Confirm & Accept Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Candidate Decline Modal (No Print) -->
+<div class="modal fade no-print" id="declineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="post" action="{% url 'applications:respond_offer' app.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="decline">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-x-circle me-2"></i> Decline Offer Letter</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-dark">Are you sure you want to decline this offer?</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Reason for Declining (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for the offer. Unfortunately, I have accepted another opportunity..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-bold">Confirm & Decline Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

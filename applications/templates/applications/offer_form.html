@@ -1,0 +1,147 @@
+{% extends "company/base.html" %}
+{% load static %}
+
+{% block title %}Issue Offer Letter - {{ app.candidate.first_name }} {{ app.candidate.last_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-muted mb-2 d-inline-block">
+                <i class="bi bi-arrow-left me-1"></i> Back to Applicants
+            </a>
+            <h2 class="fw-bold mb-1">Issue Official Offer Letter</h2>
+            <p class="text-muted">Prepare and customize the formal offer letter for candidate <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong>.</p>
+        </div>
+        <div>
+            <span class="badge bg-primary fs-6 px-3 py-2">Target: {{ app.target_title }}</span>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-4">
+
+            <!-- Main Form Card -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 border-bottom border-light">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i> Offer Details & Compensation</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Job / Internship Title <span class="text-danger">*</span></label>
+                                {{ form.job_title }}
+                                {% if form.job_title.errors %}<div class="text-danger small">{{ form.job_title.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Offered Salary / Stipend <span class="text-danger">*</span></label>
+                                {{ form.offered_salary }}
+                                <div class="form-text">e.g. NPR 45,000 / month or Paid Stipend NPR 15,000 / month</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Joining / Start Date <span class="text-danger">*</span></label>
+                                {{ form.joining_date }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Offer Expiration Date <span class="text-danger">*</span></label>
+                                {{ form.expiration_date }}
+                                <div class="form-text">Candidate must accept before this date</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Work Location</label>
+                                {{ form.work_location }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Employment Type</label>
+                                {{ form.employment_type }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Terms, Duties & Probation Policy</label>
+                            {{ form.terms_and_conditions }}
+                            <div class="form-text">Specify working hours, probation period, notice period, and key responsibilities.</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Signatory Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-bottom border-light">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-pen text-primary me-2"></i> Recruiter / Signatory Details</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Signatory Full Name <span class="text-danger">*</span></label>
+                                {{ form.hr_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Signatory Designation <span class="text-danger">*</span></label>
+                                {{ form.hr_designation }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Upload Digital Signature (Image)</label>
+                                {{ form.hr_signature }}
+                                {% if offer.hr_signature %}
+                                    <div class="mt-2 p-2 bg-light rounded d-inline-block">
+                                        <small class="d-block text-muted mb-1">Current Signature:</small>
+                                        <img src="{{ offer.hr_signature.url }}" alt="Signature" style="max-height: 60px; object-fit: contain;">
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">PNG/JPG image of signature stamp or handwritten digital sign.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary & Actions Column -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-info-circle me-2"></i> Candidate Snapshot</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-circle bg-danger text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                {{ app.candidate.first_name|slice:":1" }}{{ app.candidate.last_name|slice:":1" }}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ app.candidate.first_name }} {{ app.candidate.last_name }}</h6>
+                                <small class="text-muted">{{ app.candidate.email }}</small>
+                            </div>
+                        </div>
+
+                        <ul class="list-group list-group-flush mb-4 small">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Applied On:</span>
+                                <span class="fw-semibold">{{ app.applied_at|date:"M d, Y" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted">Current Status:</span>
+                                <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
+                            </li>
+                        </ul>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                            <i class="bi bi-send-check me-2"></i> Issue & Send Offer Letter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
