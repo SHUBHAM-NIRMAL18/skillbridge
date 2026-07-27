@@ -5,87 +5,395 @@
 
 {% block content %}
 <style>
-/* Print Optimized Styles */
+/* Modern Professional Corporate Offer Letter Styling */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
+
+.offer-letter-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.offer-document-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.letterhead-header {
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.company-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1.85rem;
+    letter-spacing: -0.02em;
+}
+
+.doc-ref-box {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    display: inline-block;
+}
+
+.doc-ref-code {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.05em;
+}
+
+/* Subject Line Banner */
+.subject-banner {
+    background-color: #f8fafc;
+    border-left: 5px solid #0f172a;
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    padding: 1.25rem 1.5rem;
+    border-radius: 6px;
+    margin: 1.75rem 0;
+}
+
+.subject-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+}
+
+/* Document Text Alignment */
+.doc-text-body {
+    text-align: justify;
+    text-justify: inter-word;
+    line-height: 1.85;
+    color: #0f172a;
+    font-size: 0.975rem;
+}
+
+/* Executive Key Terms Table */
+.summary-table-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.summary-table-card .table {
+    margin-bottom: 0;
+}
+
+.summary-table-card th {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-weight: 600;
+    width: 32%;
+    font-size: 0.9rem;
+    border-color: #cbd5e1;
+    padding: 0.85rem 1.25rem;
+}
+
+.summary-table-card td {
+    color: #0f172a;
+    font-size: 0.95rem;
+    border-color: #cbd5e1;
+    padding: 0.85rem 1.25rem;
+}
+
+/* Clauses Container */
+.clauses-wrapper {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #0f172a;
+    border-radius: 6px;
+    padding: 1.75rem 2rem;
+    line-height: 1.85;
+    text-align: justify;
+    text-justify: inter-word;
+    color: #0f172a;
+    font-size: 0.925rem;
+    white-space: pre-line;
+}
+
+/* Signatures & Security Seals */
+.signature-card {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.signature-img {
+    max-height: 70px;
+    max-width: 220px;
+    object-fit: contain;
+}
+
+.script-signature {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.verification-seal-bar {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.825rem;
+    color: #475569;
+}
+
+.no-screen {
+    display: none !important;
+}
+
+/* Print Optimization CSS */
 @media print {
-    body {
-        background: #fff !important;
-        color: #000 !important;
-        font-family: 'Times New Roman', Times, serif;
+    .no-screen {
+        display: flex !important;
     }
-    .no-print, nav, header, footer, .btn, .alert {
+
+    @page {
+        size: A4 portrait;
+        margin: 12mm 15mm 18mm 15mm;
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 8.5pt;
+            font-family: 'Arial', sans-serif;
+            color: #111111;
+        }
+        @bottom-left {
+            content: "Confidential Offer Letter — Ref: SKB-OFFER-{{ offer.created_at|date:'Y' }}-{{ offer.id|stringformat:'05d' }}";
+            font-size: 8.5pt;
+            font-family: 'Arial', sans-serif;
+            color: #111111;
+        }
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Georgia', 'Times New Roman', serif !important;
+        font-size: 10pt !important;
+        line-height: 1.55 !important;
+    }
+
+    .no-print, nav, header, footer, .navbar, .btn, .alert, .modal, .modal-backdrop {
         display: none !important;
     }
+
+    .offer-letter-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     .offer-document-card {
         border: none !important;
         box-shadow: none !important;
+        border-radius: 0 !important;
         padding: 0 !important;
         margin: 0 !important;
     }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    .letterhead-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        border-bottom: 2px solid #000000 !important;
+        padding-bottom: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    .company-title {
+        color: #000000 !important;
+        font-size: 1.5rem !important;
+    }
+
+    .subject-banner {
+        background: #f8fafc !important;
+        border: 1px solid #000000 !important;
+        border-left: 5px solid #000000 !important;
+        padding: 0.75rem 1.15rem !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .subject-title {
+        color: #000000 !important;
+        font-size: 0.95rem !important;
+    }
+
+    .doc-text-body {
+        color: #000000 !important;
+        text-align: justify !important;
+        line-height: 1.6 !important;
+    }
+
+    .summary-table-card {
+        border: 1px solid #000000 !important;
+        margin-bottom: 1.25rem !important;
+        border-radius: 0 !important;
+    }
+
+    .summary-table-card table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .summary-table-card th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        border: 1px solid #000000 !important;
+        padding: 0.55rem 0.8rem !important;
+        font-size: 0.85rem !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .summary-table-card td {
+        color: #000000 !important;
+        border: 1px solid #000000 !important;
+        padding: 0.55rem 0.8rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    .clauses-wrapper {
+        background-color: #ffffff !important;
+        border: 1px solid #000000 !important;
+        border-left: 4px solid #000000 !important;
+        padding: 1.15rem !important;
+        font-size: 0.85rem !important;
+        line-height: 1.6 !important;
+        text-align: justify !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .verification-seal-bar {
+        border: 1px solid #000000 !important;
+        background-color: #f8fafc !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .col-6 {
+        width: 50% !important;
+        float: left !important;
+    }
+
+    .signature-card {
+        border: 1px solid #000000 !important;
+        background: #ffffff !important;
+        padding: 0.85rem 1rem !important;
+        min-height: 120px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .print-footer-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-top: 1px solid #000000;
+        padding-top: 4px;
+        font-size: 8pt;
+        font-family: Arial, sans-serif;
+        color: #000000;
+        background: #ffffff !important;
+        justify-content: space-between;
+        align-items: center;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .print-page-counter::after {
+        content: "Page " counter(page) " of " counter(pages);
+    }
+
+    .signature-card, .clauses-wrapper, .summary-table-card, .verification-seal-bar, .print-footer-bar {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
     .container {
         max-width: 100% !important;
         width: 100% !important;
         padding: 0 !important;
-    }
-}
-
-.offer-letter-container {
-    max-width: 850px;
-    margin: 0 auto;
-}
-
-.document-header {
-    border-bottom: 2px solid #dc3545;
-    padding-bottom: 1.5rem;
-}
-
-.terms-box {
-    background-color: #f8f9fa;
-    border-left: 4px solid #dc3545;
-    padding: 1.25rem;
-    font-size: 0.95rem;
-    white-space: pre-line;
+        margin: 0 !important;
 }
 </style>
 
-<div class="container py-4">
+<div class="container py-4 offer-letter-wrapper">
+
     <!-- Top Action Bar (No Print) -->
-    <div class="d-flex justify-content-between align-items-center mb-4 no-print offer-letter-container">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
         <div>
             {% if is_candidate %}
-                <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-secondary btn-sm">
+                <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold">
                     <i class="bi bi-arrow-left me-1"></i> Back to Applications
                 </a>
             {% else %}
-                <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm">
+                <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold">
                     <i class="bi bi-arrow-left me-1"></i> Back to Applicants List
                 </a>
             {% endif %}
         </div>
-        <div class="d-flex gap-2">
-            <button onclick="window.print()" class="btn btn-dark shadow-sm">
-                <i class="bi bi-printer me-2"></i> Print / Download PDF
+
+        <div class="d-flex align-items-center gap-2">
+            <button onclick="window.print()" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-printer me-1"></i> Print / Save PDF
             </button>
             {% if is_company %}
-                <a href="{% url 'applications:create_offer' app.id %}" class="btn btn-outline-primary">
+                <a href="{% url 'applications:create_offer' app.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                     <i class="bi bi-pencil me-1"></i> Edit Offer Details
                 </a>
             {% endif %}
+            <span class="badge {% if offer.status == 'accepted' %}bg-success{% elif offer.status == 'declined' %}bg-danger{% elif offer.is_expired %}bg-secondary{% else %}bg-warning text-dark{% endif %} fs-6 px-3 py-2 rounded-pill">
+                {{ offer.get_status_display }}
+            </span>
         </div>
     </div>
 
-    <!-- Candidate Decision Alert (No Print) -->
+    <!-- Candidate Response Alert Banner (No Print) -->
     {% if is_candidate and offer.status == 'pending' and not offer.is_expired %}
-        <div class="alert alert-warning shadow-sm border-0 offer-letter-container mb-4 no-print">
+        <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4 no-print p-4" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-bell-fill me-2 text-warning"></i> Action Required: Respond to Offer</h5>
-                    <p class="mb-0 text-muted small">Please review the formal offer letter below. You must accept or decline before <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-award-fill me-2 text-warning fs-4"></i> Action Required: Respond to Official Job Offer</h5>
+                    <p class="mb-0 text-muted small">Please review the official employment offer letter below. You must respond before <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-success fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#acceptModal">
+                    <button type="button" class="btn btn-success fw-bold px-4 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#acceptModal">
                         <i class="bi bi-check-circle me-1"></i> Accept Offer
                     </button>
-                    <button type="button" class="btn btn-outline-danger fw-bold px-3" data-bs-toggle="modal" data-bs-target="#declineModal">
+                    <button type="button" class="btn btn-outline-danger fw-bold px-3 rounded-pill" data-bs-toggle="modal" data-bs-target="#declineModal">
                         <i class="bi bi-x-circle me-1"></i> Decline
                     </button>
                 </div>
@@ -93,108 +401,135 @@
         </div>
     {% endif %}
 
-    <!-- Status Banner -->
-    <div class="offer-letter-container mb-3 no-print">
+    <!-- Status Banners (No Print) -->
+    <div class="mb-3 no-print">
         {% if offer.status == 'accepted' %}
-            <div class="alert alert-success border-0 shadow-sm d-flex align-items-center">
-                <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+            <div class="alert alert-success border-0 shadow-sm d-flex align-items-center rounded-3">
+                <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
                 <div>
-                    <strong class="d-block">Offer Accepted by Candidate</strong>
-                    <small>Accepted on {{ offer.accepted_at|date:"F d, Y \a\t h:i A" }}</small>
+                    <strong class="d-block text-dark">Offer Letter Accepted & Signed</strong>
+                    <small class="text-muted">Digitally accepted by {{ offer.candidate.first_name }} {{ offer.candidate.last_name }} on {{ offer.accepted_at|date:"F d, Y \a\t h:i A" }}</small>
                 </div>
             </div>
         {% elif offer.status == 'declined' %}
-            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center">
-                <i class="bi bi-x-circle-fill fs-4 me-3 text-danger"></i>
+            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center rounded-3">
+                <i class="bi bi-x-circle-fill fs-3 me-3 text-danger"></i>
                 <div>
-                    <strong class="d-block">Offer Declined</strong>
-                    {% if offer.candidate_response_notes %}<small>Reason: {{ offer.candidate_response_notes }}</small>{% endif %}
+                    <strong class="d-block text-dark">Offer Declined</strong>
+                    {% if offer.candidate_response_notes %}<small class="text-muted">Reason provided: {{ offer.candidate_response_notes }}</small>{% endif %}
                 </div>
             </div>
         {% elif offer.status == 'expired' or offer.is_expired %}
-            <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center">
-                <i class="bi bi-clock-history fs-4 me-3 text-secondary"></i>
+            <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center rounded-3">
+                <i class="bi bi-clock-history fs-3 me-3 text-secondary"></i>
                 <div>
-                    <strong class="d-block">Offer Expired</strong>
-                    <small>The deadline to accept this offer ({{ offer.expiration_date|date:"M d, Y" }}) has passed.</small>
+                    <strong class="d-block text-dark">Offer Expired</strong>
+                    <small class="text-muted">The deadline to respond ({{ offer.expiration_date|date:"F d, Y" }}) has elapsed.</small>
                 </div>
             </div>
         {% endif %}
     </div>
 
-    <!-- Official Printable Offer Letter Card -->
-    <div class="card border-0 shadow-lg offer-document-card offer-letter-container bg-white p-5">
+    <!-- Official Printable Corporate Offer Letter Card -->
+    <div class="card offer-document-card p-4 p-md-5">
         <div class="card-body p-0">
             
-            <!-- Document Header & Logo -->
-            <div class="d-flex justify-content-between align-items-start document-header mb-4">
+            <!-- Document Letterhead & Header -->
+            <div class="d-flex justify-content-between align-items-start letterhead-header flex-wrap gap-3">
                 <div>
-                    <h2 class="fw-bold text-dark mb-1">{{ offer.company.first_name }} {{ offer.company.last_name }}</h2>
-                    <p class="text-muted mb-0 small">{{ offer.company.industry }} Sector</p>
-                    <p class="text-muted mb-0 small">{{ offer.company.current_address }}, {{ offer.company.city }}, {{ offer.company.province }}</p>
-                    {% if offer.company.phone %}<p class="text-muted mb-0 small">Phone: {{ offer.company.phone }}</p>{% endif %}
-                </div>
-                <div class="text-end">
-                    {% if offer.company.logo %}
-                        <img src="{{ offer.company.logo.url }}" alt="{{ offer.company.first_name }}" style="max-height: 75px;" class="mb-2">
-                    {% else %}
-                        <div class="badge bg-danger fs-5 px-3 py-2">SkillBridge Verified Employer</div>
+                    <h2 class="company-title mb-1">{{ offer.company.first_name }} {{ offer.company.last_name }}</h2>
+                    {% if offer.company.industry %}
+                        <p class="text-dark fw-semibold mb-1 small"><i class="bi bi-building me-1"></i> {{ offer.company.industry }} Sector</p>
                     {% endif %}
-                    <p class="text-muted small mb-0 mt-2">Date: <strong>{{ offer.created_at|date:"F d, Y" }}</strong></p>
+                    <p class="text-muted mb-0 small"><i class="bi bi-geo-alt me-1"></i> {{ offer.company.current_address }}, {{ offer.company.city }}{% if offer.company.province %}, {{ offer.company.province }}{% endif %}</p>
+                    {% if offer.company.phone %}
+                        <p class="text-muted mb-0 small"><i class="bi bi-telephone me-1"></i> {{ offer.company.phone }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="text-end ms-auto">
+                    {% if offer.company.logo %}
+                        <img src="{{ offer.company.logo.url }}" alt="{{ offer.company.first_name }}" style="max-height: 80px; width: auto;" class="mb-2 d-block ms-auto">
+                    {% else %}
+                        <div class="d-inline-flex align-items-center gap-1 bg-light text-dark border border-secondary px-3 py-2 rounded-2 mb-2">
+                            <i class="bi bi-shield-check fs-5 text-dark"></i>
+                            <span class="fw-bold small">SkillBridge Verified Employer</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="doc-ref-box mt-1 text-end">
+                        <small class="d-block text-muted text-uppercase fw-semibold" style="font-size: 0.75rem;">Document Ref:</small>
+                        <span class="doc-ref-code">SKB-OFFER-{{ offer.created_at|date:"Y" }}-{{ offer.id|stringformat:"05d" }}</span>
+                        <small class="d-block text-muted mt-1" style="font-size: 0.8rem;">Issued: <strong>{{ offer.created_at|date:"F d, Y" }}</strong></small>
+                    </div>
                 </div>
             </div>
 
             <!-- Recipient Address Block -->
-            <div class="mb-4">
-                <p class="mb-1 text-uppercase fw-bold text-muted small">To:</p>
-                <h5 class="fw-bold text-dark mb-1">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</h5>
-                <p class="text-muted mb-0 small">Email: {{ offer.candidate.email }}</p>
-                {% if offer.candidate.phone_number %}<p class="text-muted mb-0 small">Phone: {{ offer.candidate.phone_number }}</p>{% endif %}
-                {% if offer.candidate.current_address %}<p class="text-muted mb-0 small">{{ offer.candidate.current_address }}, {{ offer.candidate.city }}</p>{% endif %}
+            <div class="row mb-4">
+                <div class="col-md-7">
+                    <p class="text-uppercase fw-bold text-muted small mb-1" style="letter-spacing: 0.05em;">To / Recipient Details:</p>
+                    <h5 class="fw-bold text-dark mb-1">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</h5>
+                    <p class="text-muted mb-0 small"><i class="bi bi-envelope me-1"></i> {{ offer.candidate.email }}</p>
+                    {% if offer.candidate.phone_number %}
+                        <p class="text-muted mb-0 small"><i class="bi bi-telephone me-1"></i> {{ offer.candidate.phone_number }}</p>
+                    {% endif %}
+                    {% if offer.candidate.current_address %}
+                        <p class="text-muted mb-0 small"><i class="bi bi-geo-alt me-1"></i> {{ offer.candidate.current_address }}, {{ offer.candidate.city }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    <span class="badge bg-light text-dark border px-3 py-2 small">
+                        <i class="bi bi-journal-check me-1 text-dark"></i> App Ref ID: #APP-{{ offer.application.id }}
+                    </span>
+                </div>
             </div>
 
-            <!-- Subject Line -->
-            <div class="my-4 py-2 border-top border-bottom border-light">
-                <h5 class="fw-bold text-dark text-center mb-0">
-                    SUBJECT: FORMAL OFFER OF {{ offer.employment_type|upper }} – {{ offer.job_title|upper }}
-                </h5>
+            <!-- Subject Line Banner -->
+            <div class="subject-banner">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="subject-title">
+                        SUBJECT: OFFICIAL LETTER OF OFFER & APPOINTMENT – {{ offer.job_title|upper }}
+                    </span>
+                    <span class="badge bg-dark px-3 py-1 rounded-pill small no-print">{{ offer.employment_type }}</span>
+                </div>
             </div>
 
-            <!-- Body Content -->
-            <div class="lh-lg text-dark mb-4" style="font-size: 1rem;">
+            <!-- Salutation & Formal Opening Body -->
+            <div class="doc-text-body mb-4">
                 <p>Dear <strong>{{ offer.candidate.first_name }}</strong>,</p>
                 
-                <p>On behalf of <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>, we are pleased to offer you the position of <strong>{{ offer.job_title }}</strong>. We were immensely impressed by your profile, experience, and skills demonstrated during our evaluation process, and we believe you will make a key contribution to our team.</p>
+                <p>On behalf of <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>, we are pleased to extend this formal letter of appointment for the position of <strong>{{ offer.job_title }}</strong>. Following our evaluation and interview process, we were thoroughly impressed by your background, professional skills, and qualifications demonstrated throughout our interactions.</p>
                 
-                <p>Below is a summary of the terms and conditions of your employment offer:</p>
+                <p class="mb-0">We are confident that your technical competencies, enthusiasm, and experience will make a key contribution to our organizational objectives. The terms and conditions governing your employment offer are set forth in detail below:</p>
             </div>
 
-            <!-- Offer Details Table -->
-            <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle">
-                    <tbody class="small">
+            <!-- Executive Offer Key Terms Table -->
+            <div class="summary-table-card">
+                <table class="table align-middle">
+                    <tbody>
                         <tr>
-                            <th class="bg-light w-35 text-dark">Position Title:</th>
+                            <th><i class="bi bi-briefcase me-2 text-dark"></i> Position / Role Title:</th>
                             <td class="fw-bold text-dark">{{ offer.job_title }}</td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Compensation / Stipend:</th>
-                            <td class="fw-bold text-danger">{{ offer.offered_salary }}</td>
+                            <th><i class="bi bi-cash-stack me-2 text-dark"></i> Remuneration / Salary:</th>
+                            <td class="fw-bold text-dark fs-6">{{ offer.offered_salary }}</td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Start / Joining Date:</th>
+                            <th><i class="bi bi-calendar-event me-2 text-dark"></i> Expected Joining Date:</th>
                             <td><strong class="text-dark">{{ offer.joining_date|date:"F d, Y" }}</strong></td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Employment Type:</th>
-                            <td>{{ offer.employment_type }}</td>
+                            <th><i class="bi bi-clock-history me-2 text-dark"></i> Employment Type:</th>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ offer.employment_type }}</span></td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Work Location:</th>
+                            <th><i class="bi bi-geo-alt me-2 text-dark"></i> Primary Work Location:</th>
                             <td>{{ offer.work_location }}</td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Offer Acceptance Deadline:</th>
+                            <th><i class="bi bi-hourglass-split me-2 text-dark"></i> Offer Validity Deadline:</th>
                             <td><strong class="text-danger">{{ offer.expiration_date|date:"F d, Y" }}</strong></td>
                         </tr>
                     </tbody>
@@ -204,53 +539,92 @@
             <!-- Terms & Conditions Section -->
             {% if offer.terms_and_conditions %}
                 <div class="mb-4">
-                    <h6 class="fw-bold text-dark mb-2">Terms, Probation & Key Duties:</h6>
-                    <div class="terms-box rounded">
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text text-dark me-2"></i> Comprehensive Employment Clauses & Conditions:
+                    </h6>
+                    <div class="clauses-wrapper">
                         {{ offer.terms_and_conditions }}
                     </div>
                 </div>
             {% endif %}
 
             <!-- Closing Text -->
-            <div class="lh-lg text-dark mb-5" style="font-size: 0.95rem;">
-                <p>Please confirm your acceptance of this offer by reviewing and signing/accepting digitally via your SkillBridge candidate portal prior to <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
-                <p class="mb-0">We look forward to welcoming you to our team!</p>
+            <div class="doc-text-body mb-4">
+                <p>Please indicate your formal acceptance of this appointment by reviewing and signing/accepting digitally via your SkillBridge candidate portal prior to the deadline of <strong>{{ offer.expiration_date|date:"F d, Y" }}</strong>.</p>
+                <p class="mb-0">We look forward to welcoming you aboard and working together toward a rewarding professional career.</p>
+            </div>
+
+            <!-- Verification & Security Badge Bar -->
+            <div class="verification-seal-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock-fill text-dark fs-5"></i>
+                    <div>
+                        <strong class="text-dark d-block" style="font-size: 0.8rem;">SkillBridge Verified Corporate Document</strong>
+                        <span class="text-muted" style="font-size: 0.75rem;">Digitally generated & authenticated via SkillBridge Employer Portal</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted font-monospace" style="font-size: 0.75rem;">Security Hash: SKB-VERIFIED-{{ offer.id }}-{{ offer.created_at|date:"U" }}</small>
+                </div>
             </div>
 
             <!-- Signatures Section -->
-            <div class="row pt-4 border-top border-light">
+            <div class="row g-4 pt-2">
                 <!-- Employer Signature -->
                 <div class="col-6">
-                    <p class="text-muted small mb-2">Sincerely,</p>
-                    {% if offer.hr_signature %}
-                        <img src="{{ offer.hr_signature.url }}" alt="HR Signature" style="max-height: 60px; object-fit: contain;" class="d-block mb-2">
-                    {% else %}
-                        <div style="height: 50px;" class="d-flex align-items-center">
-                            <span class="fst-italic text-muted me-2" style="font-family: cursive; font-size: 1.2rem;">{{ offer.hr_name }}</span>
-                            <i class="bi bi-patch-check-fill text-primary ms-1" title="Digital Signature Verified"></i>
+                    <div class="signature-card">
+                        <div>
+                            <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing: 0.05em;">For & On Behalf Of Employer:</p>
+                            {% if offer.hr_signature %}
+                                <img src="{{ offer.hr_signature.url }}" alt="Authorized Signature" class="signature-img mb-2">
+                            {% else %}
+                                <div class="my-2">
+                                    <span class="script-signature">{{ offer.hr_name }}</span>
+                                    <i class="bi bi-patch-check-fill text-dark ms-1" title="Digitally Verified Signature"></i>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                    <p class="fw-bold text-dark mb-0">{{ offer.hr_name }}</p>
-                    <p class="text-muted small mb-0">{{ offer.hr_designation }}</p>
-                    <p class="text-muted small mb-0">{{ offer.company.first_name }} {{ offer.company.last_name }}</p>
+                        <div>
+                            <p class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ offer.hr_name }}</p>
+                            <p class="text-muted small mb-0">{{ offer.hr_designation }}</p>
+                            <p class="text-muted small mb-0 fw-semibold">{{ offer.company.first_name }} {{ offer.company.last_name }}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Candidate Acceptance Block -->
                 <div class="col-6 text-end">
-                    <p class="text-muted small mb-2">Candidate Acceptance:</p>
-                    {% if offer.status == 'accepted' %}
-                        <div class="d-inline-block text-center p-2 border border-success rounded bg-light mb-2">
-                            <i class="bi bi-check-circle-fill text-success fs-5 me-1"></i>
-                            <span class="fw-bold text-success">DIGITALLY ACCEPTED</span>
-                            <small class="d-block text-muted">{{ offer.accepted_at|date:"Y-m-d H:i" }}</small>
+                    <div class="signature-card align-items-end">
+                        <div>
+                            <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing: 0.05em;">Candidate Acceptance:</p>
+                            {% if offer.status == 'accepted' %}
+                                <div class="d-inline-block text-center p-2 border border-success rounded-3 bg-success bg-opacity-10 mb-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-4 me-1"></i>
+                                    <span class="fw-bold text-success small d-block">ACCEPTED DIGITALLY</span>
+                                    <small class="text-muted font-monospace" style="font-size: 0.725rem;">{{ offer.accepted_at|date:"Y-m-d H:i T" }}</small>
+                                </div>
+                            {% elif offer.status == 'declined' %}
+                                <div class="d-inline-block text-center p-2 border border-danger rounded-3 bg-danger bg-opacity-10 mb-2">
+                                    <i class="bi bi-x-circle-fill text-danger fs-4 me-1"></i>
+                                    <span class="fw-bold text-danger small d-block">OFFER DECLINED</span>
+                                </div>
+                            {% else %}
+                                <div class="p-3 border border-dashed rounded-3 text-center text-muted small w-100" style="background-color: #fafafa;">
+                                    <i class="bi bi-pencil-square d-block fs-5 text-secondary mb-1"></i>
+                                    [ Pending Digital Signature & Acceptance ]
+                                </div>
+                            {% endif %}
                         </div>
-                        <p class="fw-bold text-dark mb-0">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</p>
-                    {% else %}
-                        <div class="p-3 border border-dashed rounded text-center text-muted small" style="height: 70px;">
-                            [ Pending Candidate Acceptance ]
+                        <div>
+                            <p class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ offer.candidate.first_name }} {{ offer.candidate.last_name }}</p>
+                            <p class="text-muted small mb-0">Candidate / Recipient</p>
                         </div>
-                    {% endif %}
+                    </div>
                 </div>
+            <!-- Fixed Print Footer Bar (Print Only) -->
+            <div class="print-footer-bar no-screen px-3">
+                <span>Confidential Employment Offer — {{ offer.company.first_name }} {{ offer.company.last_name }} | Ref: SKB-OFFER-{{ offer.created_at|date:"Y" }}-{{ offer.id|stringformat:"05d" }}</span>
+                <span class="print-page-counter fw-semibold"></span>
             </div>
 
         </div>
@@ -261,26 +635,26 @@
 {% if is_candidate and offer.status == 'pending' %}
 <div class="modal fade no-print" id="acceptModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 shadow-lg rounded-3">
             <form method="post" action="{% url 'applications:respond_offer' app.id %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="accept">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-check-circle me-2"></i> Accept Offer Letter</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-check-circle me-2"></i> Accept Employment Offer</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-dark">Are you sure you want to accept this offer for <strong>{{ offer.job_title }}</strong> at <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>?</p>
-                    <p class="small text-muted mb-3">Accepting this offer will update your application status to <strong>Accepted / Hired</strong>.</p>
+                    <p class="text-dark">Are you sure you want to accept the offer for <strong>{{ offer.job_title }}</strong> at <strong>{{ offer.company.first_name }} {{ offer.company.last_name }}</strong>?</p>
+                    <p class="small text-muted mb-3">Accepting this offer will record your digital acceptance signature and update your application status to <strong>Offered / Hired</strong>.</p>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Optional Note to Employer</label>
+                        <label class="form-label fw-semibold small">Optional Message / Note to Employer</label>
                         <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for this opportunity! I look forward to starting on {{ offer.joining_date|date:'M d, Y' }}."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success fw-bold px-4">Confirm & Accept Offer</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 rounded-pill">Confirm & Accept Offer</button>
                 </div>
             </form>
         </div>
@@ -290,12 +664,12 @@
 <!-- Candidate Decline Modal (No Print) -->
 <div class="modal fade no-print" id="declineModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 shadow-lg rounded-3">
             <form method="post" action="{% url 'applications:respond_offer' app.id %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="decline">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-x-circle me-2"></i> Decline Offer Letter</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-x-circle me-2"></i> Decline Employment Offer</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -303,12 +677,12 @@
                     
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Reason for Declining (Optional)</label>
-                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for the offer. Unfortunately, I have accepted another opportunity..."></textarea>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for considering me. Unfortunately, I am unable to accept..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger fw-bold">Confirm & Decline Offer</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-bold rounded-pill">Confirm & Decline Offer</button>
                 </div>
             </form>
         </div>
