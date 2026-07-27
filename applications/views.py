@@ -343,10 +343,34 @@ def create_offer_letter(request, app_id: int):
             "hr_name": f"{company.first_name} {company.last_name}",
             "hr_designation": "Hiring Manager",
             "terms_and_conditions": (
-                "1. Working hours: 9:00 AM to 5:00 PM (Mon-Fri).\n"
-                "2. Probation Period: 3 Months standard probation.\n"
-                "3. Confidentiality: Maintain strict confidentiality regarding company intellectual property and client data.\n"
-                "4. Notice Period: 15-day prior notice required for termination from either party."
+                "CLAUSE 1: APPOINTMENT, POSITION & REPORTING HIERARCHY\n"
+                "You are formally appointed to the position specified in this offer letter. In this role, you will be expected to carry out all core duties associated with your position and report directly to your assigned Department Head or Hiring Manager. The company reserves the right to align your job title or reporting line in accordance with organizational evolution.\n\n"
+                "CLAUSE 2: SCOPE OF DUTIES & PERFORMANCE EXPECTATIONS\n"
+                "Your responsibilities encompass high-quality execution of assigned technical, operational, and project tasks. You are required to perform your duties with diligence, maintain high professional standards, meet project milestones, collaborate effectively with team members, and comply with all reasonable directives issued by company leadership.\n\n"
+                "CLAUSE 3: COMPENSATION, PAYROLL SCHEDULE & TAX DEDUCTIONS\n"
+                "Your total monthly compensation will be disbursed on or before the last working day of each calendar month via direct transfer to your registered bank account. All payments are subject to mandatory government Tax Deducted at Source (TDS), statutory withholdings, and deductions in compliance with prevailing tax regulations and labor laws.\n\n"
+                "CLAUSE 4: PERFORMANCE BONUSES, ALLOWANCES & REIMBURSEMENTS\n"
+                "In addition to your base remuneration, you may be eligible for discretionary performance-based bonuses, project incentives, or statutory allowances evaluated during annual performance reviews. Legitimate business-related expenses incurred during authorized official duties will be reimbursed upon submitting valid receipts.\n\n"
+                "CLAUSE 5: PROBATIONARY PERIOD & CONFIRMATION EVALUATION\n"
+                "Your appointment commences with a mandatory 3-month probationary period. During probation, your work performance, technical competency, punctuality, and cultural alignment will be regularly reviewed. Upon satisfactory evaluation, your employment will be confirmed in writing. If performance does not meet required standards, probation may be extended or terminated.\n\n"
+                "CLAUSE 6: WORKING HOURS, OVERTIME & BREAK SCHEDULE\n"
+                "Standard working hours are 40 hours per week, Monday through Friday, from 9:00 AM to 5:00 PM, with a 1-hour lunch and refreshment break. You may occasionally be required to adjust working hours or extend time to fulfill critical project deadlines or client requirements in accordance with company policy.\n\n"
+                "CLAUSE 7: LEAVE ENTITLEMENT, SICK LEAVES & PUBLIC HOLIDAYS\n"
+                "You are entitled to annual paid leaves, paid sick leave, and casual leave accrued per completed month of service following probation. You are also entitled to official public holidays observed in the company calendar. Prior written approval from your manager is required for all scheduled leave requests.\n\n"
+                "CLAUSE 8: WORK LOCATION, HYBRID & REMOTE WORK GUIDELINES\n"
+                "Your primary workplace location is specified in this offer. If operating under an approved hybrid or remote arrangement, you must maintain a secure, reliable internet connection, adhere to data security protocols, and remain available during core office hours. The company reserves the right to recall remote employees to office upon prior notice.\n\n"
+                "CLAUSE 9: CONFIDENTIALITY, DATA SECURITY & NON-DISCLOSURE (NDA)\n"
+                "You shall maintain absolute confidentiality regarding all company intellectual property, proprietary software source code, customer records, financial accounts, trade secrets, and business operational strategies. You shall not disclose, copy, or transmit any confidential information to unauthorized third parties during or after your employment.\n\n"
+                "CLAUSE 10: INTELLECTUAL PROPERTY RIGHTS & WORK PRODUCT ASSIGNMENT\n"
+                "All software applications, code, designs, algorithms, technical documentation, business workflows, and inventions developed, conceived, or authored by you during your employment shall be the sole and exclusive intellectual property of the company from creation. You hereby assign all worldwide IP rights to the company.\n\n"
+                "CLAUSE 11: CODE OF CONDUCT, ETHICS & WORKPLACE DIGNITY\n"
+                "You agree to uphold strict ethical standards, professionalism, respect, and integrity in all interactions. The company maintains zero tolerance for workplace harassment, discrimination, substance abuse, or unauthorized external commercial activities that conflict with your primary employment responsibilities.\n\n"
+                "CLAUSE 12: NON-SOLICITATION & EXCLUSIVITY OF SERVICE\n"
+                "During your employment, you agree not to engage in secondary employment, consulting, or commercial activities without prior written authorization. For a period of 12 months post-employment, you agree not to solicit or recruit company clients, business partners, or employees for competing ventures.\n\n"
+                "CLAUSE 13: TERMINATION PROCEDURE & NOTICE PERIOD\n"
+                "During the probation period, either party may terminate employment by providing 15 days prior written notice. Post-confirmation, a 30-day written notice or equivalent basic salary in lieu of notice is required. The company reserves the right to terminate employment immediately without notice in cases of gross misconduct, fraud, breach of confidentiality, or criminal conviction.\n\n"
+                "CLAUSE 14: GOVERNING LAW, DISPUTE RESOLUTION & DIGITAL ACCEPTANCE\n"
+                "This offer of employment is governed by and construed under the labor laws of Nepal. Any disputes arising hereunder shall be resolved through mutual consultation or appropriate legal jurisdiction. Please confirm your acceptance digitally via your SkillBridge portal prior to the offer expiration date."
             )
         }
     )
@@ -403,6 +427,40 @@ def view_offer_letter(request, app_id: int):
     if offer.is_expired:
         offer.status = "expired"
         offer.save(update_fields=["status", "updated_at"])
+
+    # Auto-upgrade terms if empty or missing comprehensive clauses
+    if not offer.terms_and_conditions or "CLAUSE 1:" not in offer.terms_and_conditions:
+        offer.terms_and_conditions = (
+            "CLAUSE 1: APPOINTMENT, POSITION & REPORTING HIERARCHY\n"
+            "You are formally appointed to the position specified in this offer letter. In this role, you will be expected to carry out all core duties associated with your position and report directly to your assigned Department Head or Hiring Manager. The company reserves the right to align your job title or reporting line in accordance with organizational evolution.\n\n"
+            "CLAUSE 2: SCOPE OF DUTIES & PERFORMANCE EXPECTATIONS\n"
+            "Your responsibilities encompass high-quality execution of assigned technical, operational, and project tasks. You are required to perform your duties with diligence, maintain high professional standards, meet project milestones, collaborate effectively with team members, and comply with all reasonable directives issued by company leadership.\n\n"
+            "CLAUSE 3: COMPENSATION, PAYROLL SCHEDULE & TAX DEDUCTIONS\n"
+            "Your total monthly compensation will be disbursed on or before the last working day of each calendar month via direct transfer to your registered bank account. All payments are subject to mandatory government Tax Deducted at Source (TDS), statutory withholdings, and deductions in compliance with prevailing tax regulations and labor laws.\n\n"
+            "CLAUSE 4: PERFORMANCE BONUSES, ALLOWANCES & REIMBURSEMENTS\n"
+            "In addition to your base remuneration, you may be eligible for discretionary performance-based bonuses, project incentives, or statutory allowances evaluated during annual performance reviews. Legitimate business-related expenses incurred during authorized official duties will be reimbursed upon submitting valid receipts.\n\n"
+            "CLAUSE 5: PROBATIONARY PERIOD & CONFIRMATION EVALUATION\n"
+            "Your appointment commences with a mandatory 3-month probationary period. During probation, your work performance, technical competency, punctuality, and cultural alignment will be regularly reviewed. Upon satisfactory evaluation, your employment will be confirmed in writing. If performance does not meet required standards, probation may be extended or terminated.\n\n"
+            "CLAUSE 6: WORKING HOURS, OVERTIME & BREAK SCHEDULE\n"
+            "Standard working hours are 40 hours per week, Monday through Friday, from 9:00 AM to 5:00 PM, with a 1-hour lunch and refreshment break. You may occasionally be required to adjust working hours or extend time to fulfill critical project deadlines or client requirements in accordance with company policy.\n\n"
+            "CLAUSE 7: LEAVE ENTITLEMENT, SICK LEAVES & PUBLIC HOLIDAYS\n"
+            "You are entitled to annual paid leaves, paid sick leave, and casual leave accrued per completed month of service following probation. You are also entitled to official public holidays observed in the company calendar. Prior written approval from your manager is required for all scheduled leave requests.\n\n"
+            "CLAUSE 8: WORK LOCATION, HYBRID & REMOTE WORK GUIDELINES\n"
+            "Your primary workplace location is specified in this offer. If operating under an approved hybrid or remote arrangement, you must maintain a secure, reliable internet connection, adhere to data security protocols, and remain available during core office hours. The company reserves the right to recall remote employees to office upon prior notice.\n\n"
+            "CLAUSE 9: CONFIDENTIALITY, DATA SECURITY & NON-DISCLOSURE (NDA)\n"
+            "You shall maintain absolute confidentiality regarding all company intellectual property, proprietary software source code, customer records, financial accounts, trade secrets, and business operational strategies. You shall not disclose, copy, or transmit any confidential information to unauthorized third parties during or after your employment.\n\n"
+            "CLAUSE 10: INTELLECTUAL PROPERTY RIGHTS & WORK PRODUCT ASSIGNMENT\n"
+            "All software applications, code, designs, algorithms, technical documentation, business workflows, and inventions developed, conceived, or authored by you during your employment shall remain the sole and exclusive intellectual property of the company from creation. You hereby assign all worldwide IP rights to the company.\n\n"
+            "CLAUSE 11: CODE OF CONDUCT, ETHICS & WORKPLACE DIGNITY\n"
+            "You agree to uphold strict ethical standards, professionalism, respect, and integrity in all interactions. The company maintains zero tolerance for workplace harassment, discrimination, substance abuse, or unauthorized external commercial activities that conflict with your primary employment responsibilities.\n\n"
+            "CLAUSE 12: NON-SOLICITATION & EXCLUSIVITY OF SERVICE\n"
+            "During your employment, you agree not to engage in secondary employment, consulting, or commercial activities without prior written authorization. For a period of 12 months post-employment, you agree not to solicit or recruit company clients, business partners, or employees for competing ventures.\n\n"
+            "CLAUSE 13: TERMINATION PROCEDURE & NOTICE PERIOD\n"
+            "During the probation period, either party may terminate employment by providing 15 days prior written notice. Post-confirmation, a 30-day written notice or equivalent basic salary in lieu of notice is required. The company reserves the right to terminate employment immediately without notice in cases of gross misconduct, fraud, breach of confidentiality, or criminal conviction.\n\n"
+            "CLAUSE 14: GOVERNING LAW, DISPUTE RESOLUTION & DIGITAL ACCEPTANCE\n"
+            "This offer of employment is governed by and construed under the labor laws of Nepal. Any disputes arising hereunder shall be resolved through mutual consultation or appropriate legal jurisdiction. Please confirm your acceptance digitally via your SkillBridge portal prior to the offer expiration date."
+        )
+        offer.save(update_fields=["terms_and_conditions", "updated_at"])
 
     return render(request, "applications/offer_detail.html", {
         "app": app,
