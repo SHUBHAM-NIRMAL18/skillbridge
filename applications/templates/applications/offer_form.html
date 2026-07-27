@@ -5,16 +5,16 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <div>
-            <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-muted mb-2 d-inline-block">
-                <i class="bi bi-arrow-left me-1"></i> Back to Applicants
+            <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-muted mb-2 d-inline-block small fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> Back to Applicants List
             </a>
-            <h2 class="fw-bold mb-1">Issue Official Offer Letter</h2>
-            <p class="text-muted">Prepare and customize the formal offer letter for candidate <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong>.</p>
+            <h2 class="fw-bold mb-1 text-dark">Issue Official Employment Offer</h2>
+            <p class="text-muted mb-0">Prepare and customize an executive offer letter for <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong>.</p>
         </div>
         <div>
-            <span class="badge bg-primary fs-6 px-3 py-2">Target: {{ app.target_title }}</span>
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">Target Position: {{ app.target_title }}</span>
         </div>
     </div>
 
@@ -24,40 +24,40 @@
 
             <!-- Main Form Card -->
             <div class="col-lg-8">
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm rounded-3 mb-4">
                     <div class="card-header bg-white py-3 border-bottom border-light">
-                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i> Offer Details & Compensation</h5>
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i> Key Employment Terms & Salary</h5>
                     </div>
                     <div class="card-body p-4">
                         
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Job / Internship Title <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Job / Position Title <span class="text-danger">*</span></label>
                                 {{ form.job_title }}
                                 {% if form.job_title.errors %}<div class="text-danger small">{{ form.job_title.errors }}</div>{% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Offered Salary / Stipend <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Offered Remuneration / Salary <span class="text-danger">*</span></label>
                                 {{ form.offered_salary }}
-                                <div class="form-text">e.g. NPR 45,000 / month or Paid Stipend NPR 15,000 / month</div>
+                                <div class="form-text">e.g. NPR 50,000 / month or Stipend NPR 20,000 / month</div>
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Joining / Start Date <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Expected Start / Joining Date <span class="text-danger">*</span></label>
                                 {{ form.joining_date }}
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Offer Expiration Date <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Offer Acceptance Deadline <span class="text-danger">*</span></label>
                                 {{ form.expiration_date }}
-                                <div class="form-text">Candidate must accept before this date</div>
+                                <div class="form-text">Candidate must respond before this date</div>
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Work Location</label>
+                                <label class="form-label fw-semibold">Primary Work Location</label>
                                 {{ form.work_location }}
                             </div>
                             <div class="col-md-6">
@@ -67,16 +67,21 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Terms, Duties & Probation Policy</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-semibold mb-0">Terms, Conditions & Employment Clauses</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="loadDefaultTerms()">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Pre-fill Executive Template
+                                </button>
+                            </div>
                             {{ form.terms_and_conditions }}
-                            <div class="form-text">Specify working hours, probation period, notice period, and key responsibilities.</div>
+                            <div class="form-text">Specify working hours, probation period, confidentiality, notice period, and key responsibilities.</div>
                         </div>
 
                     </div>
                 </div>
 
                 <!-- Signatory Card -->
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3 border-bottom border-light">
                         <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-pen text-primary me-2"></i> Recruiter / Signatory Details</h5>
                     </div>
@@ -91,15 +96,15 @@
                                 {{ form.hr_designation }}
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-semibold">Upload Digital Signature (Image)</label>
+                                <label class="form-label fw-semibold">Upload Digital Signature Image (Optional)</label>
                                 {{ form.hr_signature }}
                                 {% if offer.hr_signature %}
                                     <div class="mt-2 p-2 bg-light rounded d-inline-block">
-                                        <small class="d-block text-muted mb-1">Current Signature:</small>
+                                        <small class="d-block text-muted mb-1">Current Signature Stamp:</small>
                                         <img src="{{ offer.hr_signature.url }}" alt="Signature" style="max-height: 60px; object-fit: contain;">
                                     </div>
                                 {% endif %}
-                                <div class="form-text">PNG/JPG image of signature stamp or handwritten digital sign.</div>
+                                <div class="form-text">Upload a transparent PNG/JPG image of handwritten signature or official signature stamp.</div>
                             </div>
                         </div>
                     </div>
@@ -108,35 +113,41 @@
 
             <!-- Summary & Actions Column -->
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-header bg-primary text-white py-3">
-                        <h6 class="fw-bold mb-0"><i class="bi bi-info-circle me-2"></i> Candidate Snapshot</h6>
+                <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white py-3 rounded-top-3">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-person-badge me-2"></i> Candidate Overview</h6>
                     </div>
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-circle bg-danger text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                            <div class="avatar-circle bg-primary text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 52px; height: 52px; font-size: 1.25rem;">
                                 {{ app.candidate.first_name|slice:":1" }}{{ app.candidate.last_name|slice:":1" }}
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">{{ app.candidate.first_name }} {{ app.candidate.last_name }}</h6>
-                                <small class="text-muted">{{ app.candidate.email }}</small>
+                                <small class="text-muted d-block">{{ app.candidate.email }}</small>
                             </div>
                         </div>
 
                         <ul class="list-group list-group-flush mb-4 small">
                             <li class="list-group-item d-flex justify-content-between px-0">
                                 <span class="text-muted">Applied On:</span>
-                                <span class="fw-semibold">{{ app.applied_at|date:"M d, Y" }}</span>
+                                <span class="fw-semibold text-dark">{{ app.applied_at|date:"M d, Y" }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Current Status:</span>
+                                <span class="text-muted">Application Status:</span>
                                 <span class="badge bg-warning text-dark">{{ app.get_status_display }}</span>
                             </li>
                         </ul>
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
-                            <i class="bi bi-send-check me-2"></i> Issue & Send Offer Letter
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill mb-2">
+                            <i class="bi bi-send-check me-2"></i> Issue & Send Formal Offer
                         </button>
+
+                        {% if offer.id %}
+                            <a href="{% url 'applications:view_offer' app.id %}" target="_blank" class="btn btn-outline-secondary w-100 rounded-pill btn-sm">
+                                <i class="bi bi-eye me-1"></i> Preview Offer Letter
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -144,4 +155,53 @@
         </div>
     </form>
 </div>
+
+<script>
+function loadDefaultTerms() {
+    const termsField = document.getElementById('id_terms_and_conditions');
+    if (termsField) {
+        termsField.value = `CLAUSE 1: APPOINTMENT, POSITION & REPORTING HIERARCHY
+You are formally appointed to the position specified in this offer letter. In this role, you will be expected to carry out all core duties associated with your position and report directly to your assigned Department Head or Hiring Manager. The company reserves the right to align your job title or reporting line in accordance with organizational evolution.
+
+CLAUSE 2: SCOPE OF DUTIES & PERFORMANCE EXPECTATIONS
+Your responsibilities encompass high-quality execution of assigned technical, operational, and project tasks. You are required to perform your duties with diligence, maintain high professional standards, meet project milestones, collaborate effectively with team members, and comply with all reasonable directives issued by company leadership.
+
+CLAUSE 3: COMPENSATION, PAYROLL SCHEDULE & TAX DEDUCTIONS
+Your total monthly compensation will be disbursed on or before the last working day of each calendar month via direct transfer to your registered bank account. All payments are subject to mandatory government Tax Deducted at Source (TDS), statutory withholdings, and deductions in compliance with prevailing tax regulations and labor laws.
+
+CLAUSE 4: PERFORMANCE BONUSES, ALLOWANCES & REIMBURSEMENTS
+In addition to your base remuneration, you may be eligible for discretionary performance-based bonuses, project incentives, or statutory allowances evaluated during annual performance reviews. Legitimate business-related expenses incurred during authorized official duties will be reimbursed upon submitting valid receipts.
+
+CLAUSE 5: PROBATIONARY PERIOD & CONFIRMATION EVALUATION
+Your appointment commences with a mandatory 3-month probationary period. During probation, your work performance, technical competency, punctuality, and cultural alignment will be regularly reviewed. Upon satisfactory evaluation, your employment will be confirmed in writing. If performance does not meet required standards, probation may be extended or terminated.
+
+CLAUSE 6: WORKING HOURS, OVERTIME & BREAK SCHEDULE
+Standard working hours are 40 hours per week, Monday through Friday, from 9:00 AM to 5:00 PM, with a 1-hour lunch and refreshment break. You may occasionally be required to adjust working hours or extend time to fulfill critical project deadlines or client requirements in accordance with company policy.
+
+CLAUSE 7: LEAVE ENTITLEMENT, SICK LEAVES & PUBLIC HOLIDAYS
+You are entitled to annual paid leaves, paid sick leave, and casual leave accrued per completed month of service following probation. You are also entitled to official public holidays observed in the company calendar. Prior written approval from your manager is required for all scheduled leave requests.
+
+CLAUSE 8: WORK LOCATION, HYBRID & REMOTE WORK GUIDELINES
+Your primary workplace location is specified in this offer. If operating under an approved hybrid or remote arrangement, you must maintain a secure, reliable internet connection, adhere to data security protocols, and remain available during core office hours. The company reserves the right to recall remote employees to office upon prior notice.
+
+CLAUSE 9: CONFIDENTIALITY, DATA SECURITY & NON-DISCLOSURE (NDA)
+You shall maintain absolute confidentiality regarding all company intellectual property, proprietary software source code, customer records, financial accounts, trade secrets, and business operational strategies. You shall not disclose, copy, or transmit any confidential information to unauthorized third parties during or after your employment.
+
+CLAUSE 10: INTELLECTUAL PROPERTY RIGHTS & WORK PRODUCT ASSIGNMENT
+All software applications, code, designs, algorithms, technical documentation, business workflows, and inventions developed, conceived, or authored by you during your employment shall be the sole and exclusive intellectual property of the company from creation. You hereby assign all worldwide IP rights to the company.
+
+CLAUSE 11: CODE OF CONDUCT, ETHICS & WORKPLACE DIGNITY
+You agree to uphold strict ethical standards, professionalism, respect, and integrity in all interactions. The company maintains zero tolerance for workplace harassment, discrimination, substance abuse, or unauthorized external commercial activities that conflict with your primary employment responsibilities.
+
+CLAUSE 12: NON-SOLICITATION & EXCLUSIVITY OF SERVICE
+During your employment, you agree not to engage in secondary employment, consulting, or commercial activities without prior written authorization. For a period of 12 months post-employment, you agree not to solicit or recruit company clients, business partners, or employees for competing ventures.
+
+CLAUSE 13: TERMINATION PROCEDURE & NOTICE PERIOD
+During the probation period, either party may terminate employment by providing 15 days prior written notice. Post-confirmation, a 30-day written notice or equivalent basic salary in lieu of notice is required. The company reserves the right to terminate employment immediately without notice in cases of gross misconduct, fraud, breach of confidentiality, or criminal conviction.
+
+CLAUSE 14: GOVERNING LAW, DISPUTE RESOLUTION & DIGITAL ACCEPTANCE
+This offer of employment is governed by and construed under the labor laws of Nepal. Any disputes arising hereunder shall be resolved through mutual consultation or appropriate legal jurisdiction. Please confirm your acceptance digitally via your SkillBridge portal prior to the offer expiration date.`;
+    }
+}
+</script>
 {% endblock %}
