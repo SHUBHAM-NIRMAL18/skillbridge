@@ -6,34 +6,51 @@
 
 ## Description
 
-SkillBridge is a comprehensive Recruitment Management System designed to streamline the internship and job placement process for both candidates and employers. This platform provides an intelligent, feature-rich environment for discovering opportunities, managing applications, and facilitating efficient communication between job seekers and recruiters.
+SkillBridge is a comprehensive Recruitment Management System designed to streamline the internship and job placement process for both candidates and employers. This platform provides an intelligent, feature-rich environment for discovering opportunities, managing applications, facilitating digital offer letters, and enabling seamless asynchronous communication between job seekers and recruiters.
 
-SkillBridge empowers organizations to post and manage job or internship openings, while allowing candidates to explore opportunities that match their skills and career goals. With its intuitive interface and structured workflows, SkillBridge simplifies the entire recruitment lifecycle — from job posting to candidate selection.
+SkillBridge empowers organizations to post and manage job or internship openings, while allowing candidates to explore opportunities that match their skills and career goals. With its intuitive interface, AI-driven recommendation engine, and structured offer workflows, SkillBridge simplifies the entire recruitment lifecycle — from job posting to formal candidate selection.
 
 ## Key Features
 
 ### For Job Seekers / Candidates
 - **Hybrid Recommendation System**: Advanced AI-powered job suggestions combining content-based filtering and collaborative filtering for personalized recommendations
 - **Sector-Specific Matching**: Tailored job recommendations aligned with candidate's industry expertise and career aspirations
-- **Profile Management**: Comprehensive profile creation with skills assessment and experience tracking
-- **Application Tracking**: Real-time status updates on job applications and interview schedules
+- **Profile Management**: Comprehensive profile creation with skills assessment, experience tracking, and resume management
+- **Application Tracking & Offer Portal**: Real-time status updates on job applications, interview schedules, and digital offer letter review & acceptance
 - **Advanced Search & Filters**: Find opportunities by location, salary range, company size, and job type
 - **Resume Builder**: Built-in tools to create professional resumes
 
 ### For Employers / Companies
+- **Digital Offer Letter Generation**: Issue formal employment and internship offer letters with customizable legal clauses, salary details, joining dates, and digital HR signatures
 - **Credit-Based Job Posting**: Flexible credit system for posting job and internship opportunities
 - **Membership Plans**: Various subscription tiers with different posting limits and premium features
 - **Multiple Payment Options**: Seamless payment integration with Khalti and eSewa for purchasing credits
-- **Candidate Management**: Advanced tools to filter, shortlist, and manage job applicants
+- **AJAX Applicant Drawer & Candidate Analytics**: Slide-out drawer with real-time **Skill Overlap Analytics** (matched vs. missing candidate skills), resume previews, and cover letters
+- **Instant Status Management**: Asynchronously update candidate application status (`shortlisted`, `interview`, `offered`, `rejected`) via AJAX without page reloads
 - **Company Branding**: Customizable company profiles to attract top talent
 - **Application Analytics**: Insights into application metrics and hiring performance
+
+### Digital Offer Letter Management System
+- **Automated Offer Creation**: Generate formal offer letters directly from the candidate pipeline with pre-populated position, salary, location, and start dates
+- **Pre-Configured Legal Clauses**: Built-in legal templates covering appointment hierarchy, duties, compensation, TDS tax deductions, probation period, NDA/confidentiality, IP rights, and termination notice
+- **Digital Signatures & Company Seals**: Upload hiring manager digital signature images and display automated corporate verification seals
+- **Candidate Acceptance Workflow**: Interactive candidate portal to accept or decline offer letters with response notes and timestamping
+- **Auto-Expiration Handling**: Automatic expiration tracking for pending offer letters based on valid-until dates
+- **Print & PDF Optimization**: Print-ready CSS layout supporting A4 formatting, header/footer reference codes, signature cards, and single-click PDF export
+
+### AJAX & Real-Time Communication System
+- **Asynchronous Application Submission**: Modal-based candidate application flow with live profile validation, missing resume detection, and seamless submission via AJAX
+- **Dynamic Applicant Drawer**: AJAX partial rendering (`applicant_detail_partial`) allowing recruiters to inspect candidate profiles, resumes, and skill compatibility without leaving the page
+- **Live Status Badges**: Recruiter status changes dynamically update row badges and application counters in real time
+- **Notification & Email Trigger System**: Automated email and platform notifications sent during key events (application submission, status updates, offer letter issuance, offer acceptance/rejection)
+- **Interactive Support & Feedback**: Built-in AJAX feedback submission and company support ticket messaging
 
 ### Payment & Membership System
 - **Flexible Credit System**: Pay-per-post model with bulk credit packages available
 - **Multiple Payment Gateways**:
- - **Khalti Integration**: Instant payment processing for Nepalese users
- - **eSewa Integration**: Alternative digital wallet payment option
- - **Bank Transfer/QR**: Traditional payment methods with receipt verification
+  - **Khalti Integration**: Instant payment processing for Nepalese users
+  - **eSewa Integration**: Alternative digital wallet payment option
+  - **Bank Transfer/QR**: Traditional payment methods with receipt verification
 - **Transparent Pricing**: Clear pricing structure with volume discounts
 - **Instant Credit Delivery**: Immediate credit allocation upon successful payment
 - **Receipt Management**: Automated receipt generation and download
@@ -56,25 +73,27 @@ SkillBridge empowers organizations to post and manage job or internship openings
 ## Technology Stack
 - **Backend**: Python, Django Framework
 - **Database**: PostgreSQL
+- **Frontend & AJAX**: HTML5, CSS3, JavaScript (Fetch / AJAX), Bootstrap 5, Bootstrap Icons
 - **Payment Processing**: Khalti API, eSewa API
+- **Document & PDF Handling**: Print CSS engine, Media storage for digital signatures and resumes
 - **Development Environment**: Visual Studio Code
-- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap
 - **Recommendation System**: Hybrid Machine Learning algorithms (Content-based + Collaborative filtering)
-- **Security**: CSRF protection, secure authentication, encrypted data storage
+- **Security**: CSRF protection, secure authentication, encrypted data storage, role-based access control
 
 ## Benefits
 
 ### For Candidates
-- Discover highly relevant opportunities with hybrid(Collaborative + Content-based) recommendations
-- Apply to jobs and internship that match your skillset and career goals
-- Track application progress in real-time
+- Discover highly relevant opportunities with hybrid (Collaborative + Content-based) recommendations
+- Apply to jobs and internships seamlessly with modal preview and profile auto-checks
+- Review, accept, or decline formal digital offer letters directly from the portal
+- Track application progress in real-time with status updates
 - Build professional profiles and resumes
-- Get diverse job suggestions from both content similarity and user behavior patterns
 
 ### For Employers
+- Issue legally-structured, digital offer letters complete with HR signatures and print-ready PDF export
+- Review applicants faster with AJAX slide-out drawers and instant skill overlap analytics
 - Cost-effective hiring with flexible credit-based pricing
 - Access to a curated pool of qualified candidates
-- Streamlined application management and candidate communication
-- Multiple payment options for convenience
+- Streamlined candidate communication and asynchronous status management
 
-SkillBridge transforms the traditional recruitment process into an intelligent, efficient, and user-friendly experience that benefits both job seekers and employers in the modern job market.
+SkillBridge transforms the traditional recruitment process into an intelligent, efficient, and user-friendly experience that benefits both job seekers and employers in the modern job market.
