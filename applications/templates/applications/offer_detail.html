@@ -173,18 +173,6 @@
     @page {
         size: A4 portrait;
         margin: 12mm 15mm 18mm 15mm;
-        @bottom-right {
-            content: "Page " counter(page) " of " counter(pages);
-            font-size: 8.5pt;
-            font-family: 'Arial', sans-serif;
-            color: #111111;
-        }
-        @bottom-left {
-            content: "Confidential Offer Letter — Ref: SKB-OFFER-{{ offer.created_at|date:'Y' }}-{{ offer.id|stringformat:'05d' }}";
-            font-size: 8.5pt;
-            font-family: 'Arial', sans-serif;
-            color: #111111;
-        }
     }
 
     body {
@@ -323,18 +311,16 @@
         width: 100%;
         border-top: 1px solid #000000;
         padding-top: 4px;
+        padding-bottom: 4px;
         font-size: 8pt;
         font-family: Arial, sans-serif;
         color: #000000;
         background: #ffffff !important;
+        display: flex !important;
         justify-content: space-between;
         align-items: center;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-    }
-
-    .print-page-counter::after {
-        content: "Page " counter(page) " of " counter(pages);
     }
 
     .signature-card, .clauses-wrapper, .summary-table-card, .verification-seal-bar, .print-footer-bar {
@@ -347,6 +333,7 @@
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+    }
 }
 </style>
 
@@ -623,8 +610,8 @@
                 </div>
             <!-- Fixed Print Footer Bar (Print Only) -->
             <div class="print-footer-bar no-screen px-3">
-                <span>Confidential Employment Offer — {{ offer.company.first_name }} {{ offer.company.last_name }} | Ref: SKB-OFFER-{{ offer.created_at|date:"Y" }}-{{ offer.id|stringformat:"05d" }}</span>
-                <span class="print-page-counter fw-semibold"></span>
+                <span>Confidential Employment Offer — {{ offer.company.first_name }} {{ offer.company.last_name }}</span>
+                <span class="fw-semibold">Ref: SKB-OFFER-{{ offer.created_at|date:"Y" }}-{{ offer.id|stringformat:"05d" }}</span>
             </div>
 
         </div>
