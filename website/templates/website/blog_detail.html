@@ -1,131 +1,531 @@
 {% extends "website/base.html" %}
 {% load static %}
 
-{% block title %}{{ blog.title }} | SkillBridge{% endblock %}
+{% block title %}{{ blog.title }} | SkillBridge Blogs{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Reading Progress Bar */
+  #reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b, #e0a96d);
+    width: 0%;
+    z-index: 1050;
+    transition: width 0.1s ease-out;
+  }
+
+  /* Hero & Container Aesthetics */
+  .blog-detail-wrapper {
+    max-width: 1140px;
+  }
+
+  .blog-hero-image-wrapper {
+    position: relative;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .blog-hero-image-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18);
+  }
+
+  .blog-hero-img {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .blog-hero-image-wrapper:hover .blog-hero-img {
+    transform: scale(1.02);
+  }
+
+  .blog-hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+    padding: 2rem 1.5rem 1rem;
+    color: white;
+  }
+
+  /* Author & Meta Badges */
+  .author-avatar-lg {
+    width: 52px;
+    height: 52px;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .author-card-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.25);
+    border: 3px solid #ffffff;
+  }
+
+  /* Rich Text Content Enhancements */
+  .blog-post-content {
+    color: #2d3748;
+    font-size: 1.125rem;
+    line-height: 1.85;
+  }
+
+  .blog-post-content p {
+    margin-bottom: 1.75rem;
+  }
+
+  .blog-post-content h2, 
+  .blog-post-content h3, 
+  .blog-post-content h4 {
+    color: #1a202c;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+
+  .blog-post-content h2::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #dc3545, #ff6b6b);
+    border-radius: 2px;
+  }
+
+  .blog-post-content blockquote {
+    border-left: 4px solid #dc3545;
+    background: #f8f9fa;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0 0.75rem 0.75rem 0;
+    font-style: italic;
+    color: #4a5568;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+
+  .blog-post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+  }
+
+  .blog-post-content img:hover {
+    transform: scale(1.01);
+  }
+
+  .blog-post-content pre, 
+  .blog-post-content code {
+    background-color: #1e1e1e;
+    color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .blog-post-content pre {
+    padding: 1.25rem;
+    overflow-x: auto;
+  }
+
+  .blog-post-content pre code {
+    padding: 0;
+    background: transparent;
+  }
+
+  /* Interaction Bar */
+  .share-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .share-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+  }
+
+  .share-btn-twitter { background-color: #1da1f2; color: white; }
+  .share-btn-facebook { background-color: #1877f2; color: white; }
+  .share-btn-linkedin { background-color: #0a66c2; color: white; }
+  .share-btn-copy { background-color: #6c757d; color: white; }
+
+  .like-button-pulse {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .like-button-pulse:active {
+    transform: scale(1.2);
+  }
+
+  /* Sidebar Cards */
+  .sidebar-sticky {
+    position: sticky;
+    top: 90px;
+  }
+
+  .read-next-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .read-next-card:hover {
+    transform: translateX(4px);
+  }
+
+  .read-next-thumb {
+    width: 85px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <!-- Back button & verification notice -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <a href="{% url 'website:blog_list' %}" class="btn btn-link text-danger text-decoration-none p-0 d-inline-flex align-items-center gap-1">
-      <i class="bi bi-arrow-left"></i> Back to Blogs
+<!-- Reading Progress Bar -->
+<div id="reading-progress"></div>
+
+<div class="container py-4 blog-detail-wrapper">
+  <!-- Top Navigation & Action Header -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <a href="{% url 'website:blog_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 text-decoration-none">
+      <i class="bi bi-arrow-left"></i> 
+      <span class="fw-semibold">Back to All Articles</span>
     </a>
-    
-    {% if not blog.is_verified %}
-      <span class="badge bg-warning text-dark border border-warning-subtle py-2 px-3 rounded-pill">
-        <i class="bi bi-clock-history me-1"></i> Pending Verification (Preview Mode)
-      </span>
-    {% endif %}
+
+    <div class="d-flex align-items-center gap-2">
+      {% if not blog.is_verified %}
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-2 px-3 rounded-pill fw-semibold shadow-sm">
+          <i class="bi bi-clock-history me-1 fs-6"></i> Pending Verification (Preview Mode)
+        </span>
+      {% endif %}
+
+      {% if user.is_authenticated and user == blog.author or user.is_staff %}
+        <a href="{% url 'website:blog_edit' blog.slug %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 fw-semibold">
+          <i class="bi bi-pencil me-1"></i> Edit Article
+        </a>
+        <a href="{% url 'website:blog_delete' blog.slug %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold">
+          <i class="bi bi-trash3 me-1"></i> Delete
+        </a>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="row g-5">
-    <!-- Main Content -->
+  <div class="row g-4 g-lg-5">
+    <!-- Main Article Body -->
     <article class="col-lg-8">
-      <!-- Article Header -->
-      <h1 class="fw-bold text-dark mb-3">{{ blog.title }}</h1>
-      
-      <div class="d-flex align-items-center justify-content-between border-top border-bottom py-3 mb-4">
-        <div class="d-flex align-items-center">
-          <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3 shadow-sm" style="width: 44px; height: 44px; font-size: 1.1rem;">
+      <!-- Article Tag & Reading Time Meta Header -->
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <span class="badge bg-danger text-white rounded-pill px-3 py-2 text-uppercase fw-bold tracking-wider" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+          <i class="bi bi-journal-text me-1"></i> SkillBridge Insights
+        </span>
+        <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fw-normal" id="reading-time-badge">
+          <i class="bi bi-clock me-1 text-danger"></i> <span id="read-time-text">Calculating...</span>
+        </span>
+        <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fw-normal">
+          <i class="bi bi-calendar3 me-1 text-danger"></i> {{ blog.created_at|date:"F d, Y" }}
+        </span>
+      </div>
+
+      <!-- Main Article Title -->
+      <h1 class="display-5 fw-extrabold text-dark mb-4 lh-sm" style="letter-spacing: -0.5px;">
+        {{ blog.title }}
+      </h1>
+
+      <!-- Author Bio Header Strip -->
+      <div class="d-flex align-items-center justify-content-between p-3 rounded-4 bg-light border mb-4 shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+          <div class="author-avatar-lg text-white rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase flex-shrink-0">
             {{ blog.author.username|slice:":1"|upper }}
           </div>
           <div>
-            <h6 class="mb-0 fw-bold text-dark">
+            <h6 class="mb-0 fw-bold text-dark fs-6">
               {{ blog.author.get_full_name|default:blog.author.username }}
             </h6>
-            <small class="text-muted">
-              Published on {{ blog.created_at|date:"F d, Y" }}
+            <small class="text-muted d-block">
+              {{ blog.author.role|capfirst|default:"Community Author" }} &bull; Verified Contributor
             </small>
           </div>
         </div>
 
-        {% if user.is_authenticated and user == blog.author or user.is_staff %}
-          <div class="d-flex gap-2">
-            <a href="{% url 'website:blog_edit' blog.slug %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
-              <i class="bi bi-pencil me-1"></i> Edit
-            </a>
-            <a href="{% url 'website:blog_delete' blog.slug %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-              <i class="bi bi-trash3 me-1"></i> Delete
-            </a>
-          </div>
-        {% endif %}
+        <!-- Quick Share Icons -->
+        <div class="d-none d-sm-flex align-items-center gap-2">
+          <button type="button" class="share-btn share-btn-copy shadow-sm border-0" onclick="copyArticleLink()" title="Copy Link" id="copy-btn">
+            <i class="bi bi-link-45deg fs-5"></i>
+          </button>
+          <a href="https://twitter.com/intent/tweet?text={{ blog.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-btn share-btn-twitter shadow-sm" title="Share on Twitter">
+            <i class="bi bi-twitter-x fs-6"></i>
+          </a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="share-btn share-btn-linkedin shadow-sm" title="Share on LinkedIn">
+            <i class="bi bi-linkedin fs-6"></i>
+          </a>
+        </div>
       </div>
 
-      <!-- Cover Image -->
-      {% if blog.cover_image %}
-        <div class="rounded-4 overflow-hidden mb-4 shadow-sm">
+      <!-- Featured Picture / Banner Hero Image -->
+      <div class="blog-hero-image-wrapper mb-5">
+        {% if blog.cover_image %}
           <img 
             src="{{ blog.cover_image.url }}" 
-            class="w-100 object-fit-cover" 
+            class="blog-hero-img" 
             alt="{{ blog.title }}"
-            style="max-height: 400px;"
           />
+        {% else %}
+          <img 
+            src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85" 
+            class="blog-hero-img" 
+            alt="SkillBridge Editorial Cover"
+          />
+        {% endif %}
+        <div class="blog-hero-overlay d-flex align-items-end justify-content-between">
+          <small class="fw-semibold text-white-50"><i class="bi bi-image me-1"></i> Featured Cover Story</small>
+          <small class="fw-semibold text-white-50"><i class="bi bi-eye me-1"></i> SkillBridge Publication</small>
         </div>
-      {% endif %}
+      </div>
 
-      <!-- Article Rich Text Content -->
-      <div class="blog-post-content text-dark mb-5" style="line-height: 1.8; font-size: 1.1rem;">
+      <!-- Article Rich Text Body -->
+      <div class="blog-post-content mb-5" id="article-body">
         {{ blog.content|safe }}
+      </div>
+
+      <hr class="my-5 border-secondary-subtle">
+
+      <!-- Interactive Article Footer (Reactions & Sharing) -->
+      <div class="p-4 rounded-4 bg-light border d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 mb-5 shadow-sm">
+        <div>
+          <h6 class="fw-bold text-dark mb-1"><i class="bi bi-heart-fill text-danger me-2"></i>Found this article inspiring?</h6>
+          <p class="text-muted small mb-0">Show your support or share it with your professional network!</p>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+          <button id="like-btn" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 like-button-pulse" onclick="toggleLike()">
+            <i class="bi bi-heart" id="like-icon"></i>
+            <span id="like-count">14</span> Applaud
+          </button>
+          
+          <div class="dropdown">
+            <button class="btn btn-danger rounded-pill px-4 py-2 fw-semibold dropdown-toggle d-inline-flex align-items-center gap-2 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-share-fill"></i> Share Article
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border-0 p-2">
+              <li>
+                <button class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" onclick="copyArticleLink()">
+                  <i class="bi bi-clipboard text-secondary"></i> Copy Link
+                </button>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="https://twitter.com/intent/tweet?text={{ blog.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank">
+                  <i class="bi bi-twitter-x text-dark"></i> Twitter / X
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank">
+                  <i class="bi bi-linkedin text-primary"></i> LinkedIn
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank">
+                  <i class="bi bi-facebook text-primary"></i> Facebook
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </article>
 
-    <!-- Sidebar Recommendations -->
+    <!-- Sticky Sidebar Section -->
     <aside class="col-lg-4">
-      <div class="card border-0 shadow-sm p-4 rounded-4 bg-light mb-4">
-        <h5 class="fw-bold text-dark mb-4">About the Author</h5>
-        <div class="text-center">
-          <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold mb-3 shadow" style="width: 70px; height: 70px; font-size: 1.8rem;">
-            {{ blog.author.username|slice:":1"|upper }}
-          </div>
-          <h6 class="fw-bold text-dark mb-1">{{ blog.author.get_full_name|default:blog.author.username }}</h6>
-          <span class="badge bg-secondary-subtle text-secondary mb-3">{{ blog.author.role|capfirst|default:"Member" }}</span>
-          <p class="text-muted small">A regular contributor to SkillBridge sharing knowledge and career experiences.</p>
-        </div>
-      </div>
+      <div class="sidebar-sticky">
 
-      {% if more_blogs %}
-        <div class="card border-0 shadow-sm p-4 rounded-4">
-          <h5 class="fw-bold text-dark mb-4">Read Next</h5>
-          <div class="d-flex flex-column gap-3">
-            {% for m_blog in more_blogs %}
-              <div class="d-flex gap-3 align-items-start border-bottom pb-3 last-border-0">
-                {% if m_blog.cover_image %}
-                  <img src="{{ m_blog.cover_image.url }}" class="rounded object-fit-cover" style="width: 70px; height: 70px;" alt="" />
-                {% else %}
-                  <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=85" class="rounded object-fit-cover" style="width: 70px; height: 70px;" alt="" />
-                {% endif %}
-                <div>
-                  <h6 class="fw-bold text-dark mb-1 text-truncate-2">
-                    <a href="{% url 'website:blog_detail' m_blog.slug %}" class="text-dark text-decoration-none hover-danger">
-                      {{ m_blog.title }}
-                    </a>
-                  </h6>
-                  <small class="text-muted">{{ m_blog.created_at|date:"M d, Y" }}</small>
-                </div>
+        <!-- Author Profile Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+          <div class="bg-danger py-4 px-3 text-center position-relative" style="background: linear-gradient(135deg, #dc3545 0%, #800e13 100%) !important;">
+            <div class="position-relative d-inline-block">
+              <div class="author-card-avatar text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold text-uppercase mx-auto mb-2 shadow">
+                {{ blog.author.username|slice:":1"|upper }}
               </div>
-            {% endfor %}
+            </div>
+          </div>
+          <div class="card-body p-4 text-center">
+            <h5 class="fw-bold text-dark mb-1">{{ blog.author.get_full_name|default:blog.author.username }}</h5>
+            <span class="badge bg-danger-subtle text-danger px-3 py-1 rounded-pill mb-3">
+              {{ blog.author.role|capfirst|default:"SkillBridge Author" }}
+            </span>
+            <p class="text-muted small mb-3">
+              Passionate about sharing insights, tech career guidance, and practical skills for emerging talent.
+            </p>
+            <div class="pt-3 border-top d-flex justify-content-around text-center">
+              <div>
+                <span class="d-block fw-bold text-dark fs-5">SkillBridge</span>
+                <span class="text-muted small">Contributor</span>
+              </div>
+              <div class="border-end"></div>
+              <div>
+                <span class="d-block fw-bold text-dark fs-5">Verified</span>
+                <span class="text-muted small">Author</span>
+              </div>
+            </div>
           </div>
         </div>
-      {% endif %}
+
+        <!-- Read Next / Related Posts -->
+        {% if more_blogs %}
+          <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-fire text-danger me-2"></i>Recommended</h5>
+              <a href="{% url 'website:blog_list' %}" class="small text-danger fw-semibold text-decoration-none">View All</a>
+            </div>
+            
+            <div class="d-flex flex-column gap-3">
+              {% for m_blog in more_blogs %}
+                <a href="{% url 'website:blog_detail' m_blog.slug %}" class="text-decoration-none read-next-card">
+                  <div class="d-flex gap-3 align-items-center p-2 rounded-3 hover-bg-light transition-all">
+                    {% if m_blog.cover_image %}
+                      <img src="{{ m_blog.cover_image.url }}" class="read-next-thumb shadow-sm" alt="{{ m_blog.title }}" />
+                    {% else %}
+                      <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=200&q=80" class="read-next-thumb shadow-sm" alt="Default Blog Thumbnail" />
+                    {% endif %}
+                    <div class="flex-grow-1 min-w-0">
+                      <span class="badge bg-light text-muted border px-2 py-0 mb-1" style="font-size: 0.7rem;">Article</span>
+                      <h6 class="fw-bold text-dark mb-1 text-truncate-2 lh-snug" style="font-size: 0.95rem;">
+                        {{ m_blog.title }}
+                      </h6>
+                      <small class="text-muted d-block" style="font-size: 0.78rem;">
+                        <i class="bi bi-clock me-1"></i>{{ m_blog.created_at|date:"M d, Y" }}
+                      </small>
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Community Callout Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+          <div class="mb-3">
+            <span class="badge bg-danger text-white rounded-pill px-3 py-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Share Knowledge</span>
+          </div>
+          <h5 class="fw-bold mb-2">Have a story to tell?</h5>
+          <p class="text-white-50 small mb-3">Share your learning journey, interview tips, or career advice with thousands of SkillBridge learners.</p>
+          {% if user.is_authenticated %}
+            <a href="{% url 'website:blog_create' %}" class="btn btn-danger rounded-pill w-100 fw-semibold py-2 shadow-sm">
+              <i class="bi bi-pencil-square me-1"></i> Write an Article
+            </a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}?next={% url 'website:blog_create' %}&reason=blog" class="btn btn-danger rounded-pill w-100 fw-semibold py-2 shadow-sm">
+              <i class="bi bi-pencil-square me-1"></i> Login to Publish
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
     </aside>
   </div>
 </div>
 
-<style>
-.blog-post-content p {
-  margin-bottom: 1.5rem;
-}
-.blog-post-content img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-.hover-danger:hover {
-  color: #dc3545 !important;
-}
-.last-border-0:last-child {
-  border-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-</style>
+<!-- Toast Notification for Copying Link -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="copyToast" class="toast align-items-center text-bg-dark border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center gap-2">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <span>Article link copied to clipboard!</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+  // 1. Dynamic Reading Time Calculation
+  document.addEventListener('DOMContentLoaded', function () {
+    const articleBody = document.getElementById('article-body');
+    if (articleBody) {
+      const text = articleBody.innerText || articleBody.textContent || '';
+      const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const minutes = Math.max(1, Math.ceil(wordCount / 200));
+      const readTimeText = document.getElementById('read-time-text');
+      if (readTimeText) {
+        readTimeText.innerText = minutes + ' min read';
+      }
+    }
+  });
+
+  // 2. Reading Progress Bar on Scroll
+  window.addEventListener('scroll', function () {
+    const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrolled = (winScroll / height) * 100;
+    const progressBar = document.getElementById('reading-progress');
+    if (progressBar) {
+      progressBar.style.width = scrolled + '%';
+    }
+  });
+
+  // 3. Copy Link function with Toast
+  function copyArticleLink() {
+    navigator.clipboard.writeText(window.location.href).then(function () {
+      const toastEl = document.getElementById('copyToast');
+      if (toastEl) {
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+      }
+    }).catch(function (err) {
+      console.error('Failed to copy: ', err);
+    });
+  }
+
+  // 4. Interactive Like Button
+  let liked = false;
+  function toggleLike() {
+    const likeBtn = document.getElementById('like-btn');
+    const likeIcon = document.getElementById('like-icon');
+    const likeCount = document.getElementById('like-count');
+    let currentCount = parseInt(likeCount.innerText) || 14;
+
+    if (!liked) {
+      liked = true;
+      likeBtn.classList.remove('btn-outline-danger');
+      likeBtn.classList.add('btn-danger');
+      likeIcon.classList.remove('bi-heart');
+      likeIcon.classList.add('bi-heart-fill');
+      likeCount.innerText = currentCount + 1;
+    } else {
+      liked = false;
+      likeBtn.classList.remove('btn-danger');
+      likeBtn.classList.add('btn-outline-danger');
+      likeIcon.classList.remove('bi-heart-fill');
+      likeIcon.classList.add('bi-heart');
+      likeCount.innerText = currentCount - 1;
+    }
+  }
+</script>
+{% endblock %}
+
