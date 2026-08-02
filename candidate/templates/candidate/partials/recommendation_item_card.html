@@ -137,7 +137,7 @@
       </div>
 
       {% if item.is_job %}
-        <a href="{% url 'website:job_detail' item.obj.id %}"
+        <a href="{% url 'website:job_detail' item.obj.slug %}"
            class="btn btn-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
            onclick="logCandidateEvent({{ item.ct_id }}, {{ item.obj_id }}, 'view', this)">
           <span>View & Apply</span>

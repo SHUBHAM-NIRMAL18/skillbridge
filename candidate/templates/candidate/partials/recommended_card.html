@@ -89,7 +89,7 @@
         <i class="bi bi-hourglass-split me-1 text-warning"></i>{{ rec.days_left }} days left
       </span>
       {% if rec.is_job %}
-        <a href="{% url 'website:job_detail' rec.obj.id %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-semibold text-xs shadow-sm">
+        <a href="{% url 'website:job_detail' rec.obj.slug %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1 fw-semibold text-xs shadow-sm">
           Apply Now <i class="bi bi-arrow-right ms-1"></i>
         </a>
       {% else %}
