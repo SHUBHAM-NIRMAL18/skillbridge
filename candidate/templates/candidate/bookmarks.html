@@ -1,0 +1,199 @@
+{% extends "candidate/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Bookmarks - Candidate Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  
+  <!-- Header Banner -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <h3 class="fw-bold text-dark mb-1">
+        <i class="bi bi-bookmark-fill text-danger me-2"></i>Saved Opportunities
+      </h3>
+      <p class="text-muted small mb-0">Manage your bookmarked job positions and internships.</p>
+    </div>
+
+    <!-- Search Form -->
+    <form method="GET" action="{% url 'candidate:bookmarks' %}" class="d-flex gap-2 w-100 w-md-auto">
+      <input type="hidden" name="tab" value="{{ tab }}">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" value="{{ q }}" class="form-control border-start-0 ps-0" placeholder="Search saved positions...">
+      </div>
+      {% if q %}
+        <a href="{% url 'candidate:bookmarks' %}?tab={{ tab }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="border-bottom mb-4">
+    <ul class="nav nav-tabs border-0 gap-2">
+      <li class="nav-item">
+        <a class="nav-link border-0 rounded-top-3 fw-semibold px-3 py-2.5 {% if tab == 'all' or not tab %}active bg-white border-bottom-0 shadow-sm text-danger{% else %}text-secondary{% endif %}"
+           href="{% url 'candidate:bookmarks' %}?tab=all{% if q %}&q={{ q }}{% endif %}">
+          All Saved
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link border-0 rounded-top-3 fw-semibold px-3 py-2.5 {% if tab == 'jobs' %}active bg-white border-bottom-0 shadow-sm text-danger{% else %}text-secondary{% endif %}"
+           href="{% url 'candidate:bookmarks' %}?tab=jobs{% if q %}&q={{ q }}{% endif %}">
+          Jobs Only
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link border-0 rounded-top-3 fw-semibold px-3 py-2.5 {% if tab == 'internships' %}active bg-white border-bottom-0 shadow-sm text-danger{% else %}text-secondary{% endif %}"
+           href="{% url 'candidate:bookmarks' %}?tab=internships{% if q %}&q={{ q }}{% endif %}">
+          Internships Only
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Bookmarks Cards Grid -->
+  {% if bookmarks %}
+    <div class="row g-3">
+      {% for bm in bookmarks %}
+        {% with target=bm.target %}
+          <div class="col-xl-6 col-12" id="bm-card-{{ bm.id }}">
+            <div class="card border shadow-sm rounded-3 h-100 transition-all">
+              <div class="card-body p-4">
+                
+                <!-- Card Header: Company Logo & Details -->
+                <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                  <div class="d-flex align-items-center gap-3">
+                    {% if target.company.logo %}
+                      <img src="{{ target.company.logo.url }}" alt="{{ target.company.first_name }}" class="rounded-3 border" style="width: 48px; height: 48px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-secondary" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                        <i class="bi bi-building"></i>
+                      </div>
+                    {% endif %}
+                    <div>
+                      <h6 class="fw-bold mb-0 text-dark">{{ target.company.first_name }} {{ target.company.last_name }}</h6>
+                      <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ target.city }}, {{ target.province }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Item Type Badge & Remove Button -->
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge {% if bm.is_job %}bg-danger-subtle text-danger{% else %}bg-primary-subtle text-primary{% endif %} rounded-pill px-2.5 py-1 text-xs">
+                      {% if bm.is_job %}Job{% else %}Internship{% endif %}
+                    </span>
+                    <form method="POST" action="{% url 'candidate:toggle_bookmark' %}" class="js-remove-bm-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="item_type" value="{% if bm.is_job %}job{% else %}internship{% endif %}">
+                      <input type="hidden" name="item_id" value="{{ target.id }}">
+                      <button type="submit" class="btn btn-light btn-sm rounded-circle p-0 text-muted" style="width: 32px; height: 32px;" title="Remove Bookmark">
+                        <i class="bi bi-trash text-danger"></i>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- Position Title -->
+                <h5 class="fw-bold mb-2">
+                  {% if bm.is_job %}
+                    <a href="{% url 'website:job_detail' target.slug %}" class="text-dark text-decoration-none hover-primary">
+                      {{ target.title }}
+                    </a>
+                  {% else %}
+                    <a href="{% url 'website:internship_detail' target.id %}" class="text-dark text-decoration-none hover-primary">
+                      {{ target.title }}
+                    </a>
+                  {% endif %}
+                </h5>
+
+                <!-- Key Meta Badges -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  <span class="badge bg-light text-dark border font-normal">
+                    <i class="bi bi-briefcase me-1 text-secondary"></i>{{ target.job_type|default:target.internship_type }}
+                  </span>
+                  {% if bm.is_job %}
+                    <span class="badge bg-light text-dark border font-normal">
+                      <i class="bi bi-bar-chart me-1 text-secondary"></i>{{ target.job_level }}
+                    </span>
+                    <span class="badge bg-light text-dark border font-normal">
+                      <i class="bi bi-currency-dollar me-1 text-success"></i>Rs {{ target.salary_min|floatformat:0|intcomma }} – {{ target.salary_max|floatformat:0|intcomma }}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-light text-dark border font-normal">
+                      <i class="bi bi-clock me-1 text-secondary"></i>{{ target.duration_months }} Months
+                    </span>
+                    <span class="badge bg-light text-dark border font-normal">
+                      <i class="bi bi-currency-dollar me-1 text-success"></i>
+                      {% if target.stipend_type == 'paid' %}
+                        Rs {{ target.stipend_amount|floatformat:0|intcomma }}/mo
+                      {% else %}
+                        Unpaid
+                      {% endif %}
+                    </span>
+                  {% endif %}
+                </div>
+
+                <!-- Footer: Saved Date & Apply CTA -->
+                <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                  <span class="text-muted text-xs">
+                    <i class="bi bi-bookmark-check me-1"></i>Saved {{ bm.created_at|naturaltime }}
+                  </span>
+
+                  {% if bm.is_job %}
+                    <a href="{% url 'website:job_detail' target.slug %}" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                      Apply Now <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                  {% else %}
+                    <a href="{% url 'website:internship_detail' target.id %}" class="btn btn-danger btn-sm rounded-pill px-3 fw-semibold">
+                      Apply Now <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                  {% endif %}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State -->
+    <div class="card border rounded-3 p-5 text-center my-4 bg-light-subtle">
+      <div class="mb-3">
+        <i class="bi bi-bookmark-x text-muted display-4"></i>
+      </div>
+      <h5 class="fw-bold text-dark">No Saved Positions Found</h5>
+      <p class="text-muted small max-w-md mx-auto mb-3">You haven't bookmarked any jobs or internships yet. Browse available listings and click the bookmark icon to save them here.</p>
+      <div>
+        <a href="{% url 'website:jobs_list' %}" class="btn btn-danger rounded-pill px-4 me-2">Explore Jobs</a>
+        <a href="{% url 'website:internship' %}" class="btn btn-outline-secondary rounded-pill px-4">Explore Internships</a>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<style>
+.hover-primary:hover {
+  color: #dc2626 !important;
+}
+
+.text-xs {
+  font-size: 0.75rem !important;
+}
+
+.font-normal {
+  font-weight: 500 !important;
+}
+
+.transition-all {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transition-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+}
+</style>
+{% endblock %}

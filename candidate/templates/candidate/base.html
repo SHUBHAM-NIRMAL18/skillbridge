@@ -94,7 +94,7 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="#">
+          <a class="nav-link {% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}" href="{% url 'candidate:bookmarks' %}">
             <i class="bi bi-bookmark"></i> <span>Bookmarks</span>
           </a>
         </li>
@@ -304,6 +304,48 @@
         var b = document.getElementById("sidebarBackdrop");
         if (b) b.remove();
       }
+    });
+
+    // Global Bookmark Toggle Handler
+    document.addEventListener("click", function(e) {
+      var btn = e.target.closest(".js-bookmark-toggle");
+      if (!btn) return;
+      e.preventDefault();
+
+      var itemType = btn.getAttribute("data-type");
+      var itemId = btn.getAttribute("data-id");
+      if (!itemType || !itemId) return;
+
+      var formData = new FormData();
+      formData.append("item_type", itemType);
+      formData.append("item_id", itemId);
+
+      var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+
+      fetch("{% url 'candidate:toggle_bookmark' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: formData
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          var icon = btn.querySelector("i");
+          if (icon) {
+            if (data.bookmarked) {
+              icon.className = "bi bi-bookmark-fill text-danger";
+              btn.setAttribute("title", "Remove Bookmark");
+            } else {
+              icon.className = "bi bi-bookmark";
+              btn.setAttribute("title", "Save Opportunity");
+            }
+          }
+        }
+      })
+      .catch(function(err) { console.error(err); });
     });
   });
   </script>
