@@ -192,3 +192,26 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback from {self.user.username} - Rating: {self.rating}"
 
+
+class Bookmark(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='bookmarks')
+    job_post = models.ForeignKey('company.JobPost', on_delete=models.CASCADE, null=True, blank=True, related_name='bookmarks')
+    internship_post = models.ForeignKey('company.InternshipPost', on_delete=models.CASCADE, null=True, blank=True, related_name='bookmarks')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        target = self.job_post.title if self.job_post else (self.internship_post.title if self.internship_post else "Bookmark")
+        return f"{self.profile.user.username} bookmarked {target}"
+
+    @property
+    def is_job(self):
+        return self.job_post is not None
+
+    @property
+    def target(self):
+        return self.job_post if self.job_post else self.internship_post
+
+
