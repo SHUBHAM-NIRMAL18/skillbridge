@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from .views import (
     candidate_dashboard, ProfileWizardView, ProfileCompleteView,
     ProfilePreviewView, recommended_demo, log_candidate_event, inbox, support, feedback,
-    candidate_registered_events
+    candidate_registered_events, candidate_bookmarks_list, toggle_bookmark
 )
 from applications.views import my_applications
 
@@ -15,6 +15,10 @@ urlpatterns = [
     path('inbox/', inbox, name='inbox'),
     path('support/', support, name='support'),
     path('feedback/', feedback, name='feedback'),
+
+    # Bookmarks
+    path('bookmarks/', candidate_bookmarks_list, name='bookmarks'),
+    path('bookmarks/toggle/', toggle_bookmark, name='toggle_bookmark'),
 
     # Wizard
     path('profile/', lambda r: redirect('candidate:profile', step='personal'), name='profile_index'),

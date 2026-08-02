@@ -859,4 +859,100 @@ def candidate_registered_events(request):
     
     return render(request, 'candidate/registered_events.html', {
         'registrations': registrations,
-    })
+    })
+
+
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from company.models import JobPost, InternshipPost
+from .models import Bookmark
+
+@login_required
+def candidate_bookmarks_list(request):
+    """
+    List all bookmarked jobs and internships for candidate.
+    """
+    if getattr(request.user, "role", None) != 'candidate':
+        return redirect('accounts:login')
+
+    prof = Profile.objects.filter(user=request.user).first()
+    if not prof:
+        messages.error(request, "Please set up your profile first.")
+        return redirect('candidate:profile', step='personal')
+
+    tab = request.GET.get('tab', 'all')
+    q = request.GET.get('q', '').strip()
+
+    bookmarks = Bookmark.objects.filter(profile=prof).select_related('job_post__company', 'internship_post__company')
+
+    if tab == 'jobs':
+        bookmarks = bookmarks.filter(job_post__isnull=False)
+    elif tab == 'internships':
+        bookmarks = bookmarks.filter(internship_post__isnull=False)
+
+    if q:
+        bookmarks = bookmarks.filter(
+            Q(job_post__title__icontains=q) |
+            Q(internship_post__title__icontains=q) |
+            Q(job_post__company__first_name__icontains=q) |
+            Q(internship_post__company__first_name__icontains=q)
+        )
+
+    return render(request, 'candidate/bookmarks.html', {
+        'bookmarks': bookmarks,
+        'tab': tab,
+        'q': q,
+    })
+
+
+@login_required
+def toggle_bookmark(request):
+    """
+    AJAX / POST toggle bookmark for a job or internship.
+    """
+    if getattr(request.user, "role", None) != 'candidate':
+        return JsonResponse({'success': False, 'message': 'Only candidates can bookmark positions.'}, status=403)
+
+    prof = Profile.objects.filter(user=request.user).first()
+    if not prof:
+        return JsonResponse({'success': False, 'message': 'Candidate profile not found.'}, status=400)
+
+    item_type = request.POST.get('item_type') or request.GET.get('item_type')
+    item_id = request.POST.get('item_id') or request.GET.get('item_id')
+
+    if not item_type or not item_id:
+        return JsonResponse({'success': False, 'message': 'Missing item_type or item_id.'}, status=400)
+
+    bookmarked = False
+    message = ""
+
+    if item_type == 'job':
+        job = get_object_or_404(JobPost, pk=item_id)
+        bm = Bookmark.objects.filter(profile=prof, job_post=job).first()
+        if bm:
+            bm.delete()
+            bookmarked = False
+            message = "Removed from bookmarks."
+        else:
+            Bookmark.objects.create(profile=prof, job_post=job)
+            bookmarked = True
+            message = "Job saved to bookmarks!"
+    elif item_type == 'internship':
+        intern = get_object_or_404(InternshipPost, pk=item_id)
+        bm = Bookmark.objects.filter(profile=prof, internship_post=intern).first()
+        if bm:
+            bm.delete()
+            bookmarked = False
+            message = "Removed from bookmarks."
+        else:
+            Bookmark.objects.create(profile=prof, internship_post=intern)
+            bookmarked = True
+            message = "Internship saved to bookmarks!"
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid item type.'}, status=400)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
+        return JsonResponse({'success': True, 'bookmarked': bookmarked, 'message': message})
+    
+    messages.info(request, message)
+    return redirect(request.META.get('HTTP_REFERER', 'candidate:bookmarks'))
