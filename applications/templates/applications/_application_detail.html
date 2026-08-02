@@ -119,7 +119,7 @@
                   data-id="{{ app.job_post.id|default:app.internship_post.id }}"
                   data-auth="1"
                   data-login="{% url 'accounts:login' %}"
-                  data-next="{% if app.is_job %}{% url 'website:job_detail' app.job_post.id %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}"
+                  data-next="{% if app.is_job %}{% url 'website:job_detail' app.job_post.slug %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}"
                   data-bs-dismiss="modal">
             <i class="bi bi-arrow-repeat me-1"></i>Apply Again
           </button>
@@ -134,7 +134,7 @@
         <i class="bi bi-trash me-1"></i>Delete permanently
       </button>
 
-      <a href="{% if app.is_job %}{% url 'website:job_detail' app.job_post.id %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}" 
+      <a href="{% if app.is_job %}{% url 'website:job_detail' app.job_post.slug %}{% else %}{% url 'website:internship_detail' app.internship_post.id %}{% endif %}" 
          class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
         <i class="bi bi-eye me-1"></i>View full posting
       </a>

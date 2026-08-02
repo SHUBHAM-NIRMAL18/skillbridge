@@ -101,7 +101,7 @@
                       data-id="{{ post.id }}"
                       data-auth="1"
                       data-login="{% url 'accounts:login' %}"
-                      data-next="{% url detail_url post.id %}">
+                      data-next="{% if type == 'job' %}{% url detail_url post.slug %}{% else %}{% url detail_url post.id %}{% endif %}">
                 <i class="bi bi-arrow-repeat me-2"></i>Apply again
               </button>
             </li>
