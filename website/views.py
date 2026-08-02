@@ -208,14 +208,25 @@ def jobs_list_view(request):
     })
 
 
-def job_detail_view(request, pk: int):
+def job_detail_view(request, slug=None, pk=None):
     """
-    Full-page dynamic job detail (ID-based).
+    Full-page dynamic job detail (slug or ID-based).
     """
-    job = get_object_or_404(
-        JobPost.objects.select_related("company").prefetch_related("skills"),
-        pk=pk
-    )
+    job = None
+    if slug:
+        job = JobPost.objects.filter(slug=slug).select_related("company").prefetch_related("skills").first()
+        if not job and slug.isdigit():
+            job = JobPost.objects.filter(pk=int(slug)).select_related("company").prefetch_related("skills").first()
+            if job and job.slug:
+                return redirect("website:job_detail", slug=job.slug)
+    elif pk is not None:
+        job = JobPost.objects.filter(pk=pk).select_related("company").prefetch_related("skills").first()
+        if job and job.slug:
+            return redirect("website:job_detail", slug=job.slug)
+
+    if not job:
+        from django.http import Http404
+        raise Http404("Job post not found.")
 
     # Robust skills list for the template
     skills_names = list(job.skills.order_by("name").values_list("name", flat=True))
