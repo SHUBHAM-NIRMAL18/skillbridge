@@ -1,35 +1,92 @@
 {# templates/company/job_detail.html #}
-<h5 class="mb-3">{{ post.title }}</h5>
-<ul class="list-group mb-3">
-  <li class="list-group-item"><strong>Location:</strong> {{ post.province }}, {{ post.city }}</li>
-  <li class="list-group-item"><strong>Sector:</strong> {{ post.sector }}</li>
-  <li class="list-group-item"><strong>Type / Level:</strong> {{ post.job_type }} / {{ post.job_level }}</li>
-  <li class="list-group-item"><strong>Deadline:</strong> {{ post.application_deadline|date:"Y-m-d" }}</li>
-  <li class="list-group-item"><strong>Experience:</strong> {{ post.experience_required }} {{ post.experience_unit }}</li>
-  <li class="list-group-item"><strong>Openings:</strong> {{ post.openings }}</li>
-  <li class="list-group-item"><strong>Salary:</strong> {{ post.salary_min }}–{{ post.salary_max }} {{ post.salary_period }}</li>
-</ul>
+{% load humanize %}
+<div class="job-detail-modal-wrapper">
+  <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+    <h4 class="fw-bold text-dark mb-0">{{ post.title }}</h4>
+    <span class="badge {% if post.is_active %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-3 py-2">
+      {% if post.is_active %}Active{% else %}Inactive / Expired{% endif %}
+    </span>
+  </div>
 
-<h6>Skills</h6>
-<div class="mb-3">
-  {% for tag in post.skills.all %}
-    <span class="badge bg-secondary me-1">{{ tag.name }}</span>
-  {% empty %}
-    <span class="text-muted">None listed</span>
-  {% endfor %}
-</div>
+  <!-- Key Specs Grid -->
+  <div class="row g-2 mb-4">
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-geo-alt me-1 text-danger"></i>Location</span>
+        <strong class="text-dark small">{{ post.city }}, {{ post.province }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-briefcase me-1 text-primary"></i>Type / Level</span>
+        <strong class="text-dark small">{{ post.job_type }} &bull; {{ post.job_level }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-currency-dollar me-1 text-success"></i>Salary Range</span>
+        <strong class="text-dark small">Rs {{ post.salary_min|floatformat:0|intcomma }} – {{ post.salary_max|floatformat:0|intcomma }} / {{ post.salary_period }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-calendar-event me-1 text-warning"></i>Deadline</span>
+        <strong class="text-dark small">{{ post.application_deadline|date:"Y-m-d" }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-clock-history me-1 text-info"></i>Experience</span>
+        <strong class="text-dark small">{{ post.experience_required }} {{ post.experience_unit }}</strong>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="p-2 border rounded bg-light">
+        <span class="text-muted d-block small"><i class="bi bi-people me-1 text-purple"></i>Openings</span>
+        <strong class="text-dark small">{{ post.openings }} {{ post.openings|pluralize:"Vacancy,Vacancies" }}</strong>
+      </div>
+    </div>
+  </div>
 
-<h6>Responsibilities</h6>
-<div class="mb-3">
-  {{ post.responsibilities|safe|linebreaks }}
-</div>
+  <!-- Skills -->
+  <div class="mb-4">
+    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-tags me-1"></i>Required Skills</h6>
+    <div class="d-flex flex-wrap gap-1">
+      {% for tag in post.skills.all %}
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">#{{ tag.name }}</span>
+      {% empty %}
+        <span class="text-muted small italic">No skills listed</span>
+      {% endfor %}
+    </div>
+  </div>
 
-<h6>Qualifications</h6>
-<div class="mb-3">
-  {{ post.qualifications|safe|linebreaks }}
-</div>
+  <!-- Responsibilities -->
+  {% if post.responsibilities %}
+  <div class="mb-4">
+    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-list-task me-1"></i>Key Responsibilities</h6>
+    <div class="p-3 border rounded bg-white ck-content text-dark small">
+      {{ post.responsibilities|safe|linebreaks }}
+    </div>
+  </div>
+  {% endif %}
 
-<h6>Benefits</h6>
-<div class="mb-3">
-  {{ post.benefits|safe|linebreaks }}
+  <!-- Qualifications -->
+  {% if post.qualifications %}
+  <div class="mb-4">
+    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-check2-circle me-1"></i>Qualifications</h6>
+    <div class="p-3 border rounded bg-white ck-content text-dark small">
+      {{ post.qualifications|safe|linebreaks }}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Benefits -->
+  {% if post.benefits %}
+  <div class="mb-3">
+    <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-gift me-1"></i>Benefits & Perks</h6>
+    <div class="p-3 border rounded bg-white ck-content text-dark small">
+      {{ post.benefits|safe|linebreaks }}
+    </div>
+  </div>
+  {% endif %}
 </div>

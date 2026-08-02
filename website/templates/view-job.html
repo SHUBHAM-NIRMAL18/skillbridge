@@ -2,962 +2,1049 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ job.title }}{% endblock %}
+{% block title %}{{ job.title }} - SkillBridge{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-3 px-lg-4 py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
-      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Jobs</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{ job.title }}</li>
-    </ol>
-  </nav>
+<div class="job-detail-wrapper py-4 py-lg-5">
+  <div class="container-fluid px-3 px-lg-5">
+    
+    <!-- Breadcrumb Nav -->
+    <nav aria-label="breadcrumb" class="mb-4 fade-in-step">
+      <ol class="breadcrumb custom-breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'website:index' %}"><i class="bi bi-house-door-fill me-1"></i>Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'website:jobs_list' %}">Jobs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ job.title }}</li>
+      </ol>
+    </nav>
 
-  <div class="row g-4">
-    <!-- Left content -->
-    <div class="col-xl-8 col-lg-7">
-      <!-- Hero Section -->
-      <div class="hero-card mb-4">
-        <div class="hero-content">
-          <div class="d-flex align-items-start gap-4">
-            <div class="company-logo-wrapper">
-              {% if job.company.logo %}
-                <img src="{{ job.company.logo.url }}" alt="Logo" class="company-logo">
-              {% else %}
-                <img src="{% static 'icons/employee.svg' %}" alt="Logo" class="company-logo">
-              {% endif %}
-            </div>
-            
-            <div class="flex-grow-1">
-              <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
-                <div>
-                  <h1 class="job-title">{{ job.title }}</h1>
-                  <div class="job-meta">
-                    <a href="{% url 'website:company_detail' job.company.id %}" class="company-link">
-                      <i class="bi bi-building-fill me-2"></i>
-                      {{ job.company.first_name }} {{ job.company.last_name }}
-                    </a>
-                    <div class="meta-items">
-                      <span class="meta-item">
-                        <i class="bi bi-geo-alt-fill me-1"></i>{{ job.city }}, {{ job.province }}
-                      </span>
-                      <span class="meta-item">
-                        <i class="bi bi-briefcase-fill me-1"></i>{{ job.job_type }}
-                      </span>
-                      <span class="meta-item">
-                        <i class="bi bi-clock-fill me-1"></i>{{ job.location_type }}
-                      </span>
+    <div class="row g-4">
+      <!-- Main Content Column (Left) -->
+      <div class="col-xl-8 col-lg-7">
+        
+        <!-- Hero Header Card -->
+        <div class="job-hero-card mb-4 fade-in-step">
+          <div class="hero-bg-overlay"></div>
+          <div class="card-body p-4 p-md-5 position-relative z-1">
+            <div class="d-flex flex-column flex-md-row align-items-start gap-4">
+              
+              <!-- Company Logo -->
+              <div class="hero-logo-box flex-shrink-0">
+                {% if job.company.logo %}
+                  <img src="{{ job.company.logo.url }}" alt="{{ job.company.first_name }} Logo" class="hero-logo-img">
+                {% else %}
+                  <div class="hero-logo-placeholder">
+                    <i class="bi bi-building"></i>
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Title & Meta Info -->
+              <div class="flex-grow-1 w-100">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3">
+                  <div>
+                    <h1 class="hero-job-title">{{ job.title }}</h1>
+                    <div class="company-meta-line mt-2">
+                      <a href="{% url 'website:company_detail' job.company.id %}" class="company-brand-link">
+                        <i class="bi bi-patch-check-fill text-primary me-1"></i>
+                        {{ job.company.first_name }} {{ job.company.last_name }}
+                      </a>
                     </div>
                   </div>
+                  
+                  <!-- Hero Quick Status Pill -->
+                  <div class="hero-status-pill">
+                    {% if job.status == "Active" %}
+                      <span class="badge-status status-active">
+                        <span class="status-dot"></span> Active Hiring
+                      </span>
+                    {% else %}
+                      <span class="badge-status status-closed">
+                        <i class="bi bi-x-circle-fill me-1"></i> Closed
+                      </span>
+                    {% endif %}
+                  </div>
                 </div>
-                
-                <!-- Apply Button -->
-                <div class="apply-button-container">
-                  {% if not request.user.is_authenticated %}
-                    <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}&reason=job"
-                      class="btn btn-apply">
-                      <i class="bi bi-person-check me-2"></i>Login to Apply
-                    </a>
-                  {% else %}
-                    {% with has_applied=has_applied_job %}
-                      {% if job.status != "Active" %}
-                        <button class="btn btn-closed" disabled>
-                          <i class="bi bi-x-circle me-2"></i>Applications Closed
-                        </button>
-                      {% elif has_applied %}
-                        <div class="applied-status">
-                          <button class="btn btn-applied" disabled>
-                            <i class="bi bi-check-circle-fill me-2"></i>Applied
+
+                <!-- Meta Badges Pill Row -->
+                <div class="hero-meta-pills mt-3 pt-2">
+                  <div class="meta-pill">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                    <span>{{ job.city }}, {{ job.province }}</span>
+                  </div>
+                  <div class="meta-pill">
+                    <i class="bi bi-briefcase-fill text-primary me-1"></i>
+                    <span>{{ job.job_type }}</span>
+                  </div>
+                  <div class="meta-pill">
+                    <i class="bi bi-building-gear text-info me-1"></i>
+                    <span>{{ job.location_type }}</span>
+                  </div>
+                  <div class="meta-pill">
+                    <i class="bi bi-calendar3 text-secondary me-1"></i>
+                    <span>Posted {{ job.created_at|naturaltime }}</span>
+                  </div>
+                </div>
+
+                <!-- Desktop CTA Action Bar -->
+                <div class="apply-cta-wrapper mt-4 pt-3 border-top border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-3">
+                  <div class="deadline-highlight">
+                    <i class="bi bi-clock-history me-1 text-warning"></i>
+                    <span class="text-muted small">Deadline:</span>
+                    <strong class="text-dark ms-1">{{ job.application_deadline|date:"M j, Y" }}</strong>
+                  </div>
+
+                  <div class="apply-button-container">
+                    {% if not request.user.is_authenticated %}
+                      <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}&reason=job"
+                        class="btn btn-hero-apply">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Apply
+                      </a>
+                    {% else %}
+                      {% with has_applied=has_applied_job %}
+                        {% if job.status != "Active" %}
+                          <button class="btn btn-hero-closed" disabled>
+                            <i class="bi bi-x-circle me-2"></i>Applications Closed
                           </button>
-                          <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-primary btn-sm mt-2">
-                            View Applications
+                        {% elif has_applied %}
+                          <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-hero-applied" disabled>
+                              <i class="bi bi-check-circle-fill me-2"></i>Applied
+                            </button>
+                            <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                              View Applications
+                            </a>
+                          </div>
+                        {% else %}
+                          <a href="#"
+                            class="btn btn-hero-apply js-apply-btn"
+                            data-type="job"
+                            data-id="{{ job.id }}"
+                            data-auth="1"
+                            data-login="{% url 'accounts:login' %}"
+                            data-next="{{ request.get_full_path }}">
+                            <i class="bi bi-send-fill me-2"></i>Apply Now
                           </a>
-                        </div>
-                      {% else %}
-                        <a href="#"
-                          class="btn btn-apply js-apply-btn"
-                          data-type="job"
-                          data-id="{{ job.id }}"
-                          data-auth="1"
-                          data-login="{% url 'accounts:login' %}"
-                          data-next="{{ request.get_full_path }}">
-                          <i class="bi bi-send-fill me-2"></i>Apply Now
-                        </a>
-                      {% endif %}
-                    {% endwith %}
-                  {% endif %}
-                  <div id="applyModalContainer"></div>
+                        {% endif %}
+                      {% endwith %}
+                    {% endif %}
+                    <div id="applyModalContainer"></div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Stats Cards -->
-          <div class="stats-grid mt-4">
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="bi bi-currency-dollar"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">Salary</div>
-                <div class="stat-value">Rs {{ job.salary_min|floatformat:0|intcomma }}–{{ job.salary_max|floatformat:0|intcomma }}</div>
-                <div class="stat-subtitle">{{ job.salary_period }}</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="bi bi-bar-chart-steps"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">Level</div>
-                <div class="stat-value">{{ job.job_level }}</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="bi bi-clock-history"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">Experience</div>
-                <div class="stat-value">{{ job.experience_required }} {{ job.experience_unit }}</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="bi bi-people-fill"></i>
-              </div>
-              <div class="stat-content">
-                <div class="stat-label">Openings</div>
-                <div class="stat-value">{{ job.openings }}</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Content Sections -->
-      {% if job.responsibilities %}
-      <div class="content-card mb-4">
-        <div class="content-header">
-          <i class="bi bi-list-task me-2"></i>
-          <h5>Key Responsibilities</h5>
-        </div>
-        <div class="ck-content content-body">
-          {{ job.responsibilities|safe }}
-        </div>
-      </div>
-      {% endif %}
-
-      {% if job.qualifications %}
-      <div class="content-card mb-4">
-        <div class="content-header">
-          <i class="bi bi-check-circle me-2"></i>
-          <h5>Requirements & Qualifications</h5>
-        </div>
-        <div class="ck-content content-body">
-          {{ job.qualifications|safe }}
-        </div>
-      </div>
-      {% endif %}
-
-      {% if job.benefits %}
-      <div class="content-card mb-4">
-        <div class="content-header">
-          <i class="bi bi-gift me-2"></i>
-          <h5>Benefits & Perks</h5>
-        </div>
-        <div class="ck-content content-body">
-          {{ job.benefits|safe }}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Skills Section -->
-      <div class="content-card mb-4">
-        <div class="content-header">
-          <i class="bi bi-code-square me-2"></i>
-          <h5>Required Skills</h5>
-        </div>
-        <div class="content-body">
-          <div class="skills-container">
-            {% if skills_names %}
-              {% for name in skills_names %}
-                <span class="skill-badge">#{{ name }}</span>
-              {% endfor %}
-            {% else %}
-              <div class="empty-state">
-                <i class="bi bi-info-circle me-2"></i>
-                <span>No specific skills mentioned</span>
+        <!-- Key Metrics Cards Grid (Perfectly Aligned 4-Column / 2-Column Grid) -->
+        <div class="row g-3 mb-4 fade-in-step">
+          
+          <!-- Salary Card -->
+          <div class="col-6 col-xl-3">
+            <div class="metric-card shadow-sm h-100">
+              <div class="metric-icon-box bg-emerald-soft">
+                <i class="bi bi-currency-dollar text-emerald"></i>
               </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <!-- Company Section -->
-      <div class="content-card">
-        <div class="content-header">
-          <i class="bi bi-building me-2"></i>
-          <h5>About {{ job.company.first_name }} {{ job.company.last_name }}</h5>
-        </div>
-        <div class="content-body">
-          {% if job.company.about_company %}
-            <div class="company-description">{{ job.company.about_company|linebreaks }}</div>
-          {% else %}
-            <div class="empty-state mb-3">
-              <i class="bi bi-info-circle me-2"></i>
-              <span>Company description not available</span>
-            </div>
-          {% endif %}
-
-          <div class="company-details">
-            <div class="detail-item">
-              <i class="bi bi-geo-alt-fill"></i>
-              <span>{{ job.company.current_address }}, {{ job.company.city }}, {{ job.company.province }}</span>
-            </div>
-            <div class="detail-item">
-              <i class="bi bi-telephone-fill"></i>
-              <span>{{ job.company.phone }}</span>
-            </div>
-            {% if job.company.website_url %}
-            <div class="detail-item">
-              <i class="bi bi-globe"></i>
-              <a href="{{ job.company.website_url }}" target="_blank" rel="noopener" class="website-link">
-                Visit Company Website <i class="bi bi-arrow-up-right ms-1"></i>
-              </a>
-            </div>
-            {% endif %}
-          </div>
-
-          <a href="{% url 'website:company_detail' job.company.id %}"
-             class="btn btn-outline-primary mt-3">
-             <i class="bi bi-building me-2"></i>View Full Company Profile
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Sidebar -->
-    <div class="col-xl-4 col-lg-5">
-      <div class="sidebar-sticky">
-        <!-- Quick Apply Card -->
-        <div class="sidebar-card mb-4">
-          <div class="sidebar-card-body">
-            <div class="d-flex align-items-center mb-3">
-              {% if job.company.logo %}
-                <img src="{{ job.company.logo.url }}" alt="Logo" class="sidebar-logo">
-              {% else %}
-                <img src="{% static 'icons/employee.svg' %}" alt="Logo" class="sidebar-logo">
-              {% endif %}
-              <div class="ms-3">
-                <div class="sidebar-company-name">{{ job.company.first_name }} {{ job.company.last_name }}</div>
-                <div class="sidebar-company-location">{{ job.company.city }}, {{ job.company.province }}</div>
-              </div>
-            </div>
-            
-            <div class="deadline-info">
-              <div class="deadline-label">Application Deadline</div>
-              <div class="deadline-date">
-                <i class="bi bi-calendar-event me-2"></i>
-                {{ job.application_deadline|date:"F j, Y" }}
-              </div>
-            </div>
-
-            <div class="sidebar-apply-section mt-4">
-              {% if not request.user.is_authenticated %}
-                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
-                  class="btn btn-apply w-100">
-                  <i class="bi bi-person-check me-2"></i>Login to Apply
-                </a>
-              {% else %}
-                {% with has_applied=has_applied_job %}
-                  {% if job.status != "Active" %}
-                    <button class="btn btn-closed w-100" disabled>
-                      <i class="bi bi-x-circle me-2"></i>Applications Closed
-                    </button>
-                  {% elif has_applied %}
-                    <button class="btn btn-applied w-100" disabled>
-                      <i class="bi bi-check-circle-fill me-2"></i>Application Submitted
-                    </button>
-                    <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
-                      <i class="bi bi-list-check me-2"></i>My Applications
-                    </a>
+              <div class="metric-info">
+                <span class="metric-label">Offered Salary</span>
+                <h4 class="metric-value">Rs {{ job.salary_min|floatformat:0|intcomma }}–{{ job.salary_max|floatformat:0|intcomma }}</h4>
+                <span class="metric-sublabel">
+                  {% if "month" in job.salary_period|lower or "year" in job.salary_period|lower or "hour" in job.salary_period|lower %}
+                    Per {{ job.salary_period|title }}
                   {% else %}
-                    <a href="#"
-                      class="btn btn-apply w-100 js-apply-btn"
-                      data-type="job"
-                      data-id="{{ job.id }}"
-                      data-auth="1"
-                      data-login="{% url 'accounts:login' %}"
-                      data-next="{{ request.get_full_path }}">
-                      <i class="bi bi-send-fill me-2"></i>Apply Now
-                    </a>
+                    {{ job.salary_period|default:"Monthly"|title }}
                   {% endif %}
-                {% endwith %}
-              {% endif %}
-              <div id="applyModalContainer"></div>
+                </span>
+              </div>
             </div>
           </div>
+
+          <!-- Job Level Card -->
+          <div class="col-6 col-xl-3">
+            <div class="metric-card shadow-sm h-100">
+              <div class="metric-icon-box bg-indigo-soft">
+                <i class="bi bi-bar-chart-steps text-indigo"></i>
+              </div>
+              <div class="metric-info">
+                <span class="metric-label">Job Level</span>
+                <h4 class="metric-value">{{ job.job_level }}</h4>
+                <span class="metric-sublabel">Career Stage</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Experience Card -->
+          <div class="col-6 col-xl-3">
+            <div class="metric-card shadow-sm h-100">
+              <div class="metric-icon-box bg-sky-soft">
+                <i class="bi bi-clock-history text-sky"></i>
+              </div>
+              <div class="metric-info">
+                <span class="metric-label">Experience Required</span>
+                <h4 class="metric-value">{{ job.experience_required }} {{ job.experience_unit }}</h4>
+                <span class="metric-sublabel">Minimum Requirement</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Openings Card -->
+          <div class="col-6 col-xl-3">
+            <div class="metric-card shadow-sm h-100">
+              <div class="metric-icon-box bg-amber-soft">
+                <i class="bi bi-people-fill text-amber"></i>
+              </div>
+              <div class="metric-info">
+                <span class="metric-label">Open Positions</span>
+                <h4 class="metric-value">{{ job.openings }} {{ job.openings|pluralize:"Vacancy,Vacancies" }}</h4>
+                <span class="metric-sublabel">Available Seats</span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- More from Company -->
-        {% if more_jobs %}
-        <div class="sidebar-card">
-          <div class="sidebar-card-header">
-            <i class="bi bi-briefcase-fill me-2"></i>
-            More from this Company
-          </div>
-          <div class="sidebar-card-body">
-            <div class="more-jobs-list">
-              {% for item in more_jobs %}
-              <a href="{% url 'website:job_detail' item.id %}" class="more-job-item">
-                <div class="more-job-title">{{ item.title }}</div>
-                <div class="more-job-meta">
-                  <span><i class="bi bi-geo-alt me-1"></i>{{ item.city }}</span>
-                  <span><i class="bi bi-briefcase me-1"></i>{{ item.job_type }}</span>
-                </div>
-              </a>
-              {% endfor %}
+        <!-- Content Section: Key Responsibilities -->
+        {% if job.responsibilities %}
+        <div class="content-section-card mb-4 fade-in-step">
+          <div class="section-card-header">
+            <div class="header-icon-bubble bg-danger-soft">
+              <i class="bi bi-list-check text-danger"></i>
             </div>
+            <h5 class="section-title mb-0">Key Responsibilities</h5>
+          </div>
+          <div class="section-card-body ck-content">
+            {{ job.responsibilities|safe }}
           </div>
         </div>
         {% endif %}
+
+        <!-- Content Section: Requirements & Qualifications -->
+        {% if job.qualifications %}
+        <div class="content-section-card mb-4 fade-in-step">
+          <div class="section-card-header">
+            <div class="header-icon-bubble bg-primary-soft">
+              <i class="bi bi-award-fill text-primary"></i>
+            </div>
+            <h5 class="section-title mb-0">Requirements & Qualifications</h5>
+          </div>
+          <div class="section-card-body ck-content">
+            {{ job.qualifications|safe }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Content Section: Benefits & Perks -->
+        {% if job.benefits %}
+        <div class="content-section-card mb-4 fade-in-step">
+          <div class="section-card-header">
+            <div class="header-icon-bubble bg-emerald-soft">
+              <i class="bi bi-gift-fill text-emerald"></i>
+            </div>
+            <h5 class="section-title mb-0">Benefits & Perks</h5>
+          </div>
+          <div class="section-card-body ck-content">
+            {{ job.benefits|safe }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Content Section: Required Skills -->
+        <div class="content-section-card mb-4 fade-in-step">
+          <div class="section-card-header">
+            <div class="header-icon-bubble bg-indigo-soft">
+              <i class="bi bi-code-slash text-indigo"></i>
+            </div>
+            <h5 class="section-title mb-0">Required Skills & Expertise</h5>
+          </div>
+          <div class="section-card-body">
+            <div class="skills-tag-cloud">
+              {% if skills_names %}
+                {% for name in skills_names %}
+                  <span class="skill-tag">
+                    <i class="bi bi-hash"></i>{{ name }}
+                  </span>
+                {% endfor %}
+              {% else %}
+                <div class="empty-state-box">
+                  <i class="bi bi-info-circle text-muted fs-4 mb-2 d-block"></i>
+                  <span class="text-muted">No specific skills tagged for this position.</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Section: About Company -->
+        <div class="content-section-card mb-4 fade-in-step">
+          <div class="section-card-header">
+            <div class="header-icon-bubble bg-amber-soft">
+              <i class="bi bi-building text-amber"></i>
+            </div>
+            <h5 class="section-title mb-0">About {{ job.company.first_name }} {{ job.company.last_name }}</h5>
+          </div>
+          <div class="section-card-body">
+            {% if job.company.about_company %}
+              <div class="company-about-text mb-4">
+                {{ job.company.about_company|linebreaks }}
+              </div>
+            {% else %}
+              <div class="empty-state-box mb-4">
+                <i class="bi bi-info-circle text-muted fs-4 mb-2 d-block"></i>
+                <span class="text-muted">No company description provided yet.</span>
+              </div>
+            {% endif %}
+
+            <div class="company-info-grid">
+              <div class="company-info-item">
+                <div class="info-icon"><i class="bi bi-geo-alt-fill text-danger"></i></div>
+                <div class="info-content">
+                  <span class="info-label">Address</span>
+                  <span class="info-val">{{ job.company.current_address }}, {{ job.company.city }}, {{ job.company.province }}</span>
+                </div>
+              </div>
+
+              {% if job.company.phone %}
+              <div class="company-info-item">
+                <div class="info-icon"><i class="bi bi-telephone-fill text-primary"></i></div>
+                <div class="info-content">
+                  <span class="info-label">Contact Phone</span>
+                  <span class="info-val">{{ job.company.phone }}</span>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if job.company.website_url %}
+              <div class="company-info-item">
+                <div class="info-icon"><i class="bi bi-globe text-info"></i></div>
+                <div class="info-content">
+                  <span class="info-label">Official Website</span>
+                  <a href="{{ job.company.website_url }}" target="_blank" rel="noopener" class="info-val website-url-link">
+                    {{ job.company.website_url }} <i class="bi bi-arrow-up-right ms-1"></i>
+                  </a>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="mt-4 pt-2">
+              <a href="{% url 'website:company_detail' job.company.id %}" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="bi bi-building me-2"></i>Explore Company Profile
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Sidebar (Sticky Actions & Related Jobs) -->
+      <div class="col-xl-4 col-lg-5">
+        <div class="sidebar-sticky-wrapper">
+          
+          <!-- Sticky Quick Application Card -->
+          <div class="sidebar-action-card shadow-sm mb-4 fade-in-step">
+            <div class="card-header-gradient">
+              <span class="quick-apply-badge"><i class="bi bi-lightning-charge-fill me-1"></i> Quick Action</span>
+            </div>
+            <div class="card-body p-4">
+              
+              <!-- Company Mini Info -->
+              <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                {% if job.company.logo %}
+                  <img src="{{ job.company.logo.url }}" alt="Logo" class="sidebar-company-logo">
+                {% else %}
+                  <div class="sidebar-company-placeholder">
+                    <i class="bi bi-building"></i>
+                  </div>
+                {% endif %}
+                <div>
+                  <h6 class="sidebar-company-title mb-1">{{ job.company.first_name }} {{ job.company.last_name }}</h6>
+                  <span class="sidebar-company-loc text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ job.company.city }}, {{ job.company.province }}</span>
+                </div>
+              </div>
+
+              <!-- Deadline Urgency Box -->
+              <div class="sidebar-deadline-box mb-4">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-calendar-check-fill text-warning"></i>
+                  <span class="deadline-heading">Application Deadline</span>
+                </div>
+                <div class="deadline-date-text">
+                  {{ job.application_deadline|date:"F j, Y" }}
+                </div>
+              </div>
+
+              <!-- Sidebar Apply Action -->
+              <div class="sidebar-apply-container">
+                {% if not request.user.is_authenticated %}
+                  <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+                    class="btn btn-sidebar-apply w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login to Apply
+                  </a>
+                {% else %}
+                  {% with has_applied=has_applied_job %}
+                    {% if job.status != "Active" %}
+                      <button class="btn btn-hero-closed w-100" disabled>
+                        <i class="bi bi-x-circle me-2"></i>Applications Closed
+                      </button>
+                    {% elif has_applied %}
+                      <button class="btn btn-hero-applied w-100 mb-2" disabled>
+                        <i class="bi bi-check-circle-fill me-2"></i>Application Submitted
+                      </button>
+                      <a href="{% url 'applications:my_applications' %}" class="btn btn-outline-primary w-100 btn-sm rounded-pill">
+                        <i class="bi bi-list-task me-1"></i> My Applications
+                      </a>
+                    {% else %}
+                      <a href="#"
+                        class="btn btn-sidebar-apply w-100 js-apply-btn"
+                        data-type="job"
+                        data-id="{{ job.id }}"
+                        data-auth="1"
+                        data-login="{% url 'accounts:login' %}"
+                        data-next="{{ request.get_full_path }}">
+                        <i class="bi bi-send-fill me-2"></i>Apply Now
+                      </a>
+                    {% endif %}
+                  {% endwith %}
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Related Jobs from Company -->
+          {% if more_jobs %}
+          <div class="sidebar-action-card shadow-sm fade-in-step">
+            <div class="sidebar-card-title-header px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+              <h6 class="mb-0 fw-bold"><i class="bi bi-briefcase-fill text-primary me-2"></i>More from {{ job.company.first_name }}</h6>
+              <span class="badge bg-primary-subtle text-primary rounded-pill">{{ more_jobs|length }}</span>
+            </div>
+            <div class="card-body p-3">
+              <div class="related-jobs-list">
+                {% for item in more_jobs %}
+                <a href="{% url 'website:job_detail' item.id %}" class="related-job-item">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <h6 class="related-job-title mb-0">{{ item.title }}</h6>
+                    <i class="bi bi-chevron-right related-arrow"></i>
+                  </div>
+                  <div class="related-job-meta">
+                    <span class="badge bg-light text-secondary border me-1">{{ item.job_type }}</span>
+                    <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ item.city }}</span>
+                  </div>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <style>
-/* Modern Color Palette */
+/* Modern Design Variables */
 :root {
-  --primary-color: #dc2626;
-  --primary-hover: #b91c1c;
-  --primary-light: #fef2f2;
-  --success-color: #059669;
-  --danger-color: #dc2626;
-  --warning-color: #d97706;
-  --secondary-color: #64748b;
-  --light-gray: #f8fafc;
-  --medium-gray: #e2e8f0;
-  --dark-gray: #475569;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --sb-primary: #dc2626;
+  --sb-primary-hover: #b91c1c;
+  --sb-primary-light: #fef2f2;
+  --sb-dark: #0f172a;
+  --sb-text-main: #1e293b;
+  --sb-text-muted: #64748b;
+  --sb-card-bg: #ffffff;
+  --sb-border: #e2e8f0;
+  --sb-radius-lg: 20px;
+  --sb-radius-md: 14px;
+  --sb-radius-sm: 8px;
+  --sb-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+  --sb-shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --sb-shadow-hover: 0 18px 40px rgba(220, 38, 38, 0.12);
 }
 
-/* Breadcrumb Styling */
-.breadcrumb {
-  background: transparent;
-  padding: 0;
-  margin: 0;
+/* Background & Breadcrumb */
+.job-detail-wrapper {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  min-height: 100vh;
+}
+
+.custom-breadcrumb {
+  background: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 50px;
+  box-shadow: var(--sb-shadow-sm);
+  border: 1px solid var(--sb-border);
+  display: inline-flex;
   font-size: 0.875rem;
 }
 
-.breadcrumb-item + .breadcrumb-item::before {
-  color: var(--text-secondary);
-}
-
-.breadcrumb-item.active {
-  color: var(--text-primary);
+.custom-breadcrumb a {
+  color: var(--sb-text-muted);
+  text-decoration: none;
   font-weight: 500;
+  transition: color 0.2s;
 }
 
-/* Hero Card */
-.hero-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  box-shadow: var(--shadow-lg);
+.custom-breadcrumb a:hover {
+  color: var(--sb-primary);
+}
+
+.custom-breadcrumb .breadcrumb-item.active {
+  color: var(--sb-dark);
+  font-weight: 600;
+}
+
+/* Hero Header Card */
+.job-hero-card {
+  background: white;
+  border-radius: var(--sb-radius-lg);
+  border: 1px solid var(--sb-border);
+  box-shadow: var(--sb-shadow-md);
+  position: relative;
   overflow: hidden;
 }
 
-.hero-content {
-  padding: 2rem;
+.hero-bg-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 100%;
+  background: radial-gradient(circle at 100% 0%, rgba(220, 38, 38, 0.06) 0%, transparent 70%);
+  pointer-events: none;
 }
 
-.company-logo-wrapper {
-  position: relative;
+.hero-logo-box {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--sb-radius-md);
+  border: 2px solid #f1f5f9;
+  background: white;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.company-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
+.hero-logo-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
 }
 
-.job-title {
+.hero-logo-placeholder {
+  font-size: 2.25rem;
+  color: var(--sb-text-muted);
+}
+
+.hero-job-title {
   font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  line-height: 1.2;
+  font-weight: 800;
+  color: var(--sb-dark);
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  margin-bottom: 0.25rem;
 }
 
-.company-link {
-  color: var(--primary-color);
+.company-brand-link {
+  color: var(--sb-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  display: inline-block;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
 }
 
-.company-link:hover {
-  color: var(--primary-hover);
+.company-brand-link:hover {
+  color: var(--sb-primary-hover);
 }
 
-.meta-items {
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  margin-right: 6px;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.status-closed {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.hero-meta-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-top: 0.5rem;
+  gap: 0.6rem;
 }
 
-.meta-item {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+.meta-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 30px;
+  font-size: 0.85rem;
   font-weight: 500;
+  color: var(--sb-text-main);
   display: flex;
   align-items: center;
 }
 
-.meta-item i {
-  color: var(--primary-color);
-}
-
-/* Apply Button */
-.apply-button-container {
-  flex-shrink: 0;
-}
-
-.btn-apply {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+/* Hero Apply CTA Buttons */
+.btn-hero-apply {
+  background: linear-gradient(135deg, var(--sb-primary) 0%, #b91c1c 100%);
   color: white;
-  border: none;
+  font-weight: 700;
   padding: 0.75rem 2rem;
-  font-weight: 600;
-  border-radius: 8px;
-  box-shadow: var(--shadow-md);
-  transition: all 0.2s ease;
+  border-radius: 50px;
+  border: none;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25);
+  transition: all 0.25s ease;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
 }
 
-.btn-apply:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+.btn-hero-apply:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.35);
   color: white;
 }
 
-.btn-applied {
-  background: var(--success-color);
+.btn-sidebar-apply {
+  background: linear-gradient(135deg, var(--sb-primary) 0%, #b91c1c 100%);
   color: white;
+  font-weight: 700;
+  padding: 0.85rem 1.5rem;
+  border-radius: 50px;
   border: none;
-  padding: 0.75rem 2rem;
-  font-weight: 600;
-  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25);
+  transition: all 0.25s ease;
+  text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 
-.btn-closed {
-  background: var(--secondary-color);
+.btn-sidebar-apply:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.35);
   color: white;
+}
+
+.btn-hero-applied {
+  background: #10b981;
+  color: white;
+  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 50px;
   border: none;
-  padding: 0.75rem 2rem;
-  font-weight: 600;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
 }
 
-.applied-status {
-  text-align: center;
+.btn-hero-closed {
+  background: #94a3b8;
+  color: white;
+  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 50px;
+  border: none;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.stat-card {
+/* Metrics Grid Cards - Perfect Alignment */
+.metric-card {
   background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: var(--sb-radius-md);
+  border: 1px solid var(--sb-border);
+  padding: 1.1rem 1.15rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  transition: all 0.2s ease;
+  gap: 0.85rem;
+  min-height: 92px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sb-shadow-md);
 }
 
-.stat-icon {
+.metric-icon-box {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
 }
 
-.stat-content {
-  flex: 1;
+.bg-emerald-soft { background: #ecfdf5; }
+.text-emerald { color: #059669; }
+
+.bg-indigo-soft { background: #e0e7ff; }
+.text-indigo { color: #4338ca; }
+
+.bg-sky-soft { background: #e0f2fe; }
+.text-sky { color: #0284c7; }
+
+.bg-amber-soft { background: #fef3c7; }
+.text-amber { color: #d97706; }
+
+.bg-danger-soft { background: #fef2f2; }
+.bg-primary-soft { background: #eff6ff; }
+
+.metric-info {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.stat-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-size: 1rem;
+.metric-label {
+  font-size: 0.725rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sb-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
-.stat-subtitle {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+.metric-value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--sb-dark);
+  margin: 0.15rem 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-sublabel {
+  font-size: 0.725rem;
+  color: var(--sb-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 /* Content Cards */
-.content-card {
+.content-section-card {
   background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--sb-radius-md);
+  border: 1px solid var(--sb-border);
+  box-shadow: var(--sb-shadow-sm);
   overflow: hidden;
 }
 
-.content-header {
-  background: var(--light-gray);
-  border-bottom: 1px solid var(--border-color);
+.section-card-header {
   padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  font-weight: 600;
-  color: var(--text-primary);
+  gap: 0.85rem;
+  background: #fafafa;
 }
 
-.content-header h5 {
-  margin: 0;
-  font-size: 1.125rem;
+.header-icon-bubble {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
 }
 
-.content-header i {
-  color: var(--primary-color);
+.section-title {
+  font-weight: 700;
+  color: var(--sb-dark);
   font-size: 1.1rem;
 }
 
-.content-body {
+.section-card-body {
   padding: 1.5rem;
 }
 
-/* Skills */
-.skills-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.skill-badge {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-}
-
-.skill-badge:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.empty-state {
-  color: var(--text-secondary);
-  font-style: italic;
-  display: flex;
-  align-items: center;
-}
-
-/* Company Details */
-.company-description {
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-  color: var(--text-primary);
-}
-
-.company-details {
-  background: var(--light-gray);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-}
-
-.detail-item:last-child {
-  margin-bottom: 0;
-}
-
-.detail-item i {
-  color: var(--primary-color);
-  font-size: 1rem;
-  width: 16px;
-}
-
-.website-link {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.website-link:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-/* Sidebar */
-.sidebar-sticky {
-  position: sticky;
-  top: 2rem;
-}
-
-.sidebar-card {
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.sidebar-card-header {
-  background: var(--light-gray);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-}
-
-.sidebar-card-header i {
-  color: var(--primary-color);
-}
-
-.sidebar-card-body {
-  padding: 1.5rem;
-}
-
-.sidebar-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid var(--border-color);
-}
-
-.sidebar-company-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 1rem;
-}
-
-.sidebar-company-location {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-top: 0.125rem;
-}
-
-.deadline-info {
-  background: var(--light-gray);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.deadline-label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.deadline-date {
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-}
-
-.deadline-date i {
-  color: var(--primary-color);
-}
-
-.sidebar-apply-section {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
-}
-
-/* More Jobs */
-.more-jobs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.more-job-item {
-  display: block;
-  text-decoration: none;
-  color: var(--text-primary);
-  padding: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.more-job-item:hover {
-  background: var(--light-gray);
-  border-color: var(--primary-color);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.more-job-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.more-job-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.more-job-meta i {
-  color: var(--primary-color);
-}
-
-/* CKEditor Content Styling */
+/* CKEditor Rich Text Formatting */
 .ck-content {
-  line-height: 1.7;
-  color: var(--text-primary);
+  line-height: 1.75;
+  color: #334155;
+  font-size: 0.975rem;
 }
 
 .ck-content p {
-  margin: 0 0 1rem;
-}
-
-.ck-content h1, .ck-content h2, .ck-content h3, .ck-content h4, .ck-content h5, .ck-content h6 {
-  color: var(--text-primary);
-  font-weight: 600;
-  margin: 1.5rem 0 1rem;
+  margin-bottom: 1rem;
 }
 
 .ck-content ul, .ck-content ol {
   padding-left: 1.5rem;
-  margin: 1rem 0;
+  margin-bottom: 1.25rem;
 }
 
 .ck-content li {
-  margin-bottom: 0.5rem;
-}
-
-.ck-content a {
-  color: var(--primary-color);
-  text-decoration: underline;
-}
-
-.ck-content a:hover {
-  color: var(--primary-hover);
+  margin-bottom: 0.4rem;
 }
 
 .ck-content strong {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--sb-dark);
 }
 
 .ck-content blockquote {
-  border-left: 4px solid var(--primary-color);
+  border-left: 4px solid var(--sb-primary);
   padding-left: 1rem;
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
   font-style: italic;
-  color: var(--text-secondary);
+  color: var(--sb-text-muted);
 }
 
-/* Responsive Design */
-@media (max-width: 1199.98px) {
-  .hero-content {
-    padding: 1.5rem;
-  }
-  
-  .job-title {
-    font-size: 1.75rem;
-  }
-  
-  .company-logo {
-    width: 70px;
-    height: 70px;
-  }
+/* Skill Tags Cloud */
+.skills-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
-@media (max-width: 991.98px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.skill-tag {
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.45rem 1rem;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 767.98px) {
-  .hero-content {
-    padding: 1.25rem;
-  }
-  
-  .job-title {
-    font-size: 1.5rem;
-  }
-  
-  .company-logo {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stat-card {
-    padding: 1.25rem;
-  }
-  
-  .meta-items {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .apply-button-container {
-    width: 100%;
-    margin-top: 1rem;
-  }
-  
-  .btn-apply, .btn-applied, .btn-closed {
-    width: 100%;
-    justify-content: center;
-  }
+.skill-tag:hover {
+  background: var(--sb-primary-light);
+  border-color: var(--sb-primary);
+  color: var(--sb-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
 }
 
-@media (max-width: 575.98px) {
-  .container-fluid {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  .d-flex.align-items-start.gap-4 {
-    flex-direction: column;
-    gap: 1rem !important;
-  }
-  
-  .company-logo-wrapper {
-    align-self: center;
-  }
+.empty-state-box {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: var(--sb-radius-sm);
+  border: 1px dashed #cbd5e1;
 }
 
-/* Focus States for Accessibility */
-.btn:focus,
-.more-job-item:focus,
-.company-link:focus,
-.website-link:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+/* Company Details Grid */
+.company-about-text {
+  line-height: 1.7;
+  color: #334155;
 }
 
-/* Loading States */
-.btn.loading {
-  position: relative;
-  color: transparent;
+.company-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  background: #f8fafc;
+  padding: 1.25rem;
+  border-radius: var(--sb-radius-md);
+  border: 1px solid #e2e8f0;
 }
 
-.btn.loading::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 50%;
-  margin-left: -8px;
-  margin-top: -8px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.company-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.info-icon {
+  font-size: 1.15rem;
+  margin-top: 0.1rem;
 }
 
-/* Enhanced Hover Effects */
-.stat-card:hover .stat-icon {
-  transform: scale(1.05);
+.info-content {
+  display: flex;
+  flex-direction: column;
 }
 
-.content-card:hover {
-  border-color: var(--primary-color);
+.info-label {
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sb-text-muted);
+  font-weight: 600;
 }
 
-/* Animation Classes */
-.fade-in {
-  animation: fadeIn 0.6s ease-in;
+.info-val {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--sb-dark);
 }
 
-@keyframes fadeIn {
+.website-url-link {
+  color: var(--sb-primary);
+  text-decoration: none;
+}
+
+.website-url-link:hover {
+  text-decoration: underline;
+}
+
+/* Sidebar Styling */
+.sidebar-sticky-wrapper {
+  position: sticky;
+  top: 2rem;
+}
+
+.sidebar-action-card {
+  background: white;
+  border-radius: var(--sb-radius-md);
+  border: 1px solid var(--sb-border);
+  overflow: hidden;
+}
+
+.card-header-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 0.75rem 1.25rem;
+  color: white;
+}
+
+.quick-apply-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+
+.sidebar-company-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+.sidebar-company-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #64748b;
+}
+
+.sidebar-company-title {
+  font-weight: 700;
+  color: var(--sb-dark);
+}
+
+.sidebar-deadline-box {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: var(--sb-radius-sm);
+  padding: 0.85rem 1rem;
+}
+
+.deadline-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #b45309;
+}
+
+.deadline-date-text {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #78350f;
+  margin-left: 1.5rem;
+}
+
+/* Related Jobs List */
+.related-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.related-job-item {
+  display: block;
+  text-decoration: none;
+  padding: 0.85rem;
+  border-radius: var(--sb-radius-sm);
+  border: 1px solid #f1f5f9;
+  background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.related-job-item:hover {
+  background: white;
+  border-color: var(--sb-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateX(3px);
+}
+
+.related-job-title {
+  font-weight: 700;
+  font-size: 0.925rem;
+  color: var(--sb-dark);
+}
+
+.related-arrow {
+  font-size: 0.85rem;
+  color: var(--sb-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.related-job-item:hover .related-arrow {
+  color: var(--sb-primary);
+  transform: translateX(3px);
+}
+
+/* Fade-in Animations */
+.fade-in-step {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -965,85 +1052,38 @@
   }
 }
 
-/* Print Styles */
-@media print {
-  .sidebar-sticky,
-  .apply-button-container,
-  .sidebar-apply-section {
-    display: none !important;
+/* Responsive tweaks */
+@media (max-width: 767.98px) {
+  .hero-job-title {
+    font-size: 1.5rem;
   }
-  
-  .hero-card,
-  .content-card,
-  .sidebar-card {
-    box-shadow: none !important;
-    border: 1px solid #ddd !important;
-  }
-}
 
-/* Dark Mode Support (Optional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --light-gray: #1e293b;
-    --border-color: #334155;
+  .apply-cta-wrapper {
+    flex-direction: column;
+    align-items: stretch !important;
   }
-  
-  .hero-card,
-  .content-card,
-  .sidebar-card {
-    background: #0f172a;
-    border-color: var(--border-color);
-  }
-  
-  .content-header {
-    background: var(--light-gray);
+
+  .btn-hero-apply {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
 
-<!-- Additional JavaScript for enhanced interactions -->
+<!-- Micro-interactions & Smooth script -->
 <script>
-// Add fade-in animation to content cards
 document.addEventListener('DOMContentLoaded', function() {
-  const cards = document.querySelectorAll('.content-card, .sidebar-card');
+  // Intersection Observer for scroll reveal animations
+  const steps = document.querySelectorAll('.fade-in-step');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('fade-in');
+        entry.target.style.opacity = '1';
       }
     });
-  });
-  
-  cards.forEach(card => {
-    observer.observe(card);
-  });
-});
+  }, { threshold: 0.1 });
 
-// Smooth scroll for internal links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  });
-});
-
-// Add loading state to apply button
-document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('js-apply-btn')) {
-    e.target.classList.add('loading');
-    // Remove loading state after 3 seconds (adjust based on your modal timing)
-    setTimeout(() => {
-      e.target.classList.remove('loading');
-    }, 3000);
-  }
+  steps.forEach(step => observer.observe(step));
 });
 </script>
 {% endblock %}
