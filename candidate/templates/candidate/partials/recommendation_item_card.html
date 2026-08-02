@@ -124,8 +124,10 @@
     <!-- Footer Actions -->
     <div class="pt-3 border-top border-light-subtle d-flex align-items-center justify-content-between gap-2 mt-2">
       <div class="d-flex align-items-center gap-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center js-bookmark-toggle"
                 style="width:34px; height:34px;" title="Save Opportunity"
+                data-type="{% if item.is_job %}job{% else %}internship{% endif %}"
+                data-id="{{ item.obj_id }}"
                 onclick="logCandidateEvent({{ item.ct_id }}, {{ item.obj_id }}, 'save', this)">
           <i class="bi bi-bookmark"></i>
         </button>

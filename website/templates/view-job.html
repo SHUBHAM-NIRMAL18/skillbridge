@@ -51,8 +51,15 @@
                     </div>
                   </div>
                   
-                  <!-- Hero Quick Status Pill -->
-                  <div class="hero-status-pill">
+                  <!-- Hero Quick Status Pill & Bookmark Button -->
+                  <div class="hero-status-pill d-flex align-items-center gap-2">
+                    {% if request.user.is_authenticated and request.user.role == 'candidate' %}
+                      <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center js-bookmark-toggle shadow-sm"
+                              style="width: 36px; height: 36px;" title="Bookmark Job"
+                              data-type="job" data-id="{{ job.id }}">
+                        <i class="bi bi-bookmark"></i>
+                      </button>
+                    {% endif %}
                     {% if job.status == "Active" %}
                       <span class="badge-status status-active">
                         <span class="status-dot"></span> Active Hiring
