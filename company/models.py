@@ -253,8 +253,20 @@ class JobPost(models.Model):
     benefits             = models.TextField(blank=True)
 
     is_active            = models.BooleanField(default=True)
+    slug                 = models.SlugField(max_length=255, unique=True, blank=True, null=True)
     created_at           = models.DateTimeField(auto_now_add=True)
     updated_at           = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            import uuid
+            base_slug = slugify(self.title) or "job"
+            slug = base_slug
+            while JobPost.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+            self.slug = slug
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} at {self.company}"
