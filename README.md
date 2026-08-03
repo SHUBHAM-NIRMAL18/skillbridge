@@ -96,4 +96,41 @@ SkillBridge empowers organizations to post and manage job or internship openings
 - Access to a curated pool of qualified candidates
 - Streamlined candidate communication and asynchronous status management
 
-SkillBridge transforms the traditional recruitment process into an intelligent, efficient, and user-friendly experience that benefits both job seekers and employers in the modern job market.
+SkillBridge transforms the traditional recruitment process into an intelligent, efficient, and user-friendly experience that benefits both job seekers and employers in the modern job market.
+
+## Docker Setup & Deployment
+
+SkillBridge is fully containerized using Docker and Docker Compose.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+### Quick Start with Docker
+
+1. **Environment Setup**:
+   Create a `.env` file in the root directory (you can copy `.env.example`):
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Build and Run Containers**:
+   Start the application and PostgreSQL database in detached mode:
+   ```bash
+   docker compose up --build -d
+   ```
+   *The container entrypoint will automatically wait for PostgreSQL, apply database migrations, and collect static files.*
+
+3. **Create an Admin Superuser**:
+   ```bash
+   docker compose exec web python manage.py createsuperuser
+   ```
+
+4. **Access the Application**:
+   - Web App: [http://localhost:8000](http://localhost:8000)
+   - Admin Panel: [http://localhost:8000/admin](http://localhost:8000/admin)
+
+5. **Stop Containers**:
+   ```bash
+   docker compose down
+   ```
+
