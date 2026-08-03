@@ -118,7 +118,7 @@ CSRF_COOKIE_SECURE    = False
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_DOMAIN = None
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]  
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost", "0.0.0.0", "web"])  
 
 LOGIN_REDIRECT_URL = "/"          # send users to your home page
 LOGOUT_REDIRECT_URL = "/login/"   # back to login after logout
@@ -220,6 +220,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # (Optional, for development)
