@@ -571,6 +571,7 @@ def applicants_list(request, pk=None, status=None):
 
     qs = (Application.objects
           .select_related("candidate__user", "company", "job_post", "internship_post")
+          .prefetch_related("candidate__projects", "candidate__experiences", "candidate__educations")
           .filter(company=company))
 
     # Per-posting filters based on the path
@@ -596,7 +597,7 @@ def applicants_list(request, pk=None, status=None):
     # Querystring filters
     typ = request.GET.get("type", "all")      # all|job|intern
     q = request.GET.get("q", "").strip()
-    sort = request.GET.get("sort", "newest")  # newest|oldest
+    sort = request.GET.get("sort", "newest")  # newest|oldest|best_match
 
     if typ == "job":
         qs = qs.filter(job_post__isnull=False)
@@ -612,15 +613,66 @@ def applicants_list(request, pk=None, status=None):
             Q(internship_post__title__icontains=q)
         )
 
-    qs = qs.order_by("-applied_at" if sort == "newest" else "applied_at")
-
     # Counts for header badges
     counts = dict(qs.values("status").annotate(c=Count("id")).values_list("status", "c"))
     total_all = qs.count()
     total_job = qs.filter(job_post__isnull=False).count()
     total_int = qs.filter(internship_post__isnull=False).count()
 
-    page_obj = Paginator(qs, 12).get_page(request.GET.get("page"))
+    # Compute applicant candidate fit scores
+    from recommendations.simple_hybrid import compute_candidate_job_fit, recommend_candidates_for_job
+    app_list = list(qs)
+    for a in app_list:
+        target_obj = a.job_post if a.is_job else a.internship_post
+        if target_obj and a.candidate:
+            try:
+                fit = compute_candidate_job_fit(a.candidate, target_obj)
+                a.match_score = int(round(fit.score * 100))
+                a.matched_skills = fit.matched_skills
+                a.missing_skills = fit.missing_skills
+                a.match_why = fit.why
+            except Exception:
+                a.match_score = 0
+                a.matched_skills = []
+                a.missing_skills = []
+                a.match_why = ""
+        else:
+            a.match_score = 0
+            a.matched_skills = []
+            a.missing_skills = []
+            a.match_why = ""
+
+    # Sort applications
+    if sort in ["best_match", "match"]:
+        app_list.sort(key=lambda x: (x.match_score, x.applied_at), reverse=True)
+    elif sort == "oldest":
+        app_list.sort(key=lambda x: x.applied_at)
+    else:  # newest
+        app_list.sort(key=lambda x: x.applied_at, reverse=True)
+
+    page_obj = Paginator(app_list, 12).get_page(request.GET.get("page"))
+
+    # Suggested candidates (talent sourcing for specific posting)
+    suggested_candidates = []
+    if posting:
+        try:
+            already_applied_cand_ids = {a.candidate_id for a in app_list}
+            raw_cand_recs = recommend_candidates_for_job(posting, limit=12)
+            for r in raw_cand_recs:
+                if r.obj_id not in already_applied_cand_ids:
+                    cand_prof = Profile.objects.filter(id=r.obj_id).select_related("user").first()
+                    if cand_prof:
+                        suggested_candidates.append({
+                            "profile": cand_prof,
+                            "score": int(round(r.score * 100)),
+                            "why": r.why,
+                            "matched_skills": r.matched_skills,
+                            "missing_skills": r.missing_skills,
+                        })
+                        if len(suggested_candidates) >= 4:
+                            break
+        except Exception:
+            pass
 
     # Status choices for dropdown
     statuses = Application.STATUS_CHOICES
@@ -640,6 +692,7 @@ def applicants_list(request, pk=None, status=None):
         "posting": posting,
         "posting_title": posting_title,
         "posting_type": posting_type,
+        "suggested_candidates": suggested_candidates,
     })
 
 
