@@ -444,6 +444,35 @@
           </div>
           {% endif %}
 
+          <!-- Similar Recommended Opportunities -->
+          {% if similar_jobs %}
+          <div class="sidebar-action-card shadow-sm fade-in-step mt-4">
+            <div class="sidebar-card-title-header px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+              <h6 class="mb-0 fw-bold"><i class="bi bi-stars text-warning me-2"></i>Similar Opportunities</h6>
+              <span class="badge bg-warning-subtle text-dark rounded-pill">AI Matched</span>
+            </div>
+            <div class="card-body p-3">
+              <div class="related-jobs-list">
+                {% for item in similar_jobs %}
+                <a href="{% url 'website:job_detail' item.slug %}" class="related-job-item">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <h6 class="related-job-title mb-0">{{ item.title }}</h6>
+                    <i class="bi bi-chevron-right related-arrow"></i>
+                  </div>
+                  <div class="company-sub-line text-muted small mb-1">
+                    <i class="bi bi-building me-1"></i>{{ item.company.first_name }} {{ item.company.last_name }}
+                  </div>
+                  <div class="related-job-meta">
+                    <span class="badge bg-light text-secondary border me-1">{{ item.job_type }}</span>
+                    <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ item.city }}</span>
+                  </div>
+                </a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
         </div>
       </div>
     </div>

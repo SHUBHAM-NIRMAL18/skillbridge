@@ -133,7 +133,30 @@ def internship_detail_view(request, pk: int):
         if prof:
             has_applied_intern = Application.objects.filter(
                 candidate=prof, internship_post=internship
-        ).exclude(status__in=["withdrawn", "rejected"]).exists()
+            ).exclude(status__in=["withdrawn", "rejected"]).exists()
+
+        # Log implicit view event for recommendations
+        try:
+            from django.contrib.contenttypes.models import ContentType
+            from recommendations.models import CandidateEvent
+            ct = ContentType.objects.get_for_model(internship)
+            recent_view = CandidateEvent.objects.filter(
+                user=request.user,
+                item_content_type=ct,
+                item_object_id=internship.id,
+                event_type="view",
+                created_at__gte=timezone.now() - timezone.timedelta(hours=1)
+            ).exists()
+            if not recent_view:
+                CandidateEvent.objects.create(
+                    user=request.user,
+                    item_content_type=ct,
+                    item_object_id=internship.id,
+                    event_type="view"
+                )
+        except Exception:
+            pass
+
     if request.GET.get('ajax') == '1':
         return render(request, "internship_detail_partial.html", {
             "internship": internship,
@@ -248,10 +271,47 @@ def job_detail_view(request, slug=None, pk=None):
             has_applied_job = Application.objects.filter(
                 candidate=prof, job_post=job
             ).exclude(status__in=["withdrawn", "rejected"]).exists()
+
+        # Log implicit view event for recommendations
+        try:
+            from django.contrib.contenttypes.models import ContentType
+            from recommendations.models import CandidateEvent
+            ct = ContentType.objects.get_for_model(job)
+            recent_view = CandidateEvent.objects.filter(
+                user=request.user,
+                item_content_type=ct,
+                item_object_id=job.id,
+                event_type="view",
+                created_at__gte=timezone.now() - timezone.timedelta(hours=1)
+            ).exists()
+            if not recent_view:
+                CandidateEvent.objects.create(
+                    user=request.user,
+                    item_content_type=ct,
+                    item_object_id=job.id,
+                    event_type="view"
+                )
+        except Exception:
+            pass
+
+    # Similar Recommended Jobs
+    similar_jobs = []
+    try:
+        from recommendations.simple_hybrid import get_similar_jobs
+        sim_items = get_similar_jobs(job, limit=3)
+        for s in sim_items:
+            if not s.is_internship:
+                j_match = JobPost.objects.filter(pk=s.obj_id, is_active=True).select_related("company").first()
+                if j_match:
+                    similar_jobs.append(j_match)
+    except Exception:
+        pass
+
     return render(request, "view-job.html", {
         "job": job,
         "skills_names": skills_names,
         "more_jobs": more_jobs,
+        "similar_jobs": similar_jobs,
         "has_applied_job": has_applied_job,
     })
 
