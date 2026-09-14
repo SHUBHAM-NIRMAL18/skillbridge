@@ -754,6 +754,9 @@ def log_candidate_event(request):
                 item_object_id=int(obj_id),
                 event_type=event_type
             )
+            if event_type in ["dismiss", "save", "apply"]:
+                from recommendations.simple_hybrid import invalidate_candidate_rec_cache
+                invalidate_candidate_rec_cache(request.user.id)
             return JsonResponse({"status": "ok"})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
@@ -937,6 +940,15 @@ def toggle_bookmark(request):
             Bookmark.objects.create(profile=prof, job_post=job)
             bookmarked = True
             message = "Job saved to bookmarks!"
+            try:
+                from django.contrib.contenttypes.models import ContentType
+                from recommendations.models import CandidateEvent
+                from recommendations.simple_hybrid import invalidate_candidate_rec_cache
+                ct = ContentType.objects.get_for_model(JobPost)
+                CandidateEvent.objects.create(user=request.user, item_content_type=ct, item_object_id=job.id, event_type="save")
+                invalidate_candidate_rec_cache(request.user.id)
+            except Exception:
+                pass
     elif item_type == 'internship':
         intern = get_object_or_404(InternshipPost, pk=item_id)
         bm = Bookmark.objects.filter(profile=prof, internship_post=intern).first()
@@ -948,6 +960,15 @@ def toggle_bookmark(request):
             Bookmark.objects.create(profile=prof, internship_post=intern)
             bookmarked = True
             message = "Internship saved to bookmarks!"
+            try:
+                from django.contrib.contenttypes.models import ContentType
+                from recommendations.models import CandidateEvent
+                from recommendations.simple_hybrid import invalidate_candidate_rec_cache
+                ct = ContentType.objects.get_for_model(InternshipPost)
+                CandidateEvent.objects.create(user=request.user, item_content_type=ct, item_object_id=intern.id, event_type="save")
+                invalidate_candidate_rec_cache(request.user.id)
+            except Exception:
+                pass
     else:
         return JsonResponse({'success': False, 'message': 'Invalid item type.'}, status=400)
 

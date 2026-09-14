@@ -178,6 +178,24 @@ def apply_submit(request):
         return JsonResponse({"ok": False, "error": "Please upload your resume first in your profile."}, status=400)
 
     app.save()
+
+    # Log application event for recommendation engine & clear recommendations cache
+    try:
+        from django.contrib.contenttypes.models import ContentType
+        from recommendations.models import CandidateEvent
+        from recommendations.simple_hybrid import invalidate_candidate_rec_cache
+        target_obj = post
+        ct = ContentType.objects.get_for_model(target_obj)
+        CandidateEvent.objects.create(
+            user=request.user,
+            item_content_type=ct,
+            item_object_id=target_obj.id,
+            event_type="apply"
+        )
+        invalidate_candidate_rec_cache(request.user.id)
+    except Exception:
+        pass
+
     messages.success(request, "Application submitted successfully.")
     return JsonResponse({"ok": True, "redirect": next_url})
 
