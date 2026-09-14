@@ -74,9 +74,16 @@
           </li>
         </ul>
 
-        <!-- Search Filter Input -->
-        <div class="d-flex align-items-center gap-2 ms-auto" style="min-width: 260px;">
-          <div class="input-group input-group-sm">
+        <!-- Right Controls: Work Mode Filter & Search -->
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-md-auto">
+          <div class="btn-group btn-group-sm p-0.5 bg-light rounded-pill border" role="group" id="workModeGroup">
+            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 py-1 text-xs fw-semibold js-work-filter active" data-mode="all">All Modes</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs text-muted js-work-filter" data-mode="remote">Remote</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs text-muted js-work-filter" data-mode="hybrid">Hybrid</button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs text-muted js-work-filter" data-mode="onsite">Onsite</button>
+          </div>
+
+          <div class="input-group input-group-sm" style="min-width: 240px;">
             <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
               <i class="bi bi-search"></i>
             </span>
@@ -259,25 +266,52 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Search Filter functionality
+  // Search and Work Mode Filter functionality
   const searchInput = document.getElementById('recSearchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-      const q = e.target.value.toLowerCase().trim();
-      const activeTabPane = document.querySelector('.tab-pane.active');
-      if (!activeTabPane) return;
-      
-      const cards = activeTabPane.querySelectorAll('.col');
-      cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        if (text.includes(q)) {
-          card.style.display = '';
-        } else {
-          card.style.display = 'none';
-        }
-      });
+  const workModeBtns = document.querySelectorAll('.js-work-filter');
+  let currentMode = 'all';
+
+  function applyFilters() {
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const activeTabPane = document.querySelector('.tab-pane.active');
+    if (!activeTabPane) return;
+
+    const cards = activeTabPane.querySelectorAll('.col');
+    cards.forEach(card => {
+      const text = card.textContent.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+      const matchesMode = (currentMode === 'all') || text.includes(currentMode);
+
+      if (matchesSearch && matchesMode) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
     });
   }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  workModeBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      workModeBtns.forEach(b => {
+        b.classList.remove('btn-dark', 'fw-semibold', 'active');
+        b.classList.add('btn-light', 'text-muted');
+      });
+      this.classList.remove('btn-light', 'text-muted');
+      this.classList.add('btn-dark', 'fw-semibold', 'active');
+      currentMode = this.dataset.mode;
+      applyFilters();
+    });
+  });
+
+  // Re-apply when switching tabs
+  const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+  tabButtons.forEach(tab => {
+    tab.addEventListener('shown.bs.tab', applyFilters);
+  });
 
   // Event logging helper
   window.logCandidateEvent = function(ctId, objId, eventType, element) {
