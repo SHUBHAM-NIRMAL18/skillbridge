@@ -8,7 +8,8 @@ import re
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from .skill_normalization import SKILL_SYNONYMS
+from django.core.cache import cache
+from .skill_normalization import SKILL_SYNONYMS, SKILL_RELATIONS
 
 #VERSION = "1.0.0"  # version of this module
 EVENT_WEIGHTS = {"view": 1.0, "save": 3.0, "apply": 6.0, "dismiss": -2.0}
@@ -50,6 +51,66 @@ def _norm_skills(skills: Iterable[str]) -> List[str]:
         if x:
             out.append(x)
     return sorted(set(out))
+
+def _candidate_aggregated_skills(profile) -> List[str]:
+    """
+    Aggregates skills across candidate profile tags, project technologies, and experience role titles.
+    """
+    skills = list(getattr(profile, "skills_list", []) or [])
+
+    # Add technologies from projects
+    if hasattr(profile, "projects"):
+        for p in profile.projects.all():
+            if hasattr(p, "tech_list"):
+                skills.extend(p.tech_list)
+            elif getattr(p, "technologies", None):
+                skills.extend([t.strip() for t in str(p.technologies).split(",") if t.strip()])
+
+    # Add role keywords from experiences
+    if hasattr(profile, "experiences"):
+        for exp in profile.experiences.all():
+            role_text = getattr(exp, "role", "")
+            if role_text:
+                for token in re.findall(r"[a-zA-Z+#\.]+", role_text.lower()):
+                    if token in SKILL_SYNONYMS or token in SKILL_RELATIONS:
+                        skills.append(token)
+
+    return _norm_skills(skills)
+
+def _skill_similarity(cand_skills: List[str], job_skills: List[str]) -> Tuple[float, List[str], List[str]]:
+    """
+    Returns (similarity_score, matched_skills, missing_skills).
+    Uses direct cosine overlap plus partial credit for related/cluster skills.
+    """
+    c_set = set(cand_skills or [])
+    j_set = set(job_skills or [])
+
+    if not j_set:
+        return 0.5, [], []
+    if not c_set:
+        return 0.0, [], sorted(list(j_set))
+
+    direct_matches = c_set & j_set
+    missing = j_set - direct_matches
+
+    # Check related skills for partial credit (0.5 credit per related skill)
+    partial_credit = 0.0
+    for req_skill in missing:
+        relations = SKILL_RELATIONS.get(req_skill, set())
+        has_relation = any(c_skill in relations for c_skill in c_set)
+        if not has_relation:
+            for c_skill in c_set:
+                if req_skill in SKILL_RELATIONS.get(c_skill, set()):
+                    has_relation = True
+                    break
+        if has_relation:
+            partial_credit += 0.5
+
+    effective_match_count = len(direct_matches) + partial_credit
+    denom = sqrt(len(c_set) * len(j_set))
+    sim = min(1.0, effective_match_count / denom) if denom else 0.0
+
+    return float(round(sim, 4)), sorted(list(direct_matches)), sorted(list(missing))
 
 def _years_from_experiences(profile) -> Optional[float]:
     qs = profile.experiences.all()
@@ -230,19 +291,15 @@ def _build_match_reason(skills_sim: float, sector_s: float, loc_s: float, exp_s:
     return " • ".join(reasons)
 
 def _content_score(profile, j: JobLike) -> ContentResult:
-    # candidate features
+    # candidate features (aggregated across profile, projects, and experiences)
     cand_sectors = [s.strip().lower() for s in (getattr(profile, "sectors_list", []) or []) if s.strip()]
-    cand_skills = _norm_skills(getattr(profile, "skills_list", []) or [])
+    cand_skills = _candidate_aggregated_skills(profile)
     c_years = _candidate_years(profile)
 
-    # matched / missing skills
-    j_skills_set = set(j.skills)
-    c_skills_set = set(cand_skills)
-    matched_skills = sorted(list(c_skills_set & j_skills_set))
-    missing_skills = sorted(list(j_skills_set - c_skills_set))
+    # matched / missing skills with soft taxonomy overlap
+    skills_sim, matched_skills, missing_skills = _skill_similarity(cand_skills, j.skills)
 
     # content sub-scores
-    skills_sim = _cosine_binary(cand_skills, j.skills)
     sector_s = _sector_match(cand_sectors, j.sector)
     exp_s = _experience_fit(c_years, j.exp_min, j.exp_max)
     loc_s = _location_fit(getattr(profile, "province", None), getattr(profile, "city", None),
@@ -261,7 +318,7 @@ def _content_score(profile, j: JobLike) -> ContentResult:
         edu_sim = _cosine_binary(designation_tokens, title_tokens)
 
         # Internship scoring formula (prioritizes education, skills, location fit)
-        score = (
+        base_score = (
             0.45 * skills_sim +
             0.20 * edu_sim +
             0.15 * sector_s +
@@ -274,7 +331,7 @@ def _content_score(profile, j: JobLike) -> ContentResult:
         title_sim = _cosine_binary(p_title_tokens, j_title_tokens)
 
         # Standard Job scoring formula
-        score = (
+        base_score = (
             0.50 * skills_sim +
             0.15 * sector_s +
             0.15 * loc_s +
@@ -282,7 +339,23 @@ def _content_score(profile, j: JobLike) -> ContentResult:
             0.10 * title_sim
         )
 
+    # Recency boost: up to +0.07 for jobs posted in the last 14 days
+    today = timezone.localdate()
+    created_dt = getattr(j, "created_at", None)
+    if created_dt:
+        created_date = created_dt.date() if hasattr(created_dt, "date") else today
+        days_old = max(0, (today - created_date).days)
+        recency_bonus = 0.07 * exp(-0.04 * days_old)
+    else:
+        days_old = 999
+        recency_bonus = 0.0
+
+    score = min(1.0, base_score + recency_bonus)
+
     why = _build_match_reason(skills_sim, sector_s, loc_s, exp_s, title_sim=edu_sim if j.is_internship else title_sim, edu_sim=edu_sim, is_internship=j.is_internship)
+    if days_old <= 3 and score >= 0.35:
+        why = f"🔥 New opening • {why}"
+
     return ContentResult(
         score=float(round(score, 6)),
         why=why,
@@ -380,21 +453,71 @@ class Ranked:
     is_internship: bool = False
 
 def _recommend_for_candidate(user, filter_type: Optional[str] = None, limit: int = 20) -> List[Ranked]:
-    # 0) fetch candidate profile
+    # 0) fetch candidate profile with related data
     try:
-        profile = Profile().objects.select_related("user").prefetch_related("experiences", "educations").get(user=user)
+        profile = Profile().objects.select_related("user").prefetch_related("experiences", "educations", "projects").get(user=user)
     except Profile().DoesNotExist:
         return []
 
-    # 1) gather open items
-    items = _iter_open_joblikes(filter_type=filter_type)
+    # 0b) Exclude already applied postings
+    applied_keys = set()
+    try:
+        Application = apps.get_model("applications", "Application")
+        for app_row in Application.objects.filter(candidate=profile).exclude(status__in=["withdrawn", "rejected"]).values("job_post_id", "internship_post_id"):
+            if app_row["job_post_id"]:
+                jp_ct = ContentType.objects.get_for_model(JobPost()).id
+                applied_keys.add((jp_ct, app_row["job_post_id"]))
+            if app_row["internship_post_id"]:
+                ip_ct = ContentType.objects.get_for_model(InternshipPost()).id
+                applied_keys.add((ip_ct, app_row["internship_post_id"]))
+    except Exception:
+        pass
+
+    # 0c) Exclude dismissed postings
+    dismissed_keys = set()
+    EvModel = _candidate_event_model()
+    if EvModel:
+        try:
+            dismissed_keys = set(
+                EvModel.objects.filter(user=user, event_type="dismiss")
+                .values_list("item_content_type_id", "item_object_id")
+            )
+        except Exception:
+            pass
+
+    excluded_keys = applied_keys | dismissed_keys
+
+    # 1) gather open items, filtering out excluded postings
+    raw_items = _iter_open_joblikes(filter_type=filter_type)
+    items = [j for j in raw_items if (j.ct_id, j.obj_id) not in excluded_keys]
     if not items:
-        return []
+        # Fallback: if all filtered, show open items that were not dismissed
+        items = [j for j in raw_items if (j.ct_id, j.obj_id) not in dismissed_keys]
+        if not items:
+            return []
+
+    # Check cold-start profile
+    cand_skills = _candidate_aggregated_skills(profile)
+    is_cold_start = not cand_skills and not getattr(profile, "designation", "")
 
     # 2) content scores
     content_map: Dict[ItemKey, ContentResult] = {}
+    today = timezone.localdate()
     for j in items:
-        c = _content_score(profile, j)
+        if is_cold_start:
+            loc_s = _location_fit(getattr(profile, "province", None), getattr(profile, "city", None),
+                                  j.province, j.city, j.workplace)
+            created_dt = getattr(j, "created_at", None)
+            days_old = max(0, (today - created_dt.date()).days) if created_dt else 10
+            base = 0.40 + 0.30 * loc_s + 0.15 * exp(-0.04 * days_old)
+            c = ContentResult(
+                score=float(round(min(0.85, base), 4)),
+                why="🔥 Trending opportunity • Add skills to your profile for personalized match scores",
+                matched_skills=[],
+                missing_skills=list(j.skills[:3])
+            )
+        else:
+            c = _content_score(profile, j)
         content_map[(j.ct_id, j.obj_id)] = c
 
     # 3) collaborative scores (optional, from events)
@@ -441,14 +564,78 @@ def _recommend_for_candidate(user, filter_type: Optional[str] = None, limit: int
         for (k, s, why, m_skills, miss_skills, is_intern) in ranked
     ]
 
-def recommend_jobs_for_candidate(user, limit: int = 20) -> List[Ranked]:
+# ——————————————————————————————————————————
+# Caching helpers
+# ——————————————————————————————————————————
+def get_cached_recommendations_for_candidate(user, filter_type: Optional[str] = None, limit: int = 20) -> List[Ranked]:
+    cache_key = f"sb_rec_cand_{user.id}_{filter_type or 'all'}_{limit}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    results = _recommend_for_candidate(user, filter_type=filter_type, limit=limit)
+    cache.set(cache_key, results, timeout=600)  # 10 minutes TTL
+    return results
+
+def invalidate_candidate_rec_cache(user_id: int):
+    """
+    Clears cached recommendations for this candidate when they apply, dismiss, bookmark, or update profile.
+    """
+    for f in ["all", "jobs", "internships", None]:
+        for lim in [4, 6, 10, 20, 30, 50]:
+            cache.delete(f"sb_rec_cand_{user_id}_{f or 'all'}_{lim}")
+
+def recommend_jobs_for_candidate(user, limit: int = 20, use_cache: bool = True) -> List[Ranked]:
+    if use_cache:
+        return get_cached_recommendations_for_candidate(user, filter_type="jobs", limit=limit)
     return _recommend_for_candidate(user, filter_type="jobs", limit=limit)
 
-def recommend_internships_for_candidate(user, limit: int = 20) -> List[Ranked]:
+def recommend_internships_for_candidate(user, limit: int = 20, use_cache: bool = True) -> List[Ranked]:
+    if use_cache:
+        return get_cached_recommendations_for_candidate(user, filter_type="internships", limit=limit)
     return _recommend_for_candidate(user, filter_type="internships", limit=limit)
 
-def recommend_all_for_candidate(user, limit: int = 20) -> List[Ranked]:
+def recommend_all_for_candidate(user, limit: int = 20, use_cache: bool = True) -> List[Ranked]:
+    if use_cache:
+        return get_cached_recommendations_for_candidate(user, filter_type=None, limit=limit)
     return _recommend_for_candidate(user, filter_type=None, limit=limit)
+
+def compute_candidate_job_fit(candidate_profile, job_or_intern_obj) -> ContentResult:
+    """
+    Computes a content fit score (0.0 to 1.0) and breakdown for a candidate against a job or internship.
+    Used for recruiter view (applicants ranking, applicant detail).
+    """
+    j = _to_joblike(job_or_intern_obj)
+    return _content_score(candidate_profile, j)
+
+def get_similar_jobs(job_obj, limit: int = 3) -> List[JobLike]:
+    """
+    Finds open jobs/internships similar to the given job posting based on skills, sector, and title.
+    """
+    try:
+        target = _to_joblike(job_obj)
+        all_open = _iter_open_joblikes()
+        candidates = [j for j in all_open if not (j.ct_id == target.ct_id and j.obj_id == target.obj_id)]
+        if not candidates:
+            return []
+
+        scored = []
+        target_skills = set(target.skills)
+        target_title_words = set(re.findall(r"[a-zA-Z]{3,}", (target.title or "").lower()))
+        target_sector = (target.sector or "").strip().lower()
+
+        for item in candidates:
+            s_sim = _cosine_binary(target.skills, item.skills)
+            i_title_words = set(re.findall(r"[a-zA-Z]{3,}", (item.title or "").lower()))
+            t_sim = _cosine_binary(target_title_words, i_title_words)
+            sec_sim = 1.0 if target_sector and (item.sector or "").strip().lower() == target_sector else 0.4
+
+            sim_score = 0.55 * s_sim + 0.25 * t_sim + 0.20 * sec_sim
+            scored.append((item, sim_score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return [item for (item, s) in scored[:limit] if s > 0.15]
+    except Exception:
+        return []
 
 def recommend_candidates_for_job(job_obj, limit: int = 50) -> List[Ranked]:
     # 0) item unify
