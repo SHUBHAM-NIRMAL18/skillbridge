@@ -25,8 +25,12 @@ class RoleRedirectAccountAdapter(DefaultAccountAdapter):
 
         user = request.user
         if getattr(user, "role", None) == User.ROLE_CANDIDATE:
+            if not getattr(user, "has_completed_onboarding", True):
+                return reverse("candidate:onboarding")
             return reverse("candidate:dashboard")
         if getattr(user, "role", None) == User.ROLE_COMPANY:
+            if not getattr(user, "has_completed_onboarding", True):
+                return reverse("company:onboarding")
             return reverse("company:dashboard")
 
         # Important: never fall back to the login page
