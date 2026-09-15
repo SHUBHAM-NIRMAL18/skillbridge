@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import FormView, TemplateView
 from accounts.models import User
 
@@ -13,7 +13,8 @@ from .forms import (
     EducationFormSet, ExperienceFormSet, ProjectFormSet,
     CertificateFormSet, SocialLinkFormSet, DocumentUploadForm
 )
-from .models import Profile, Feedback
+from .forms_onboarding import CandidateOnboardingForm
+from .models import Profile, Feedback, Education, SocialLink
 from django.utils import timezone
 
 
@@ -976,4 +977,113 @@ def toggle_bookmark(request):
         return JsonResponse({'success': True, 'bookmarked': bookmarked, 'message': message})
     
     messages.info(request, message)
-    return redirect(request.META.get('HTTP_REFERER', 'candidate:bookmarks'))
+    return redirect(request.META.get('HTTP_REFERER', 'candidate:bookmarks'))
+
+
+# ---------------------------
+# Candidate Onboarding Flow
+# ---------------------------
+
+@login_required
+def candidate_onboarding(request):
+    if getattr(request.user, "role", None) != User.ROLE_CANDIDATE:
+        messages.error(request, "Please switch to a candidate account.")
+        if getattr(request.user, "role", None) == User.ROLE_COMPANY:
+            return redirect("company:onboarding")
+        return redirect("accounts:login")
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    show_complete = request.GET.get('step') == 'complete' or (
+        request.user.has_completed_onboarding and request.GET.get('edit') != '1'
+    )
+
+    if request.method == "POST":
+        form = CandidateOnboardingForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            p = form.save(commit=False)
+            p.user = request.user
+            p.email = request.user.email
+            p.save()
+
+            # Education
+            inst = form.cleaned_data.get('institution')
+            deg = form.cleaned_data.get('degree')
+            if inst and deg:
+                Education.objects.update_or_create(
+                    profile=p,
+                    institution=inst,
+                    defaults={
+                        'degree': deg,
+                        'field_of_study': form.cleaned_data.get('field_of_study') or '',
+                        'start_date': form.cleaned_data.get('edu_start_date') or timezone.localdate(),
+                        'end_date': form.cleaned_data.get('edu_end_date'),
+                    }
+                )
+
+            # Social links
+            li = form.cleaned_data.get('linkedin_url')
+            if li:
+                SocialLink.objects.update_or_create(
+                    profile=p,
+                    platform='linkedin',
+                    defaults={'url': li}
+                )
+            gh = form.cleaned_data.get('github_url')
+            if gh:
+                SocialLink.objects.update_or_create(
+                    profile=p,
+                    platform='github',
+                    defaults={'url': gh}
+                )
+            po = form.cleaned_data.get('portfolio_url')
+            if po:
+                SocialLink.objects.update_or_create(
+                    profile=p,
+                    platform='portfolio',
+                    defaults={'url': po}
+                )
+
+            request.user.is_onboarded = True
+            request.user.save(update_fields=['is_onboarded'])
+
+            messages.success(request, "🎉 Your candidate profile is set up successfully!")
+            return redirect(f"{reverse('candidate:onboarding')}?step=complete")
+    else:
+        initial_data = {}
+        edu = profile.educations.first()
+        if edu:
+            initial_data['institution'] = edu.institution
+            initial_data['degree'] = edu.degree
+            initial_data['field_of_study'] = edu.field_of_study
+            initial_data['edu_start_date'] = edu.start_date
+            initial_data['edu_end_date'] = edu.end_date
+
+        for s in profile.social_links.all():
+            if s.platform == 'linkedin':
+                initial_data['linkedin_url'] = s.url
+            elif s.platform == 'github':
+                initial_data['github_url'] = s.url
+            elif s.platform == 'portfolio':
+                initial_data['portfolio_url'] = s.url
+
+        form = CandidateOnboardingForm(instance=profile, initial=initial_data)
+
+    from company.models import JobPost, InternshipPost
+    recommended_jobs = JobPost.objects.filter(
+        is_active=True,
+        application_deadline__gte=timezone.localdate()
+    ).select_related('company')[:4]
+
+    recommended_internships = InternshipPost.objects.filter(
+        is_active=True,
+        application_deadline__gte=timezone.localdate()
+    ).select_related('company')[:3]
+
+    return render(request, "candidate/onboarding.html", {
+        'form': form,
+        'profile': profile,
+        'show_complete': show_complete,
+        'recommended_jobs': recommended_jobs,
+        'recommended_internships': recommended_internships,
+    })
