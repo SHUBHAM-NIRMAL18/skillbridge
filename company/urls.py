@@ -17,6 +17,7 @@ from .views import (
 app_name = 'company'
 
 urlpatterns = [
+    path('onboarding/', views.company_onboarding, name='onboarding'),
     path('dashboard/', views.company_dashboard, name='dashboard'),
     path('alljobs/', CompanyPostListView.as_view(), name='company_all_jobs'),
 
