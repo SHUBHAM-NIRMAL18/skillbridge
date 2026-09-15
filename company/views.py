@@ -25,6 +25,7 @@ from .forms import (
     InternshipPostForm, JobBasicDetailsForm, JobSkillsRequirementsForm, JobReviewForm,
     JobPostForm, CustomPasswordChangeForm, NotificationSettingsForm
 )
+from .forms_onboarding import CompanyOnboardingForm
 from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
 from candidate.models import Profile, Feedback
@@ -39,8 +40,8 @@ from membership.services import spend_credits, get_spendable_balance
 
 class RequireCompanyProfileMixin(LoginRequiredMixin):
     """
-    Ensures the user is a company and has a CompanyProfile row.
-    Redirects to the Company Profile page with a message if missing.
+    Ensures the user is a company and has completed onboarding / CompanyProfile row.
+    Redirects to the Company Onboarding page with a message if missing.
     """
     def dispatch(self, request, *args, **kwargs):
         # must be a company user
@@ -48,12 +49,59 @@ class RequireCompanyProfileMixin(LoginRequiredMixin):
             messages.error(request, "Please sign in with a company account.")
             return redirect("accounts:login")
 
-        # must have completed company profile
-        if not hasattr(request.user, "company_profile"):
-            messages.info(request, "Please complete your company profile before accessing this page.")
-            return redirect("company:profile")
+        # must have completed company profile & onboarding
+        if not getattr(request.user, "has_completed_onboarding", False) or not hasattr(request.user, "company_profile"):
+            messages.info(request, "Please complete your company onboarding before accessing this page.")
+            return redirect("company:onboarding")
 
         return super().dispatch(request, *args, **kwargs)
+
+
+# ---------------------------
+# Company Onboarding Flow
+# ---------------------------
+
+@login_required
+def company_onboarding(request):
+    if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company"):
+        messages.error(request, "Please switch to a company account.")
+        if getattr(request.user, "role", None) == getattr(request.user, "ROLE_CANDIDATE", "candidate"):
+            return redirect("candidate:onboarding")
+        return redirect("accounts:login")
+
+    try:
+        profile = request.user.company_profile
+    except CompanyProfile.DoesNotExist:
+        profile = CompanyProfile(user=request.user)
+
+    show_complete = request.GET.get('step') == 'complete' or (
+        request.user.has_completed_onboarding and request.GET.get('edit') != '1'
+    )
+
+    if request.method == "POST":
+        form = CompanyOnboardingForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            p = form.save(commit=False)
+            p.user = request.user
+            p.is_active = True
+            if not p.pk and not p.credits_balance:
+                p.credits_balance = getattr(settings, 'CREDITS_SIGNUP_BONUS', 50)
+            p.save()
+
+            request.user.is_onboarded = True
+            request.user.save(update_fields=['is_onboarded'])
+
+            messages.success(request, "🎉 Company profile setup complete! Welcome to SkillBridge.")
+            return redirect(f"{reverse('company:onboarding')}?step=complete")
+    else:
+        form = CompanyOnboardingForm(instance=profile)
+
+    return render(request, "company/onboarding.html", {
+        'form': form,
+        'profile': profile,
+        'show_complete': show_complete,
+        'credits_balance': profile.credits_balance if profile.pk else getattr(settings, 'CREDITS_SIGNUP_BONUS', 50),
+    })
 
 
 # ---------------------------
@@ -65,9 +113,9 @@ def company_dashboard(request):
     # guards
     if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company"):
         return redirect('accounts:login')
-    if not hasattr(request.user, "company_profile"):
-        messages.info(request, "Please complete your company profile before accessing the dashboard.")
-        return redirect('company:profile')
+    if not getattr(request.user, "has_completed_onboarding", False) or not hasattr(request.user, "company_profile"):
+        messages.info(request, "Please complete your company onboarding before accessing the dashboard.")
+        return redirect('company:onboarding')
 
     company = request.user.company_profile
     today = timezone.localdate()
