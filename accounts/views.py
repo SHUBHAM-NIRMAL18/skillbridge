@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 
 from .forms import (
     CompanyRegistrationForm,
@@ -16,9 +16,10 @@ def register_company(request):
     if request.method == "POST":
         form = CompanyRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Company registered successfully.")
-            return redirect("accounts:login")
+            user = form.save()
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            messages.success(request, "Welcome to SkillBridge! Let's set up your company profile.")
+            return redirect("company:onboarding")
     else:
         form = CompanyRegistrationForm()
     return render(request, "accounts/company_register.html", {"form": form})
@@ -28,9 +29,10 @@ def register_candidate(request):
     if request.method == "POST":
         form = CandidateRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Candidate registered successfully.")
-            return redirect("accounts:login")
+            user = form.save()
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            messages.success(request, "Welcome to SkillBridge! Let's complete your candidate profile.")
+            return redirect("candidate:onboarding")
     else:
         form = CandidateRegistrationForm()
     return render(request, "accounts/candidate_register.html", {"form": form})
@@ -84,8 +86,13 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         user = self.request.user
         if user.role == user.ROLE_COMPANY:
+            if not getattr(user, "has_completed_onboarding", True):
+                return reverse("company:onboarding")
             return reverse("company:dashboard")
-        return reverse("candidate:dashboard")
+        else:
+            if not getattr(user, "has_completed_onboarding", True):
+                return reverse("candidate:onboarding")
+            return reverse("candidate:dashboard")
 
 
 class CustomLogoutView(LogoutView):
