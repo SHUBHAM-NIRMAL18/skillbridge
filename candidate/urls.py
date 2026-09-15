@@ -2,7 +2,7 @@
 from django.urls import path
 from django.shortcuts import redirect
 from .views import (
-    candidate_dashboard, ProfileWizardView, ProfileCompleteView,
+    candidate_dashboard, candidate_onboarding, ProfileWizardView, ProfileCompleteView,
     ProfilePreviewView, recommended_demo, log_candidate_event, inbox, support, feedback,
     candidate_registered_events, candidate_bookmarks_list, toggle_bookmark
 )
@@ -11,6 +11,7 @@ from applications.views import my_applications
 app_name = "candidate"
 
 urlpatterns = [
+    path('onboarding/', candidate_onboarding, name='onboarding'),
     path('dashboard/', candidate_dashboard, name='dashboard'),
     path('inbox/', inbox, name='inbox'),
     path('support/', support, name='support'),
