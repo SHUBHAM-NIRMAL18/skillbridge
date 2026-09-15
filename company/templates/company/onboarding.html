@@ -1,0 +1,626 @@
+{% load static %}
+{% load bootstrap5 %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Company Onboarding | SkillBridge</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon.ico' %}" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  {% bootstrap_css %}
+
+  <style>
+    :root {
+      --primary-employer: #4f46e5;
+      --primary-employer-hover: #4338ca;
+      --primary-subtle: rgba(79, 70, 229, 0.08);
+      --dark-navy: #0f172a;
+      --slate-text: #475569;
+      --card-border: #e2e8f0;
+      --bg-surface: #f8fafc;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-surface);
+      color: var(--dark-navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .onboarding-navbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.85rem 1.5rem;
+    }
+
+    .brand-logo {
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: var(--dark-navy);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-logo span {
+      color: #dc3545;
+    }
+
+    /* Stepper Bar */
+    .stepper-container {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin: 1.5rem 0 2.5rem 0;
+    }
+
+    .stepper-container::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: #e2e8f0;
+      z-index: 1;
+    }
+
+    .stepper-progress {
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      height: 3px;
+      background: var(--primary-employer);
+      z-index: 2;
+      transition: width 0.35s ease;
+      width: 0%;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+      flex: 1;
+      cursor: default;
+    }
+
+    .step-node {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .step-item.active .step-node {
+      border-color: var(--primary-employer);
+      background: var(--primary-employer);
+      color: #ffffff;
+      box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.2);
+    }
+
+    .step-item.completed .step-node {
+      border-color: #10b981;
+      background: #10b981;
+      color: #ffffff;
+    }
+
+    .step-title {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .step-item.active .step-title {
+      color: var(--dark-navy);
+      font-weight: 700;
+    }
+
+    .step-item.completed .step-title {
+      color: #10b981;
+    }
+
+    /* Card */
+    .onboarding-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      padding: 2.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-preview-wrap {
+      width: 95px;
+      height: 95px;
+      border-radius: 1rem;
+      border: 2px solid var(--card-border);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      position: relative;
+      margin-right: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .logo-preview-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    .credit-gift-box {
+      background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+      color: #ffffff;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .credit-gift-box::after {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 140px;
+      height: 140px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    .btn-employer-primary {
+      background: var(--primary-employer);
+      color: #ffffff;
+      border: none;
+    }
+
+    .btn-employer-primary:hover {
+      background: var(--primary-employer-hover);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Onboarding Header -->
+  <header class="onboarding-navbar">
+    <div class="container-fluid max-w-6xl d-flex align-items-center justify-content-between">
+      <a href="{% url 'website:index' %}" class="brand-logo">
+        <img src="{% static 'icons/sb.png' %}" alt="SkillBridge Logo" width="34" height="34" />
+        Skill<span>Bridge</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-indigo-subtle text-primary px-3 py-1.5 rounded-pill fw-semibold small" style="background-color: #eef2ff;">
+          <i class="bi bi-building me-1"></i> Employer / Company Account
+        </span>
+        <div class="text-muted small d-none d-md-inline">
+          {{ request.user.email }}
+        </div>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+          <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow-1 py-4">
+    <div class="container" style="max-width: 860px;">
+
+      {% if messages %}
+        <div class="mb-4">
+          {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if show_complete %}
+        <!-- STEP 4: CELEBRATION / LAUNCHPAD SCREEN -->
+        <div class="onboarding-card text-center py-5">
+          <div class="mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 84px; height: 84px; background: #eef2ff; color: #4f46e5;">
+              <i class="bi bi-building-check" style="font-size: 3rem;"></i>
+            </div>
+          </div>
+
+          <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5 fw-semibold mb-2">Company Verified & Active</span>
+          <h2 class="fw-bold mb-2">Welcome Aboard, {{ profile.first_name }}! 🎉</h2>
+          <p class="text-muted lead fs-6 mb-4" style="max-width: 600px; margin: 0 auto;">
+            Your employer profile is live. You are ready to publish opportunities, attract skilled candidates, and manage applications seamlessly.
+          </p>
+
+          <!-- Free Posting Credits Banner -->
+          <div class="credit-gift-box mb-4 text-start shadow-sm" style="max-width: 680px; margin: 0 auto;">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                  <i class="bi bi-gift-fill me-1"></i> Welcome Hiring Bonus
+                </span>
+                <h4 class="fw-bold text-white mb-1">{{ credits_balance }} Free Posting Credits Granted!</h4>
+                <p class="text-white-50 small mb-0">
+                  Every standard job posting requires 10 credits. You can immediately publish up to 5 opportunities without payment.
+                </p>
+              </div>
+              <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <div class="d-inline-block bg-white text-dark rounded-4 p-3 text-center shadow">
+                  <div class="fs-2 fw-black text-primary" style="line-height: 1;">{{ credits_balance }}</div>
+                  <div class="small fw-semibold text-muted text-uppercase" style="font-size: 0.72rem;">Credits In Wallet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Company Snapshot Summary -->
+          <div class="card border rounded-4 p-3 mb-4 text-start bg-light shadow-sm" style="max-width: 680px; margin: 0 auto;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="logo-preview-wrap m-0" style="width: 64px; height: 64px;">
+                {% if profile.logo %}
+                  <img src="{{ profile.logo.url }}" alt="Company Logo" />
+                {% else %}
+                  <i class="bi bi-building fs-2 text-secondary"></i>
+                {% endif %}
+              </div>
+              <div>
+                <h5 class="fw-bold mb-0">{{ profile.first_name }} {% if profile.last_name != 'Company' %}{{ profile.last_name }}{% endif %}</h5>
+                <div class="text-muted small">{{ profile.industry }} &bull; {{ profile.city }}, {{ profile.get_province_display }}</div>
+                <div class="text-muted small"><i class="bi bi-telephone"></i> {{ profile.phone }} {% if profile.website_url %}&bull; <a href="{{ profile.website_url }}" target="_blank" class="text-primary text-decoration-none">{{ profile.website_url }}</a>{% endif %}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex flex-wrap justify-content-center gap-3 pt-2">
+            <a href="{% url 'company:company_post_choice' %}" class="btn btn-employer-primary btn-lg px-4 py-2.5 rounded-pill fw-bold shadow-sm">
+              <i class="bi bi-plus-circle me-1"></i> Post Your First Opportunity
+            </a>
+            <a href="{% url 'company:dashboard' %}" class="btn btn-outline-dark btn-lg px-4 py-2.5 rounded-pill fw-semibold">
+              <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'company:onboarding' %}?edit=1" class="btn btn-link text-muted text-decoration-none btn-lg px-3 py-2.5">
+              <i class="bi bi-pencil me-1"></i> Edit Details
+            </a>
+          </div>
+        </div>
+
+      {% else %}
+
+        <!-- ONBOARDING STEPPER -->
+        <div class="stepper-container">
+          <div class="stepper-progress" id="stepperProgress"></div>
+          <div class="step-item active" id="stepIndicator1">
+            <div class="step-node">1</div>
+            <div class="step-title">Company Identity</div>
+          </div>
+          <div class="step-item" id="stepIndicator2">
+            <div class="step-node">2</div>
+            <div class="step-title">Location & Contact</div>
+          </div>
+          <div class="step-item" id="stepIndicator3">
+            <div class="step-node">3</div>
+            <div class="step-title">Culture & Social</div>
+          </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="onboarding-card">
+          <form method="post" enctype="multipart/form-data" id="companyOnboardingForm" novalidate>
+            {% csrf_token %}
+
+            {% if form.errors %}
+              <div class="alert alert-danger rounded-4 p-3 mb-4">
+                <div class="fw-bold d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-exclamation-triangle-fill"></i> Please resolve the following errors:
+                </div>
+                <ul class="mb-0 ps-3 small">
+                  {% for field in form %}
+                    {% for error in field.errors %}
+                      <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                  {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+
+            <!-- STEP 1: IDENTITY & BRAND -->
+            <div class="step-panel active" id="stepPanel1">
+              <div class="mb-4">
+                <span class="badge bg-indigo-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-semibold" style="background-color: #eef2ff;">Step 1 of 3</span>
+                <h3 class="fw-bold mb-1">Company Identity & Brand</h3>
+                <p class="text-muted small">Establish your organization’s profile and branding on SkillBridge.</p>
+              </div>
+
+              <!-- Logo Uploader with Live Preview -->
+              <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-4 border">
+                <div class="logo-preview-wrap">
+                  <img id="logoPreview" src="{% if profile.logo %}{{ profile.logo.url }}{% else %}https://ui-avatars.com/api/?name=Company&background=e2e8f0&color=475569{% endif %}" alt="Logo Preview" />
+                </div>
+                <div class="flex-grow-1">
+                  <label class="form-label fw-bold mb-1">Company Logo</label>
+                  <div class="text-muted small mb-2">Upload square PNG or JPG (Min 200x200 recommended).</div>
+                  {{ form.logo }}
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <label class="form-label fw-semibold">Company Name <span class="text-danger">*</span></label>
+                  {{ form.first_name }}
+                  <div class="invalid-feedback">Company name is required.</div>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label fw-semibold">Legal Suffix / Branch</label>
+                  {{ form.last_name }}
+                  <small class="text-muted">e.g. Pvt. Ltd. or Nepal Branch</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Industry / Domain <span class="text-danger">*</span></label>
+                  {{ form.industry }}
+                  <div class="invalid-feedback">Industry is required.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Company Size <span class="text-danger">*</span></label>
+                  {{ form.company_size }}
+                  <div class="invalid-feedback">Please select company size.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Date Established <span class="text-danger">*</span></label>
+                  {{ form.founded_date }}
+                  <div class="invalid-feedback">Please provide establishment date.</div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-employer-primary btn-lg px-4 py-2.5 rounded-pill fw-semibold" onclick="goToCompanyStep(2)">
+                  Continue to Location & Contact <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 2: LOCATION & CONTACT -->
+            <div class="step-panel" id="stepPanel2">
+              <div class="mb-4">
+                <span class="badge bg-indigo-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-semibold" style="background-color: #eef2ff;">Step 2 of 3</span>
+                <h3 class="fw-bold mb-1">Location & Office Contact</h3>
+                <p class="text-muted small">Help candidates understand your office location and reach out.</p>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Province <span class="text-danger">*</span></label>
+                  {{ form.province }}
+                  <div class="invalid-feedback">Please choose a province.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+                  {{ form.city }}
+                  <div class="invalid-feedback">City name is required.</div>
+                </div>
+
+                <div class="col-md-8">
+                  <label class="form-label fw-semibold">Office / Street Address <span class="text-danger">*</span></label>
+                  {{ form.current_address }}
+                  <div class="invalid-feedback">Office address is required.</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Postal Code</label>
+                  {{ form.postal_code }}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Business Phone Number <span class="text-danger">*</span></label>
+                  {{ form.phone }}
+                  <div class="invalid-feedback">Valid phone number is required.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Official Website</label>
+                  {{ form.website_url }}
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-outline-secondary btn-lg px-4 py-2.5 rounded-pill" onclick="goToCompanyStep(1)">
+                  <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-employer-primary btn-lg px-4 py-2.5 rounded-pill fw-semibold" onclick="goToCompanyStep(3)">
+                  Continue to Culture & Preferences <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 3: CULTURE & SOCIAL -->
+            <div class="step-panel" id="stepPanel3">
+              <div class="mb-4">
+                <span class="badge bg-indigo-subtle text-primary rounded-pill px-3 py-1 mb-2 fw-semibold" style="background-color: #eef2ff;">Step 3 of 3</span>
+                <h3 class="fw-bold mb-1">Company Culture & Hiring Settings</h3>
+                <p class="text-muted small">Showcase your mission and set your candidate communication preferences.</p>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">About the Company <span class="text-danger">*</span></label>
+                  {{ form.about_company }}
+                  <small class="text-muted">Describe what your company does, its values, and why candidates love working here.</small>
+                  <div class="invalid-feedback">Company description is required.</div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold"><i class="bi bi-linkedin text-primary me-1"></i> Company LinkedIn / Social Profile</label>
+                  {{ form.social_link }}
+                </div>
+
+                <div class="col-12 mt-3">
+                  <div class="p-3 bg-light rounded-4 border">
+                    <div class="form-check">
+                      {{ form.notify_on_application }}
+                      <label class="form-check-label fw-semibold" for="{{ form.notify_on_application.id_for_label }}">
+                        Email Notifications
+                      </label>
+                      <div class="text-muted small">Receive an instant email update every time a candidate applies to your posted jobs or internships.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-outline-secondary btn-lg px-4 py-2.5 rounded-pill" onclick="goToCompanyStep(2)">
+                  <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button type="submit" class="btn btn-employer-primary btn-lg px-5 py-2.5 rounded-pill fw-bold shadow-sm" id="submitBtn">
+                  <i class="bi bi-check2-circle me-1"></i> Complete Company Onboarding
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      {% endif %}
+
+    </div>
+  </main>
+
+  <footer class="text-center py-3 text-muted small border-top bg-white">
+    &copy; {% now "Y" %} SkillBridge. Built to empower candidates & employers.
+  </footer>
+
+  {% bootstrap_javascript %}
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 3;
+
+    function updateCompanyStepper(step) {
+      currentStep = step;
+      const pct = ((step - 1) / (totalSteps - 1)) * 80;
+      const progEl = document.getElementById('stepperProgress');
+      if (progEl) progEl.style.width = pct + '%';
+
+      for (let i = 1; i <= totalSteps; i++) {
+        const item = document.getElementById('stepIndicator' + i);
+        if (!item) continue;
+        item.classList.remove('active', 'completed');
+        if (i < step) {
+          item.classList.add('completed');
+          item.querySelector('.step-node').innerHTML = '<i class="bi bi-check-lg"></i>';
+        } else if (i === step) {
+          item.classList.add('active');
+          item.querySelector('.step-node').innerText = i;
+        } else {
+          item.querySelector('.step-node').innerText = i;
+        }
+      }
+
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById('stepPanel' + step);
+      if (activePanel) activePanel.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function validateCompanyStep(step) {
+      let isValid = true;
+      if (step === 1) {
+        const reqFields = ['id_first_name', 'id_industry', 'id_company_size', 'id_founded_date'];
+        reqFields.forEach(id => {
+          const el = document.getElementById(id);
+          if (el && !el.value.trim()) {
+            el.classList.add('is-invalid');
+            isValid = false;
+          } else if (el) {
+            el.classList.remove('is-invalid');
+          }
+        });
+      } else if (step === 2) {
+        const reqFields = ['id_province', 'id_city', 'id_current_address', 'id_phone'];
+        reqFields.forEach(id => {
+          const el = document.getElementById(id);
+          if (el && !el.value.trim()) {
+            el.classList.add('is-invalid');
+            isValid = false;
+          } else if (el) {
+            el.classList.remove('is-invalid');
+          }
+        });
+      }
+      return isValid;
+    }
+
+    function goToCompanyStep(targetStep) {
+      if (targetStep > currentStep) {
+        if (!validateCompanyStep(currentStep)) {
+          return;
+        }
+      }
+      updateCompanyStepper(targetStep);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Live Logo Preview
+      const logoInput = document.getElementById('id_logo');
+      const logoPreview = document.getElementById('logoPreview');
+      if (logoInput && logoPreview) {
+        logoInput.addEventListener('change', function(e) {
+          if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              logoPreview.src = evt.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+          }
+        });
+      }
+
+      // Clear invalid feedback on typing
+      document.querySelectorAll('.form-control, .form-select').forEach(input => {
+        input.addEventListener('input', function() {
+          if (this.value.trim()) {
+            this.classList.remove('is-invalid');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
