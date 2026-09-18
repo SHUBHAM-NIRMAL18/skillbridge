@@ -16,5 +16,8 @@ urlpatterns = [
     path("<int:app_id>/offer/create/", views.create_offer_letter, name="create_offer"),
     path("<int:app_id>/offer/", views.view_offer_letter, name="view_offer"),
     path("<int:app_id>/offer/respond/", views.respond_offer_letter, name="respond_offer"),
+
+    # Secure resume download
+    path("<int:pk>/resume/download/", views.download_application_resume, name="download_resume"),
 ]
 
