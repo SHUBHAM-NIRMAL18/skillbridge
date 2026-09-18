@@ -1,0 +1,233 @@
+{% extends "company/base.html" %}
+{% load humanize static %}
+
+{% block title %}Recruiter Messages | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Messages</h2>
+      <p class="text-muted small mb-0">Direct communication with applicants and potential hires.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <div class="row g-0" style="height: calc(100vh - 190px); min-height: 520px;">
+      
+      <!-- Left Panel: Conversations List -->
+      <div class="col-md-4 border-end border-light d-flex flex-column h-100 bg-white">
+        <!-- Search bar -->
+        <div class="p-3 border-bottom border-light">
+          <form method="GET" action="{% url 'company:inbox' %}" class="input-group input-group-sm">
+            <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-0" placeholder="Search applicants or topics...">
+            {% if search_query %}
+              <a href="{% url 'company:inbox' %}" class="btn btn-light border-0 text-muted"><i class="bi bi-x-circle"></i></a>
+            {% endif %}
+          </form>
+        </div>
+
+        <!-- Scrollable Conversation List -->
+        <div class="flex-grow-1 overflow-y-auto custom-scrollbar">
+          <div class="list-group list-group-flush">
+            {% for chat in chats %}
+              <a href="?chat_id={{ chat.id }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+                 class="list-group-item list-group-item-action border-bottom border-light p-3 {% if active_chat and chat.id == active_chat.id %}active-convo-item{% endif %}"
+                 style="{% if active_chat and chat.id == active_chat.id %}background-color: rgba(13, 110, 253, 0.05); border-left: 3px solid #0d6efd;{% endif %}">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    {% if chat.candidate.profile_picture %}
+                      <img src="{{ chat.candidate.profile_picture.url }}" class="rounded-circle object-fit-cover" style="width: 34px; height: 34px;" alt="Avatar">
+                    {% else %}
+                      <div class="bg-light rounded-circle d-flex align-items-center justify-content-center border border-light" style="width: 34px; height: 34px;">
+                        <i class="bi bi-person text-secondary" style="font-size: 1rem;"></i>
+                      </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                      <div class="fw-bold text-dark text-truncate" style="max-width: 140px; font-size: 0.85rem;">
+                        {{ chat.candidate.first_name }} {{ chat.candidate.last_name }}
+                      </div>
+                      <div class="text-muted text-truncate" style="font-size: 0.72rem;">
+                        {{ chat.candidate.designation|default:"Candidate" }}
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ chat.timestamp|naturaltime }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <div class="text-truncate text-muted small pe-2" style="font-size: 0.78rem;">
+                    <strong>{{ chat.subject }}:</strong> {{ chat.last_message }}
+                  </div>
+                  {% if chat.unread %}
+                    <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;" title="Unread">{{ chat.unread_count }}</span>
+                  {% endif %}
+                </div>
+              </a>
+            {% empty %}
+              <div class="text-center py-5">
+                <i class="bi bi-chat-left-dots fs-2 text-muted opacity-50"></i>
+                <p class="text-muted small mt-2">No messages yet.<br>Click "Message Candidate" on any applicant to initiate a conversation.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Message Thread Viewport -->
+      <div class="col-md-8 d-flex flex-column h-100 bg-light">
+        {% if active_chat %}
+          <!-- Thread Header -->
+          <div class="p-3 bg-white border-bottom border-light d-flex align-items-center justify-content-between shadow-xs">
+            <div class="d-flex align-items-center gap-3">
+              {% if active_chat.candidate.profile_picture %}
+                <img src="{{ active_chat.candidate.profile_picture.url }}" class="rounded-circle object-fit-cover border" style="width: 42px; height: 42px;" alt="Avatar">
+              {% else %}
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center border" style="width: 42px; height: 42px;">
+                  <i class="bi bi-person text-secondary fs-5"></i>
+                </div>
+              {% endif %}
+              <div>
+                <h6 class="fw-bold text-dark mb-0">{{ active_chat.candidate.first_name }} {{ active_chat.candidate.last_name }}</h6>
+                <span class="text-muted small" style="font-size: 0.78rem;">
+                  {{ active_chat.candidate.designation|default:"Applicant" }} · {{ active_chat.subject }}
+                  {% if active_chat.application %}
+                    · <span class="badge bg-light text-dark border">{{ active_chat.application.get_status_display }}</span>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              {% if active_chat.application and active_chat.application.resume_file %}
+                <a href="{% url 'applications:download_resume' active_chat.application.id %}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                  <i class="bi bi-file-earmark-pdf me-1"></i>View Resume
+                </a>
+              {% endif %}
+              <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold px-3">
+                <i class="bi bi-people me-1"></i>All Applicants
+              </a>
+            </div>
+          </div>
+
+          <!-- Messages Body Area -->
+          <div class="flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-3 custom-scrollbar" id="messagesContainer" style="background-color: #f8f9fa;">
+            {% for msg in active_chat.messages.all %}
+              {% if msg.sender_id == request.user.id %}
+                <!-- Recruiter sent message -->
+                <div class="d-flex justify-content-end align-items-start gap-2 max-w-75 ms-auto">
+                  <div class="text-end">
+                    <div class="bg-primary text-white p-3 shadow-xs mb-1 text-start" style="font-size: 0.85rem; border-radius: 14px; border-top-right-radius: 2px; line-height: 1.5; max-width: 520px; word-break: break-word;">
+                      {{ msg.text|linebreaksbr }}
+                    </div>
+                    <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ msg.created_at|date:"M j, g:i a" }}</span>
+                  </div>
+                </div>
+              {% else %}
+                <!-- Candidate received message -->
+                <div class="d-flex justify-content-start align-items-start gap-2 max-w-75">
+                  {% if active_chat.candidate.profile_picture %}
+                    <img src="{{ active_chat.candidate.profile_picture.url }}" class="rounded-circle object-fit-cover border shadow-xs" style="width: 32px; height: 32px; flex-shrink: 0;" alt="Avatar">
+                  {% else %}
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center p-1 border shadow-xs" style="width: 32px; height: 32px; flex-shrink: 0;">
+                      <i class="bi bi-person text-secondary" style="font-size: 0.85rem;"></i>
+                    </div>
+                  {% endif %}
+                  <div>
+                    <div class="bg-white text-dark p-3 border shadow-xs mb-1" style="font-size: 0.85rem; border-radius: 14px; border-top-left-radius: 2px; line-height: 1.5; max-width: 520px; word-break: break-word;">
+                      {{ msg.text|linebreaksbr }}
+                    </div>
+                    <span class="text-muted xsmall" style="font-size: 0.7rem;">{{ msg.created_at|date:"M j, g:i a" }}</span>
+                  </div>
+                </div>
+              {% endif %}
+            {% empty %}
+              <div class="text-center py-5 my-auto">
+                <i class="bi bi-chat-quote fs-1 text-muted opacity-50"></i>
+                <p class="text-muted small mt-2">No messages in this conversation yet. Send an opening message below!</p>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Message Reply Compose Bar -->
+          <div class="p-3 bg-white border-top border-light">
+            <form id="messageForm" method="POST" action="{% url 'communications:send_message_api' active_chat.id %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <input type="text" name="text" id="messageInput" class="form-control border-light-gray" placeholder="Type your message to candidate..." style="font-size: 0.88rem;" required autocomplete="off">
+                <button class="btn btn-primary px-4 fw-semibold" type="submit" id="sendBtn">
+                  <i class="bi bi-send-fill me-1"></i>Send
+                </button>
+              </div>
+            </form>
+          </div>
+        {% else %}
+          <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center py-5">
+            <i class="bi bi-chat-square-dots fs-1 text-muted opacity-50"></i>
+            <h5 class="fw-bold mt-3 text-dark">Welcome to Recruiter Messages</h5>
+            <p class="text-muted small">Select an applicant from the left to review communication history or reply.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var container = document.getElementById("messagesContainer");
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+
+    var form = document.getElementById("messageForm");
+    if (form) {
+      form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var input = document.getElementById("messageInput");
+        var text = input.value.trim();
+        if (!text) return;
+
+        var sendBtn = document.getElementById("sendBtn");
+        sendBtn.disabled = true;
+
+        var formData = new FormData(form);
+        fetch(form.action, {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          sendBtn.disabled = false;
+          if (data.ok) {
+            input.value = "";
+            var newMsgHtml = `
+              <div class="d-flex justify-content-end align-items-start gap-2 max-w-75 ms-auto">
+                <div class="text-end">
+                  <div class="bg-primary text-white p-3 shadow-xs mb-1 text-start" style="font-size: 0.85rem; border-radius: 14px; border-top-right-radius: 2px; line-height: 1.5; max-width: 520px; word-break: break-word;">
+                    ${data.message.text.replace(/\\n/g, '<br>')}
+                  </div>
+                  <span class="text-muted xsmall" style="font-size: 0.7rem;">${data.message.time}</span>
+                </div>
+              </div>
+            `;
+            container.insertAdjacentHTML("beforeend", newMsgHtml);
+            container.scrollTop = container.scrollHeight;
+          } else {
+            alert(data.error || "Failed to send message.");
+          }
+        })
+        .catch(err => {
+          sendBtn.disabled = false;
+          form.submit();
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}
