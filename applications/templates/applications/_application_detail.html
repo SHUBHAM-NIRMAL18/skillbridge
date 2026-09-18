@@ -163,7 +163,7 @@
               </div>
             </div>
           </div>
-          <a href="{{ app.resume_file.url }}" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold shadow-xs">
+          <a href="{% url 'applications:download_resume' app.id %}" target="_blank" rel="noopener" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold shadow-xs">
             <i class="bi bi-download me-1"></i>Download Resume
           </a>
         {% else %}
