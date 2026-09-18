@@ -1,5 +1,6 @@
 {% load static %}
 {% load bootstrap5 %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -119,6 +120,16 @@
             </div>
           </li>
 
+        <!-- Messages -->
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'inbox' %}active{% endif %}" href="{% url 'company:inbox' %}">
+            <i class="bi bi-chat-dots"></i> <span>Messages</span>
+            {% if unread_messages_count > 0 %}
+              <span class="badge bg-primary rounded-pill float-end">{{ unread_messages_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+
         <!-- Membership (with collapse) -->
 <li class="nav-item">
   <a class="nav-link {% if request.resolver_match.namespace == 'membership' %}active{% endif %}"
@@ -221,7 +232,51 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarContent"></div>
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <!-- Notification Bell Dropdown -->
+          <li class="nav-item dropdown me-3">
+            <a class="nav-link position-relative text-dark p-2" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-bell fs-5"></i>
+              {% if unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                  {{ unread_notifications_count }}
+                </span>
+              {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0 rounded-3" style="width: 320px; max-height: 420px; overflow-y: auto;" aria-labelledby="notifDropdown">
+              <li class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+                <span class="fw-bold small text-dark">Notifications</span>
+                {% if unread_notifications_count > 0 %}
+                  <form method="POST" action="{% url 'communications:mark_all_notifications_read' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-primary" style="font-size: 0.75rem;">
+                      Mark all read
+                    </button>
+                  </form>
+                {% endif %}
+              </li>
+              {% for notif in recent_notifications %}
+                <li>
+                  <a class="dropdown-item p-2.5 border-bottom d-flex align-items-start gap-2 {% if not notif.is_read %}bg-light-subtle{% endif %}" href="{% url 'communications:mark_notification_read' notif.id %}">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" style="width: 28px; height: 28px; background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                      <i class="bi bi-bell" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <div class="min-w-0 flex-grow-1">
+                      <div class="fw-bold text-dark text-truncate" style="font-size: 0.82rem;">{{ notif.title }}</div>
+                      <div class="text-muted text-truncate" style="font-size: 0.75rem;">{{ notif.message }}</div>
+                      <div class="text-muted xsmall" style="font-size: 0.68rem;">{{ notif.created_at|naturaltime }}</div>
+                    </div>
+                  </a>
+                </li>
+              {% empty %}
+                <li class="p-4 text-center text-muted small">No notifications yet</li>
+              {% endfor %}
+              <li class="p-2 text-center bg-light">
+                <a href="{% url 'communications:notifications_list' %}" class="text-primary text-decoration-none small fw-semibold">View all notifications</a>
+              </li>
+            </ul>
+          </li>
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
                role="button" data-bs-toggle="dropdown" aria-expanded="false">
