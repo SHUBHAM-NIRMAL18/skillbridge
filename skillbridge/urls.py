@@ -27,6 +27,7 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path("", include(("website.urls", "website"), namespace="website")),
     path("applications/", include(("applications.urls", "applications"), namespace="applications")),
+    path("communications/", include(("communications.urls", "communications"), namespace="communications")),
 ]
 
 if settings.DEBUG:
