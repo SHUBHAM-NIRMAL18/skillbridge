@@ -1,10 +1,10 @@
-from django.shortcuts import render
-
-# Create your views here.
+import os
+import mimetypes
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse, FileResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -193,6 +193,20 @@ def apply_submit(request):
             event_type="apply"
         )
         invalidate_candidate_rec_cache(request.user.id)
+    except Exception:
+        pass
+
+    # Fire notification to company
+    try:
+        from communications.services import notify_user
+        notify_user(
+            recipient=company.user,
+            title="New Application Received",
+            message=f"{profile.first_name} {profile.last_name} submitted an application for {post.title}.",
+            action_url=reverse("company:applicants_all"),
+            sender=request.user,
+            notification_type="new_application"
+        )
     except Exception:
         pass
 
@@ -404,6 +418,20 @@ def create_offer_letter(request, app_id: int):
             app.status = "offered"
             app.save(update_fields=["status", "updated_at"])
 
+            # Fire notification to candidate
+            try:
+                from communications.services import notify_user
+                notify_user(
+                    recipient=app.candidate.user,
+                    title="Formal Offer Letter Issued!",
+                    message=f"{app.company.company_name} has issued an employment offer letter for {app.target_title}.",
+                    action_url=reverse("applications:view_offer", args=[app.id]),
+                    sender=request.user,
+                    notification_type="offer_letter"
+                )
+            except Exception:
+                pass
+
             messages.success(request, f"Offer Letter successfully issued to {app.candidate.first_name}!")
             return redirect("company:applicants_all")
     else:
@@ -528,4 +556,53 @@ def respond_offer_letter(request, app_id: int):
 
         messages.info(request, "You have declined the offer letter.")
 
-    return redirect("applications:view_offer", app_id=app.id)
+    # Fire notification to company
+    try:
+        from communications.services import notify_user
+        status_verb = "accepted" if action == "accept" else "declined"
+        notify_user(
+            recipient=app.company.user,
+            title=f"Offer Letter {status_verb.capitalize()}!",
+            message=f"{app.candidate.first_name} {app.candidate.last_name} has {status_verb} the offer letter for {app.target_title}.",
+            action_url=reverse("applications:view_offer", args=[app.id]),
+            sender=request.user,
+            notification_type="offer_letter"
+        )
+    except Exception:
+        pass
+
+    return redirect("applications:view_offer", app_id=app.id)
+
+
+@login_required(login_url="accounts:login")
+def download_application_resume(request, pk: int):
+    """
+    Protected resume streaming view for an application.
+    Ensures only the candidate owner, the hiring company, or admin can access.
+    """
+    app = get_object_or_404(
+        Application.objects.select_related("candidate__user", "company__user"),
+        pk=pk
+    )
+
+    if not app.resume_file:
+        raise Http404("No resume attached to this application.")
+
+    is_owner = (app.candidate.user_id == request.user.id)
+    is_company = (app.company.user_id == request.user.id)
+    is_staff = request.user.is_staff
+
+    if not (is_owner or is_company or is_staff):
+        return HttpResponseForbidden("You do not have authorization to view this application resume.")
+
+    file_path = app.resume_file.path
+    if not os.path.exists(file_path):
+        raise Http404("Resume file was not found on the server.")
+
+    content_type, _ = mimetypes.guess_type(file_path)
+    content_type = content_type or "application/pdf"
+
+    response = FileResponse(open(file_path, "rb"), content_type=content_type)
+    filename = os.path.basename(app.resume_file.name)
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response
