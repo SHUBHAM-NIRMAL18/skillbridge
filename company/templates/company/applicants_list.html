@@ -286,7 +286,7 @@
 
               <td>
                 {% if a.resume_file %}
-                  <a href="{{ a.resume_file.url }}" target="_blank" class="btn btn-action btn-view" title="Open Resume">
+                  <a href="{% url 'applications:download_resume' a.id %}" target="_blank" class="btn btn-action btn-view" title="Open Resume">
                     <i class="bi bi-file-earmark-text"></i>
                   </a>
                 {% else %}
@@ -465,7 +465,7 @@
                 <i class="bi bi-info-circle me-1"></i>{{ cand.why }}
               </span>
               {% if cand.profile.resume %}
-                <a href="{{ cand.profile.resume.url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5 text-xs text-nowrap">
+                <a href="{% url 'candidate:download_resume' cand.profile.id %}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5 text-xs text-nowrap">
                   <i class="bi bi-file-earmark-person me-1"></i>View Resume
                 </a>
               {% endif %}
