@@ -1,0 +1,132 @@
+{% extends base_template %}
+{% load humanize static %}
+
+{% block title %}Notifications Center | SkillBridge{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1 text-dark">Notifications</h2>
+      <p class="text-muted small mb-0">Stay updated on applications, offers, and recruiter messages.</p>
+    </div>
+    {% if unread_count > 0 %}
+      <form method="POST" action="{% url 'communications:mark_all_notifications_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+          <i class="bi bi-check2-all me-1"></i>Mark all as read
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+    <div class="card-header bg-white border-bottom border-light p-3 d-flex justify-content-between align-items-center">
+      <ul class="nav nav-pills gap-2">
+        <li class="nav-item">
+          <a class="nav-link rounded-pill px-3 py-1.5 {% if filter_tab == 'all' %}active bg-danger text-white{% else %}text-muted bg-light{% endif %}"
+             href="?filter=all">
+            All Notifications
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link rounded-pill px-3 py-1.5 {% if filter_tab == 'unread' %}active bg-danger text-white{% else %}text-muted bg-light{% endif %}"
+             href="?filter=unread">
+            Unread
+            {% if unread_count > 0 %}
+              <span class="badge bg-white text-danger ms-1">{{ unread_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Notification List -->
+    <div class="list-group list-group-flush">
+      {% for notif in page_obj %}
+        <a href="{% url 'communications:mark_notification_read' notif.id %}" 
+           class="list-group-item list-group-item-action p-3.5 border-bottom border-light d-flex align-items-start gap-3 transition-all {% if not notif.is_read %}bg-light-danger-subtle{% endif %}"
+           style="{% if not notif.is_read %}background-color: rgba(220, 53, 69, 0.04);{% endif %}">
+          
+          <!-- Icon avatar based on type -->
+          <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+               style="width: 42px; height: 42px; 
+                      {% if notif.notification_type == 'offer_letter' %}background: #e8f5e9; color: #2e7d32;
+                      {% elif notif.notification_type == 'new_message' %}background: #e3f2fd; color: #1565c0;
+                      {% elif notif.notification_type == 'application_status' %}background: #fff3e0; color: #e65100;
+                      {% elif notif.notification_type == 'new_application' %}background: #ede7f6; color: #512da8;
+                      {% else %}background: #f5f5f5; color: #616161;{% endif %}">
+            {% if notif.notification_type == 'offer_letter' %}
+              <i class="bi bi-file-earmark-check fs-5"></i>
+            {% elif notif.notification_type == 'new_message' %}
+              <i class="bi bi-chat-text fs-5"></i>
+            {% elif notif.notification_type == 'application_status' %}
+              <i class="bi bi-arrow-repeat fs-5"></i>
+            {% elif notif.notification_type == 'new_application' %}
+              <i class="bi bi-person-check fs-5"></i>
+            {% else %}
+              <i class="bi bi-bell fs-5"></i>
+            {% endif %}
+          </div>
+
+          <!-- Content -->
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <h6 class="mb-0 fw-bold {% if not notif.is_read %}text-danger{% else %}text-dark{% endif %}" style="font-size: 0.93rem;">
+                {{ notif.title }}
+              </h6>
+              <span class="text-muted small" style="font-size: 0.76rem;">{{ notif.created_at|naturaltime }}</span>
+            </div>
+            <p class="text-secondary small mb-1 text-break" style="font-size: 0.85rem; line-height: 1.4;">
+              {{ notif.message }}
+            </p>
+            {% if notif.action_url %}
+              <span class="text-danger fw-semibold xsmall" style="font-size: 0.78rem;">
+                View details <i class="bi bi-chevron-right ms-0.5"></i>
+              </span>
+            {% endif %}
+          </div>
+
+          <!-- Unread Dot Indicator -->
+          {% if not notif.is_read %}
+            <div class="flex-shrink-0 align-self-center">
+              <span class="badge bg-danger rounded-circle p-1.5" style="width: 10px; height: 10px; display: inline-block;" title="Unread">&nbsp;</span>
+            </div>
+          {% endif %}
+        </a>
+      {% empty %}
+        <div class="text-center py-5">
+          <i class="bi bi-bell-slash fs-1 text-muted opacity-50"></i>
+          <h6 class="fw-bold mt-3 text-dark">No notifications yet</h6>
+          <p class="text-muted small">We'll alert you when there are updates on your applications or messages.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="card-footer bg-white border-top border-light p-3">
+        <nav aria-label="Notifications pagination">
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link text-danger" href="?filter={{ filter_tab }}&page={{ page_obj.previous_page_number }}">Previous</a>
+              </li>
+            {% endif %}
+            <li class="page-item disabled">
+              <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link text-danger" href="?filter={{ filter_tab }}&page={{ page_obj.next_page_number }}">Next</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
