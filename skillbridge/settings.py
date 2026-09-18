@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'formtools',
     'ckeditor',
     'taggit',
+    'communications',
 
     # Allauth
     "allauth",
@@ -162,6 +163,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "communications.context_processors.communications_context",
             ],
         },
     },
