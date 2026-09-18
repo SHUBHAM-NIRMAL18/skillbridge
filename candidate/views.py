@@ -1,12 +1,17 @@
+import os
+import mimetypes
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponseForbidden, FileResponse
 from django.views.decorators.http import require_POST
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import FormView, TemplateView
+from django.db.models import Q
 from accounts.models import User
+from communications.models import Conversation, Message
+from applications.models import Application
 
 from .forms import (
     PersonalInfoForm, ProfessionalInfoForm, AddressInfoForm,
@@ -767,53 +772,99 @@ def log_candidate_event(request):
 @login_required
 def inbox(request):
     """
-    Static/Mock inbox view displaying a list of conversations and message threads
+    Real messaging inbox for candidates communicating with employers.
     """
-    mock_chats = [
-        {
-            "id": 1,
-            "sender_name": "Google DeepMind HR",
-            "subject": "Interview Confirmation",
-            "last_message": "Hey Shubham, we would like to confirm your interview for the AI Software Engineer role scheduled for tomorrow.",
-            "timestamp": "10:30 AM",
-            "unread": True,
-            "messages": [
-                {"sender": "Google DeepMind HR", "text": "Hi Shubham, thanks for applying. We loved your profile!", "time": "Yesterday 3:15 PM"},
-                {"sender": "You", "text": "Thank you! I am very excited about this opportunity.", "time": "Yesterday 4:00 PM"},
-                {"sender": "Google DeepMind HR", "text": "Hey Shubham, we would like to confirm your interview for the AI Software Engineer role scheduled for tomorrow.", "time": "10:30 AM"},
-            ]
-        },
-        {
-            "id": 2,
-            "sender_name": "Microsoft Recruiting",
-            "subject": "Application Status Review",
-            "last_message": "Your application has been received and is currently under review by our engineering team.",
-            "timestamp": "Yesterday",
-            "unread": False,
-            "messages": [
-                {"sender": "Microsoft Recruiting", "text": "Hi Shubham, your application has been received and is currently under review by our engineering team. We will get back to you shortly.", "time": "Yesterday 9:00 AM"}
-            ]
-        },
-        {
-            "id": 3,
-            "sender_name": "Meta Careers",
-            "subject": "Coding Test Invitation",
-            "last_message": "Please choose a slot from the Calendly link sent to your registered email address.",
-            "timestamp": "July 5",
-            "unread": False,
-            "messages": [
-                {"sender": "Meta Careers", "text": "Hi Shubham, we are pleased to invite you to the technical screening round. Please choose a slot from the Calendly link sent to your registered email address.", "time": "July 5 2:30 PM"}
-            ]
-        }
-    ]
-    
-    active_chat_id = int(request.GET.get("chat_id", 1))
-    active_chat = next((c for c in mock_chats if c["id"] == active_chat_id), mock_chats[0])
+    profile = Profile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.info(request, "Please complete your candidate profile first.")
+        return redirect("candidate:profile_index")
+
+    conversations = (
+        Conversation.objects.filter(candidate=profile)
+        .select_related("company", "application")
+        .prefetch_related("messages")
+    )
+
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        conversations = conversations.filter(
+            Q(company__first_name__icontains=search_query) |
+            Q(company__last_name__icontains=search_query) |
+            Q(subject__icontains=search_query)
+        )
+
+    active_chat_id = request.GET.get("chat_id")
+    active_chat = None
+    if active_chat_id:
+        active_chat = conversations.filter(id=active_chat_id).first()
+    if not active_chat:
+        active_chat = conversations.first()
+
+    # Mark messages as read for active chat if sender is not candidate
+    if active_chat:
+        active_chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    chat_list = []
+    for c in conversations:
+        latest = c.latest_message
+        unread_count = c.unread_count_for_user(request.user)
+        chat_list.append({
+            "id": c.id,
+            "sender_name": c.company.company_name,
+            "subject": c.subject,
+            "last_message": latest.text if latest else "No messages yet",
+            "timestamp": latest.created_at if latest else c.created_at,
+            "unread": unread_count > 0,
+            "unread_count": unread_count,
+            "company": c.company,
+            "application": c.application,
+        })
 
     return render(request, "candidate/inbox.html", {
-        "chats": mock_chats,
+        "chats": chat_list,
         "active_chat": active_chat,
+        "search_query": search_query,
     })
+
+
+@login_required
+def download_candidate_resume(request, pk):
+    """
+    Protected resume download for candidate profiles.
+    Allows access if user is:
+    - the candidate owner
+    - a company where this candidate has applied or has a conversation
+    - staff / superuser
+    """
+    profile = get_object_or_404(Profile, pk=pk)
+    if not profile.resume:
+        raise Http404("Resume file not found.")
+
+    is_owner = (profile.user_id == request.user.id)
+    is_staff = request.user.is_staff
+    is_applied_company = False
+
+    if hasattr(request.user, "company_profile"):
+        company = request.user.company_profile
+        has_app = Application.objects.filter(company=company, candidate=profile).exists()
+        has_convo = Conversation.objects.filter(company=company, candidate=profile).exists()
+        is_applied_company = has_app or has_convo
+
+    if not (is_owner or is_staff or is_applied_company):
+        return HttpResponseForbidden("You do not have authorization to view this resume.")
+
+    file_path = profile.resume.path
+    if not os.path.exists(file_path):
+        raise Http404("Resume file not found on disk.")
+
+    content_type, _ = mimetypes.guess_type(file_path)
+    content_type = content_type or "application/pdf"
+
+    response = FileResponse(open(file_path, "rb"), content_type=content_type)
+    filename = os.path.basename(profile.resume.name)
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response
+
 
 @login_required
 def support(request):
