@@ -29,6 +29,8 @@ from .forms_onboarding import CompanyOnboardingForm
 from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
 from candidate.models import Profile, Feedback
+from communications.models import Conversation, Message
+from communications.services import notify_user
 
 # Membership wallet helpers
 from membership.services import spend_credits, get_spendable_balance
@@ -767,6 +769,21 @@ def applicant_update_status(request, pk):
     app.status = new_status
     app.save(update_fields=["status", "updated_at"])
 
+    # Fire notification to candidate
+    try:
+        candidate_user = app.candidate.user
+        display_status = dict(Application.STATUS_CHOICES).get(new_status, new_status)
+        notify_user(
+            recipient=candidate_user,
+            title="Application Status Updated",
+            message=f"Your application for {app.target_title} at {company.company_name} was updated to '{display_status}'.",
+            action_url=reverse("applications:my_applications"),
+            sender=request.user,
+            notification_type="application_status"
+        )
+    except Exception:
+        pass
+
     # Return the new badge HTML so the row can update without reload
     label = dict(Application.STATUS_CHOICES)[new_status]
     badge_html = (
@@ -993,4 +1010,61 @@ def company_feedback(request):
         return redirect("company:feedback")
 
     return render(request, "company/feedback.html")
+
+
+@login_required(login_url="accounts:login")
+def company_inbox(request):
+    """
+    Recruiter messaging inbox to communicate directly with applicants.
+    """
+    if not _require_company_profile(request.user):
+        messages.error(request, "Company account required.")
+        return redirect("accounts:login")
+
+    company = request.user.company_profile
+    conversations = (
+        Conversation.objects.filter(company=company)
+        .select_related("candidate__user", "application")
+        .prefetch_related("messages")
+    )
+
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        conversations = conversations.filter(
+            Q(candidate__first_name__icontains=search_query) |
+            Q(candidate__last_name__icontains=search_query) |
+            Q(subject__icontains=search_query)
+        )
+
+    active_chat_id = request.GET.get("chat_id")
+    active_chat = None
+    if active_chat_id:
+        active_chat = conversations.filter(id=active_chat_id).first()
+    if not active_chat:
+        active_chat = conversations.first()
+
+    # Mark unread messages in active thread as read
+    if active_chat:
+        active_chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    chat_list = []
+    for c in conversations:
+        latest = c.latest_message
+        unread_count = c.unread_count_for_user(request.user)
+        chat_list.append({
+            "id": c.id,
+            "candidate": c.candidate,
+            "subject": c.subject,
+            "last_message": latest.text if latest else "No messages yet",
+            "timestamp": latest.created_at if latest else c.created_at,
+            "unread": unread_count > 0,
+            "unread_count": unread_count,
+            "application": c.application,
+        })
+
+    return render(request, "company/inbox.html", {
+        "chats": chat_list,
+        "active_chat": active_chat,
+        "search_query": search_query,
+    })
 
