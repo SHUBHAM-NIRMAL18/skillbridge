@@ -4,7 +4,8 @@ from django.shortcuts import redirect
 from .views import (
     candidate_dashboard, candidate_onboarding, ProfileWizardView, ProfileCompleteView,
     ProfilePreviewView, recommended_demo, log_candidate_event, inbox, support, feedback,
-    candidate_registered_events, candidate_bookmarks_list, toggle_bookmark
+    candidate_registered_events, candidate_bookmarks_list, toggle_bookmark,
+    download_candidate_resume
 )
 from applications.views import my_applications
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path('profile/preview/', ProfilePreviewView.as_view(), name='profile_preview'),
     path('profile/complete/', ProfileCompleteView.as_view(), name='profile_complete'),
     path('profile/<str:step>/', ProfileWizardView.as_view(), name='profile'),
+    path('resume/<int:pk>/download/', download_candidate_resume, name='download_resume'),
 
     # Applications
     path('applications/', my_applications, name='applications'),
