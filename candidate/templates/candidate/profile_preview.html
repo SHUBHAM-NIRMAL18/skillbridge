@@ -57,7 +57,7 @@
 
             {% if profile and profile.resume %}
               <div class="mt-2">
-                <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-light btn-sm">
+                <a href="{% url 'candidate:download_resume' profile.id %}" target="_blank" class="btn btn-light btn-sm">
                   <i class="bi bi-file-earmark-text"></i> View CV
                 </a>
               </div>
@@ -399,7 +399,7 @@
                   <strong>Resume:</strong>
                   <div class="mt-2">
                     {% if profile and profile.resume %}
-                      <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-light btn-sm"><i class="bi bi-file-earmark-text"></i> View CV</a>
+                      <a href="{% url 'candidate:download_resume' profile.id %}" target="_blank" class="btn btn-light btn-sm"><i class="bi bi-file-earmark-text"></i> View CV</a>
                     {% else %}
                       <span class="text-muted">—</span>
                     {% endif %}
