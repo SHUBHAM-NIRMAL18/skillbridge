@@ -79,6 +79,13 @@
           </button>
         </li>
 
+        <!-- Message Employer -->
+        <li>
+          <a class="dropdown-item py-2 text-primary fw-medium" href="{% url 'communications:start_from_applicant' application.id %}">
+            <i class="bi bi-chat-dots me-2 text-primary"></i>Message Employer
+          </a>
+        </li>
+
         
         <!-- Status-specific actions -->
         {% if application.status == 'applied' or application.status == 'under_review' %}
