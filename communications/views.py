@@ -89,16 +89,18 @@ def unread_notifications_json(request):
 @login_required
 def start_conversation_from_applicant(request, app_id):
     """
-    Allows recruiter to open or start a chat thread with an applicant directly from the drawer.
+    Allows recruiter or applicant to open or start a chat thread directly from an application.
     """
     app = get_object_or_404(
         Application.objects.select_related("candidate__user", "company__user"),
         pk=app_id
     )
 
-    # Authorization: must be the company owning the posting
-    if not hasattr(request.user, "company_profile") or app.company.user_id != request.user.id:
-        return HttpResponseForbidden("Only the hiring employer can initiate messaging from an application.")
+    is_employer = hasattr(request.user, "company_profile") and app.company.user_id == request.user.id
+    is_candidate = hasattr(request.user, "profile") and app.candidate.user_id == request.user.id
+
+    if not (is_employer or is_candidate):
+        return HttpResponseForbidden("You do not have permission to open messaging for this application.")
 
     convo, _ = get_or_create_conversation(
         candidate=app.candidate,
@@ -107,6 +109,8 @@ def start_conversation_from_applicant(request, app_id):
         subject=f"Application Discussion: {app.target_title}"
     )
 
+    if is_candidate:
+        return redirect(f"{reverse('candidate:inbox')}?chat_id={convo.id}")
     return redirect(f"{reverse('company:inbox')}?chat_id={convo.id}")
 
 
