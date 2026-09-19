@@ -255,19 +255,20 @@
           <a href="/candidate/" class="btn btn-danger">
             Go to Candidate Dashboard
           </a>
+        {% elif incomplete_profile %}
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Please complete your profile before applying.
+            {% if missing %}<br><small class="text-muted">Missing: {{ missing }}</small>{% endif %}
+          </div>
+          <a href="{% url 'candidate:profile' 'basic' %}" class="btn btn-danger">
+            Complete Profile
+          </a>
         {% elif already %}
         <div class="alert alert-success">
             You already applied to <strong>{{ post.title }}</strong>. Check <a href="{% url 'applications:my_applications' %}">My Applications</a>.
         </div>
-        {% comment %} {% elif not profile %}
-          <div class="alert alert-warning">
-            <i class="bi bi-lightbulb-fill me-2"></i>
-            You need to create a profile first. Please fill out your profile details.
-          </div>
-          <a href="{% url 'candidate:profile' 'basic' %}" class="btn btn-danger">
-            Create Profile
-          </a> {% endcomment %}
-          {% elif company_cannot_apply %}
+        {% elif company_cannot_apply %}
           <div class="alert alert-warning">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             Companies cannot apply to job postings. Only candidates can apply.
@@ -333,7 +334,9 @@
                     <i class="bi bi-file-earmark-pdf me-2"></i>View current resume
                   </a>
                 {% else %}
-                  <p class="text-muted">No resume uploaded.</p>
+                  <div class="alert alert-info py-2 px-3 mb-2 small">
+                    <i class="bi bi-info-circle me-1"></i>No saved resume found. Please attach one below to apply.
+                  </div>
                 {% endif %}
                 
                 <hr class="my-3">
@@ -346,9 +349,9 @@
                   
                   <div class="mb-3">
                     <label class="form-label">
-                      Attach different resume (optional)
+                      {% if profile.resume %}Attach different resume (optional){% else %}Upload resume <span class="text-danger">*</span>{% endif %}
                     </label>
-                    <input class="form-control" type="file" name="resume" accept=".pdf,.doc,.docx">
+                    <input class="form-control" type="file" name="resume" accept=".pdf,.doc,.docx" {% if not profile.resume %}required{% endif %}>
                   </div>
                   
                   <div class="mb-3">
@@ -365,7 +368,7 @@
       </div>
 
       <div class="modal-footer">
-        {% if not closed and not need_profile and not already %}
+        {% if not closed and not need_profile and not already and not incomplete_profile and not company_cannot_apply %}
           <button form="applyForm" type="submit" class="btn btn-danger">
             Apply
           </button>
