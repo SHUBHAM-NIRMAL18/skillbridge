@@ -101,6 +101,11 @@
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'communications:start_from_applicant' app.id %}"
+         class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+        <i class="bi bi-chat-dots me-1"></i>Message Employer
+      </a>
+
       {% if app.status == 'applied' or app.status == 'under_review' %}
         <button type="button"
                 class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark js-withdraw-btn"
