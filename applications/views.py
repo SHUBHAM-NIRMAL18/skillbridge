@@ -61,16 +61,6 @@ def apply_preview(request):
             "need_profile": True, "next_url": next_url, "kind": kind, "post": post,
         })
 
-    # ADD THIS CHECK - validate profile completeness
-    if not profile.resume:
-        return render(request, "applications/_apply_modal.html", {
-            "incomplete_profile": True, 
-            "missing": "resume",
-            "post": post, 
-            "kind": kind, 
-            "next_url": next_url,
-        })
-
     # closed?
     if not _deadline_open(post):
         return render(request, "applications/_apply_modal.html", {
@@ -93,6 +83,7 @@ def apply_preview(request):
         "next_url": next_url,
         "already": already,                 # False for withdrawn/rejected → show form
         "existing_status": existing.status if existing else None,
+        "has_resume": bool(profile.resume),
     })
 
 
@@ -139,10 +130,13 @@ def apply_submit(request):
             # choose resume: uploaded > profile.resume > existing.resume_file
             resume_to_use = file_in or profile.resume or existing.resume_file
             if not resume_to_use:
-                return JsonResponse({"ok": False, "error": "Please upload your resume first in your profile."}, status=400)
+                return JsonResponse({"ok": False, "error": "Please attach a resume file or upload one to your profile."}, status=400)
 
             if file_in:
                 existing.resume_file = file_in
+                if not profile.resume:
+                    profile.resume = file_in
+                    profile.save(update_fields=["resume"])
             elif not existing.resume_file and profile.resume:
                 existing.resume_file = profile.resume
 
@@ -172,10 +166,13 @@ def apply_submit(request):
     # attach resume: uploaded file wins; else use saved profile resume (if any)
     if file_in:
         app.resume_file = file_in
+        if not profile.resume:
+            profile.resume = file_in
+            profile.save(update_fields=["resume"])
     elif profile.resume:
         app.resume_file = profile.resume
     else:
-        return JsonResponse({"ok": False, "error": "Please upload your resume first in your profile."}, status=400)
+        return JsonResponse({"ok": False, "error": "Please attach a resume file or upload one to your profile."}, status=400)
 
     app.save()
 
