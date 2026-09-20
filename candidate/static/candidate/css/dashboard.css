@@ -115,6 +115,121 @@ body {
 }
 
 /*--------------------------------------
+  Notification Bell & Red Dot Alignment
+--------------------------------------*/
+.notif-dropdown-btn,
+.notif-btn,
+#notifDropdown,
+#candidateNotifDropdown {
+  position: relative !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  color: #495057 !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease-in-out !important;
+  text-decoration: none !important;
+}
+
+.notif-dropdown-btn:hover,
+.notif-btn:hover,
+#notifDropdown:hover,
+#candidateNotifDropdown:hover,
+.notif-dropdown-btn:focus,
+.notif-btn:focus,
+#notifDropdown:focus,
+#candidateNotifDropdown:focus,
+.notif-dropdown-btn[aria-expanded="true"],
+.notif-btn[aria-expanded="true"],
+#notifDropdown[aria-expanded="true"],
+#candidateNotifDropdown[aria-expanded="true"] {
+  background-color: #f1f3f5 !important;
+  color: #111827 !important;
+}
+
+.notif-icon-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+
+.notif-dropdown-btn i,
+.notif-btn i,
+.notif-icon-box i,
+#notifDropdown > i,
+#candidateNotifDropdown > i {
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  display: inline-block;
+  color: inherit;
+}
+
+/* Red Dot / Notification Counter Badge */
+.notif-red-dot,
+.notif-badge,
+#notifDropdown .badge,
+#candidateNotifDropdown .badge {
+  position: absolute !important;
+  top: 1px !important;
+  right: 1px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  padding: 0 4px !important;
+  border-radius: 999px !important;
+  background-color: #dc3545 !important;
+  color: #ffffff !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  line-height: 17px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 5px rgba(220, 53, 69, 0.4) !important;
+  z-index: 2 !important;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* When inside .notif-icon-box */
+.notif-icon-box .notif-red-dot {
+  top: -4px !important;
+  right: -6px !important;
+}
+
+/* Pure Red Dot Indicator (empty or dot-only) */
+.notif-red-dot.dot-only,
+.notif-red-dot:empty,
+#notifDropdown .badge:empty,
+#candidateNotifDropdown .badge:empty {
+  min-width: 9px !important;
+  width: 9px !important;
+  height: 9px !important;
+  padding: 0 !important;
+  top: 5px !important;
+  right: 5px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid #ffffff !important;
+}
+
+.notif-icon-box .notif-red-dot.dot-only,
+.notif-icon-box .notif-red-dot:empty {
+  top: 0px !important;
+  right: -1px !important;
+}
+
+/*--------------------------------------
   Headings and Body Text Weights
 --------------------------------------*/
 h2, h4, h5, h6 {
