@@ -184,13 +184,15 @@
         <ul class="navbar-nav ms-auto align-items-center">
           <!-- Notification Bell Dropdown -->
           <li class="nav-item dropdown me-3">
-            <a class="nav-link position-relative text-dark p-2" href="#" id="candidateNotifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-bell fs-5"></i>
-              {% if unread_notifications_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                  {{ unread_notifications_count }}
-                </span>
-              {% endif %}
+            <a class="nav-link notif-dropdown-btn position-relative text-dark" href="#" id="candidateNotifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+              <span class="notif-icon-box">
+                <i class="bi bi-bell fs-5"></i>
+                {% if unread_notifications_count > 0 %}
+                  <span class="notif-red-dot">
+                    {% if unread_notifications_count > 99 %}99+{% else %}{{ unread_notifications_count }}{% endif %}
+                  </span>
+                {% endif %}
+              </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 p-0 rounded-3" style="width: 320px; max-height: 420px; overflow-y: auto;" aria-labelledby="candidateNotifDropdown">
               <li class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
