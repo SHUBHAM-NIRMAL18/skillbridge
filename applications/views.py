@@ -11,7 +11,7 @@ from django.views.decorators.http import require_GET, require_POST
 from datetime import timedelta
 from candidate.models import Profile
 from company.models import CompanyProfile, JobPost, InternshipPost
-from .models import Application, OfferLetter
+from .models import Application, OfferLetter, Interview
 from .forms import OfferLetterForm
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
@@ -212,29 +212,6 @@ def apply_submit(request):
 
 
 @login_required(login_url="accounts:login")
-def my_applications(request):
-    profile = Profile.objects.filter(user=request.user).first()
-    if not profile:
-        messages.info(request, "Create your candidate profile to see your applications.")
-        return redirect("/candidate/")
-
-    qs = (Application.objects
-          .select_related("company", "job_post", "internship_post")
-          .filter(candidate=profile))
-
-    # simple filters
-    t = request.GET.get("type")
-    s = request.GET.get("status")
-    if t == "job":
-        qs = qs.filter(job_post__isnull=False)
-    elif t == "intern":
-        qs = qs.filter(internship_post__isnull=False)
-    if s:
-        qs = qs.filter(status=s)
-
-    return render(request, "applications/candidate_list.html", {"apps": qs})
-
-@login_required(login_url="accounts:login")
 @require_POST
 def withdraw_application(request, pk: int):
     app = get_object_or_404(Application.objects.select_related("candidate__user"), pk=pk)
@@ -254,6 +231,7 @@ TAB_MAP = {
     "pending": "applied",
     "viewed": "under_review",      # label "Viewed" in UI
     "shortlisted": "shortlisted",
+    "interview": "interview",
     "offered": "offered",
     "rejected": "rejected",
     "withdrawn": "withdrawn",
@@ -603,3 +581,373 @@ def download_application_resume(request, pk: int):
     filename = os.path.basename(app.resume_file.name)
     response["Content-Disposition"] = f'inline; filename="{filename}"'
     return response
+
+
+# ==============================================================================
+# INTERVIEW SCHEDULING & CALENDAR SYSTEM VIEWS
+# ==============================================================================
+
+@login_required(login_url="accounts:login")
+@require_POST
+def schedule_interview(request, app_id: int):
+    """
+    Recruiter schedules an interview with a candidate for an application.
+    Supports both AJAX and standard form submission.
+    """
+    company = getattr(request.user, "company_profile", None)
+    if not company:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": "Company account required."}, status=403)
+        messages.error(request, "Company account required.")
+        return redirect("company:dashboard")
+
+    app = get_object_or_404(
+        Application.objects.select_related("candidate__user", "company"),
+        pk=app_id,
+        company=company
+    )
+
+    round_name = request.POST.get("round_name", "").strip() or "Technical Interview"
+    interview_type = request.POST.get("interview_type", "video")
+    scheduled_at_raw = request.POST.get("scheduled_at", "").strip()
+    duration_minutes = request.POST.get("duration_minutes", 45)
+    meeting_link = request.POST.get("meeting_link", "").strip()
+    interviewer_name = request.POST.get("interviewer_name", "").strip()
+    instructions = request.POST.get("instructions", "").strip()
+
+    if not scheduled_at_raw:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": "Please provide an interview date and time."}, status=400)
+        messages.error(request, "Please provide an interview date and time.")
+        return redirect(request.META.get("HTTP_REFERER", "company:applicants_all"))
+
+    try:
+        from django.utils.dateparse import parse_datetime
+        scheduled_at = parse_datetime(scheduled_at_raw)
+        if not scheduled_at:
+            from datetime import datetime
+            scheduled_at = datetime.fromisoformat(scheduled_at_raw)
+        if timezone.is_naive(scheduled_at):
+            scheduled_at = timezone.make_aware(scheduled_at, timezone.get_current_timezone())
+    except Exception as e:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": f"Invalid date/time format: {e}"}, status=400)
+        messages.error(request, "Invalid date/time format.")
+        return redirect(request.META.get("HTTP_REFERER", "company:applicants_all"))
+
+    try:
+        duration_minutes = int(duration_minutes)
+    except (ValueError, TypeError):
+        duration_minutes = 45
+
+    # Create new Interview record
+    interview = Interview.objects.create(
+        application=app,
+        company=company,
+        candidate=app.candidate,
+        round_name=round_name,
+        interview_type=interview_type,
+        scheduled_at=scheduled_at,
+        duration_minutes=duration_minutes,
+        meeting_link=meeting_link,
+        interviewer_name=interviewer_name,
+        instructions=instructions,
+        status="scheduled"
+    )
+
+    # Sync Application status to interview
+    if app.status != "interview":
+        app.status = "interview"
+        app.save(update_fields=["status", "updated_at"])
+
+    # Notify candidate
+    try:
+        from communications.services import notify_user
+        formatted_dt = scheduled_at.strftime("%b %d, %Y at %I:%M %p")
+        notify_user(
+            recipient=app.candidate.user,
+            title=f"Interview Scheduled: {round_name}",
+            message=f"{company.company_name} has scheduled a {round_name} with you for '{app.target_title}' on {formatted_dt}.",
+            action_url=reverse("candidate:interviews"),
+            sender=request.user,
+            notification_type="application_status"
+        )
+    except Exception:
+        pass
+
+    success_msg = f"Interview successfully scheduled for {app.candidate.first_name} {app.candidate.last_name}."
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "ok": True,
+            "message": success_msg,
+            "interview_id": interview.id,
+            "round_name": interview.round_name,
+            "scheduled_at": interview.scheduled_at.strftime("%b %d, %Y, %I:%M %p"),
+            "meeting_link": interview.meeting_link,
+        })
+
+    messages.success(request, success_msg)
+    return redirect(request.META.get("HTTP_REFERER", "company:applicants_all"))
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def interview_rsvp(request, pk: int):
+    """
+    Candidate confirms attendance or requests reschedule for an interview.
+    """
+    candidate = getattr(request.user, "profile", None) or getattr(request.user, "candidate_profile", None)
+    if not candidate:
+        candidate = Profile.objects.filter(user=request.user).first()
+    if not candidate:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": "Candidate profile required."}, status=403)
+        messages.error(request, "Candidate profile required.")
+        return redirect("candidate:dashboard")
+
+    interview = get_object_or_404(
+        Interview.objects.select_related("application", "company__user", "candidate"),
+        pk=pk,
+        candidate=candidate
+    )
+
+    action = request.POST.get("action", "").strip().lower()
+    notes = request.POST.get("notes", "").strip()
+
+    if action == "confirm":
+        interview.status = "confirmed"
+        if notes:
+            interview.candidate_notes = notes
+        interview.save(update_fields=["status", "candidate_notes", "updated_at"])
+
+        # Notify company
+        try:
+            from communications.services import notify_user
+            formatted_dt = interview.scheduled_at.strftime("%b %d, %Y at %I:%M %p")
+            notify_user(
+                recipient=interview.company.user,
+                title=f"Interview Confirmed: {candidate.first_name} {candidate.last_name}",
+                message=f"{candidate.first_name} {candidate.last_name} confirmed attendance for {interview.round_name} scheduled on {formatted_dt}.",
+                action_url=reverse("company:interviews"),
+                sender=request.user,
+                notification_type="application_status"
+            )
+        except Exception:
+            pass
+
+        msg = "Attendance confirmed! The interview is marked as confirmed in your schedule."
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": True, "status": "confirmed", "message": msg})
+        messages.success(request, msg)
+
+    elif action == "reschedule":
+        if not notes:
+            err = "Please provide your preferred availability or reason for rescheduling."
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"ok": False, "error": err}, status=400)
+            messages.error(request, err)
+            return redirect("candidate:interviews")
+
+        interview.status = "reschedule_requested"
+        interview.candidate_notes = notes
+        interview.save(update_fields=["status", "candidate_notes", "updated_at"])
+
+        # Notify company
+        try:
+            from communications.services import notify_user
+            notify_user(
+                recipient=interview.company.user,
+                title=f"Reschedule Requested: {candidate.first_name} {candidate.last_name}",
+                message=f"{candidate.first_name} {candidate.last_name} requested to reschedule {interview.round_name}. Note: {notes}",
+                action_url=reverse("company:interviews"),
+                sender=request.user,
+                notification_type="application_status"
+            )
+        except Exception:
+            pass
+
+        msg = "Reschedule request sent to the hiring team."
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": True, "status": "reschedule_requested", "message": msg})
+        messages.success(request, msg)
+    else:
+        return HttpResponseBadRequest("Invalid RSVP action.")
+
+    return redirect("candidate:interviews")
+
+
+@login_required(login_url="accounts:login")
+def interview_ics_download(request, pk: int):
+    """
+    Download .ics calendar invitation file for an interview.
+    """
+    interview = get_object_or_404(
+        Interview.objects.select_related("application", "company", "candidate"),
+        pk=pk
+    )
+
+    is_cand = (hasattr(interview.candidate, "user_id") and interview.candidate.user_id == request.user.id)
+    is_comp = (hasattr(interview.company, "user_id") and interview.company.user_id == request.user.id)
+    if not (is_cand or is_comp or request.user.is_staff):
+        return HttpResponseForbidden("Not authorized to download this calendar event.")
+
+    ics_data = interview.generate_ics()
+    response = HttpResponse(ics_data, content_type="text/calendar; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="interview-{interview.id}.ics"'
+    return response
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def interview_cancel(request, pk: int):
+    company = getattr(request.user, "company_profile", None)
+    if not company:
+        return JsonResponse({"ok": False, "error": "Company profile required."}, status=403)
+
+    interview = get_object_or_404(
+        Interview.objects.select_related("candidate__user", "application"),
+        pk=pk,
+        company=company
+    )
+    reason = request.POST.get("reason", "").strip()
+
+    interview.status = "cancelled"
+    interview.cancellation_reason = reason
+    interview.save(update_fields=["status", "cancellation_reason", "updated_at"])
+
+    try:
+        from communications.services import notify_user
+        notify_user(
+            recipient=interview.candidate.user,
+            title=f"Interview Cancelled: {interview.round_name}",
+            message=f"{company.company_name} cancelled the interview scheduled for {interview.scheduled_at.strftime('%b %d, %Y')}. Reason: {reason or 'No reason provided.'}",
+            action_url=reverse("candidate:interviews"),
+            sender=request.user,
+            notification_type="application_status"
+        )
+    except Exception:
+        pass
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": "Interview cancelled."})
+    messages.info(request, "Interview cancelled.")
+    return redirect(request.META.get("HTTP_REFERER", "company:interviews"))
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def interview_complete(request, pk: int):
+    company = getattr(request.user, "company_profile", None)
+    if not company:
+        return JsonResponse({"ok": False, "error": "Company profile required."}, status=403)
+
+    interview = get_object_or_404(Interview.objects, pk=pk, company=company)
+    interview.status = "completed"
+    interview.save(update_fields=["status", "updated_at"])
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": "Interview marked as completed."})
+    messages.success(request, "Interview marked as completed.")
+    return redirect(request.META.get("HTTP_REFERER", "company:interviews"))
+
+
+@login_required(login_url="accounts:login")
+def candidate_interviews(request):
+    """
+    Candidate view of all upcoming and past interviews with actions to RSVP, join call, and add to calendar.
+    """
+    profile = Profile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.info(request, "Create your candidate profile to view interviews.")
+        return redirect("/candidate/")
+
+    tab = request.GET.get("tab", "upcoming")
+    now = timezone.now()
+
+    all_interviews = (
+        Interview.objects
+        .select_related("application", "company", "application__job_post", "application__internship_post")
+        .filter(candidate=profile)
+        .order_by("-scheduled_at")
+    )
+
+    upcoming_qs = all_interviews.filter(
+        scheduled_at__gte=now,
+        status__in=["scheduled", "confirmed", "reschedule_requested"]
+    ).order_by("scheduled_at")
+
+    past_qs = all_interviews.filter(
+        Q(scheduled_at__lt=now) | Q(status__in=["completed", "cancelled"])
+    ).order_by("-scheduled_at")
+
+    total_count = all_interviews.count()
+    upcoming_count = upcoming_qs.count()
+    past_count = past_qs.count()
+    pending_rsvp_count = upcoming_qs.filter(status="scheduled").count()
+
+    if tab == "upcoming":
+        interviews = upcoming_qs
+    elif tab == "past":
+        interviews = past_qs
+    else:
+        interviews = all_interviews
+
+    context = {
+        "interviews": interviews,
+        "tab": tab,
+        "total_count": total_count,
+        "upcoming_count": upcoming_count,
+        "past_count": past_count,
+        "pending_rsvp_count": pending_rsvp_count,
+    }
+    return render(request, "candidate/interviews.html", context)
+
+
+@login_required(login_url="accounts:login")
+def company_interviews(request):
+    """
+    Company view of all scheduled interviews across all job/internship candidates.
+    """
+    company = getattr(request.user, "company_profile", None)
+    if not company:
+        messages.error(request, "Company profile required.")
+        return redirect("company:dashboard")
+
+    tab = request.GET.get("tab", "upcoming")
+    now = timezone.now()
+
+    base = (
+        Interview.objects
+        .select_related("application", "candidate", "application__job_post", "application__internship_post")
+        .filter(company=company)
+    )
+
+    upcoming_qs = base.filter(
+        scheduled_at__gte=now,
+        status__in=["scheduled", "confirmed", "reschedule_requested"]
+    ).order_by("scheduled_at")
+
+    past_qs = base.filter(
+        Q(scheduled_at__lt=now) | Q(status__in=["completed", "cancelled"])
+    ).order_by("-scheduled_at")
+
+    total_count = base.count()
+    upcoming_count = upcoming_qs.count()
+    past_count = past_qs.count()
+
+    if tab == "upcoming":
+        interviews = upcoming_qs
+    elif tab == "past":
+        interviews = past_qs
+    else:
+        interviews = base.order_by("-scheduled_at")
+
+    context = {
+        "company": company,
+        "interviews": interviews,
+        "tab": tab,
+        "total_count": total_count,
+        "upcoming_count": upcoming_count,
+        "past_count": past_count,
+    }
+    return render(request, "company/interviews.html", context)

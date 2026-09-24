@@ -48,6 +48,10 @@
       <a href="{% url 'applications:view_offer' application.id %}" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 shadow-sm">
         <i class="bi bi-file-earmark-check me-1"></i> View Offer Letter
       </a>
+    {% elif application.interviews.exists %}
+      <a href="{% url 'candidate:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold px-3 shadow-sm">
+        <i class="bi bi-calendar-event me-1"></i> View Interview
+      </a>
     {% else %}
       <button type="button" 
               class="btn btn-light btn-sm rounded-pill fw-semibold px-3 js-detail-btn"

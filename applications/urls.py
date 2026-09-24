@@ -19,5 +19,13 @@ urlpatterns = [
 
     # Secure resume download
     path("<int:pk>/resume/download/", views.download_application_resume, name="download_resume"),
+
+    # Interview Scheduling workflow
+    path("<int:app_id>/interview/schedule/", views.schedule_interview, name="schedule_interview"),
+    path("interview/<int:pk>/rsvp/", views.interview_rsvp, name="interview_rsvp"),
+    path("interview/<int:pk>/ics/", views.interview_ics_download, name="interview_ics"),
+    path("interview/<int:pk>/cancel/", views.interview_cancel, name="interview_cancel"),
+    path("interview/<int:pk>/complete/", views.interview_complete, name="interview_complete"),
 ]
+
 
