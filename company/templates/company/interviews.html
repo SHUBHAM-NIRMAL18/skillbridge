@@ -1,0 +1,393 @@
+{% extends "company/base.html" %}
+{% load humanize static %}
+
+{% block title %}Scheduled Interviews — SkillBridge Recruiter{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Breadcrumbs & Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb" class="small text-muted mb-1">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="{% url 'company:dashboard' %}" class="text-danger text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'company:applicants_all' %}" class="text-danger text-decoration-none">Applicants</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Interviews</li>
+        </ol>
+      </nav>
+      <h2 class="fw-bold text-dark mb-0">
+        <i class="bi bi-calendar-check text-primary me-2"></i>Scheduled Interviews
+      </h2>
+      <p class="text-muted small mb-0 mt-1">Manage and track candidate interview rounds, RSVP confirmations, and virtual meeting links.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'company:applicants_all' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-people me-1"></i> View Applicants Pipeline
+      </a>
+      <a href="{% url 'company:company_post_choice' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i> Post Opportunity
+      </a>
+    </div>
+  </div>
+
+  <!-- Metric Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-4">
+      <div class="card border-0 shadow-sm rounded-3 border-top border-4 border-primary h-100">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h3 class="mb-0 fw-bold text-primary">{{ upcoming_count }}</h3>
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Upcoming Sessions</small>
+          </div>
+          <div class="bg-primary-subtle text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-calendar-event fs-4"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="card border-0 shadow-sm rounded-3 border-top border-4 border-secondary h-100">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h3 class="mb-0 fw-bold text-secondary">{{ past_count }}</h3>
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Past / Completed</small>
+          </div>
+          <div class="bg-secondary-subtle text-secondary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-check2-all fs-4"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <div class="card border-0 shadow-sm rounded-3 border-top border-4 border-success h-100">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+          <div>
+            <h3 class="mb-0 fw-bold text-success">{{ total_count }}</h3>
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Coordinated</small>
+          </div>
+          <div class="bg-success-subtle text-success rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-award fs-4"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Nav Pills -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <ul class="nav nav-pills gap-2">
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'upcoming' %}active bg-primary{% else %}bg-white border text-dark{% endif %} rounded-pill px-3 py-1 small fw-semibold" href="?tab=upcoming">
+          Upcoming <span class="badge rounded-pill bg-white text-dark ms-1">{{ upcoming_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'past' %}active bg-primary{% else %}bg-white border text-dark{% endif %} rounded-pill px-3 py-1 small fw-semibold" href="?tab=past">
+          Past & Completed <span class="badge rounded-pill bg-white text-dark ms-1">{{ past_count }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if tab == 'all' %}active bg-primary{% else %}bg-white border text-dark{% endif %} rounded-pill px-3 py-1 small fw-semibold" href="?tab=all">
+          All Records <span class="badge rounded-pill bg-white text-dark ms-1">{{ total_count }}</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Interviews List -->
+  {% if interviews %}
+    <div class="row g-4">
+      {% for itw in interviews %}
+        <div class="col-12 col-xl-6" id="interview-card-{{ itw.id }}">
+          <div class="card border-0 shadow-sm rounded-3 h-100 overflow-hidden hover-shadow-sm transition-all" style="border-left: 5px solid {% if itw.status == 'confirmed' %}#198754{% elif itw.status == 'reschedule_requested' %}#ffc107{% elif itw.status == 'completed' %}#6c757d{% elif itw.status == 'cancelled' %}#dc3545{% else %}#0d6efd{% endif %} !important;">
+            
+            <div class="card-body p-4">
+              <!-- Header Row: Candidate Info & Status -->
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <div class="d-flex align-items-center gap-3">
+                  {% if itw.candidate.profile_picture %}
+                    <img src="{{ itw.candidate.profile_picture.url }}" class="rounded-circle shadow-sm" style="width: 52px; height: 52px; object-fit: cover;">
+                  {% else %}
+                    <div class="rounded-circle bg-light text-primary border d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 52px; height: 52px;">
+                      {{ itw.candidate.first_name|slice:":1"|default:"U" }}
+                    </div>
+                  {% endif %}
+                  <div>
+                    <h5 class="fw-bold mb-1 text-dark">{{ itw.candidate.first_name }} {{ itw.candidate.last_name }}</h5>
+                    <div class="text-muted small">
+                      <span class="badge bg-light text-dark border me-1">{{ itw.round_name }}</span>
+                      <span>{{ itw.application.target_title }}</span>
+                      {% if itw.application.is_job %}
+                        <span class="badge bg-white text-dark border ms-1">Job</span>
+                      {% else %}
+                        <span class="badge bg-white text-dark border ms-1">Internship</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  {% if itw.status == 'confirmed' %}
+                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                      <i class="bi bi-check-circle-fill me-1"></i> Candidate Confirmed
+                    </span>
+                  {% elif itw.status == 'reschedule_requested' %}
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                      <i class="bi bi-clock-history me-1"></i> Reschedule Requested
+                    </span>
+                  {% elif itw.status == 'completed' %}
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                      <i class="bi bi-check2-all me-1"></i> Completed
+                    </span>
+                  {% elif itw.status == 'cancelled' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                      <i class="bi bi-x-circle me-1"></i> Cancelled
+                    </span>
+                  {% else %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                      <i class="bi bi-calendar-event me-1"></i> Scheduled
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Time & Format Details Box -->
+              <div class="bg-light rounded-3 p-3 mb-3">
+                <div class="row g-2 align-items-center">
+                  <div class="col-sm-7 d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar3 text-primary fs-5"></i>
+                    <div>
+                      <div class="fw-bold text-dark small">{{ itw.scheduled_at|date:"l, F d, Y" }}</div>
+                      <div class="text-muted small">{{ itw.scheduled_at|date:"g:i A" }} — {{ itw.end_time|date:"g:i A" }} ({{ itw.duration_minutes }} mins)</div>
+                    </div>
+                  </div>
+                  <div class="col-sm-5 d-flex align-items-center gap-2">
+                    {% if itw.interview_type == 'video' %}
+                      <i class="bi bi-camera-video text-primary fs-5"></i>
+                      <div class="small">
+                        <span class="fw-semibold text-dark">Online Video Call</span>
+                      </div>
+                    {% elif itw.interview_type == 'in_person' %}
+                      <i class="bi bi-geo-alt text-danger fs-5"></i>
+                      <div class="small">
+                        <span class="fw-semibold text-dark">In-Person Meeting</span>
+                      </div>
+                    {% else %}
+                      <i class="bi bi-telephone text-success fs-5"></i>
+                      <div class="small">
+                        <span class="fw-semibold text-dark">Phone Screening</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Candidate Reschedule Request Note -->
+              {% if itw.candidate_notes %}
+                <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3">
+                  <strong><i class="bi bi-chat-quote me-1"></i>Candidate RSVP Note:</strong> {{ itw.candidate_notes }}
+                </div>
+              {% endif %}
+
+              <!-- Meeting Details -->
+              {% if itw.meeting_link %}
+                <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+                  <span class="text-muted small fw-semibold">Meeting details:</span>
+                  {% if "http" in itw.meeting_link %}
+                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3">
+                      <i class="bi bi-box-arrow-up-right me-1"></i> Join Call
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill js-copy-link" data-link="{{ itw.meeting_link }}">
+                      <i class="bi bi-clipboard me-1"></i> Copy Link
+                    </button>
+                  {% else %}
+                    <span class="badge bg-white text-dark border p-2 small"><i class="bi bi-geo-alt text-danger me-1"></i>{{ itw.meeting_link }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {% if itw.interviewer_name %}
+                <div class="small text-muted mb-2">
+                  <i class="bi bi-person-badge text-secondary me-1"></i>
+                  Interviewer: <strong class="text-dark">{{ itw.interviewer_name }}</strong>
+                </div>
+              {% endif %}
+
+              {% if itw.instructions %}
+                <div class="small bg-white border rounded-3 p-3 mb-3 text-secondary">
+                  <div class="fw-semibold text-dark mb-1"><i class="bi bi-info-circle me-1 text-primary"></i>Interview Agenda:</div>
+                  {{ itw.instructions|linebreaksbr }}
+                </div>
+              {% endif %}
+
+              {% if itw.cancellation_reason %}
+                <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+                  <strong>Cancellation Reason:</strong> {{ itw.cancellation_reason }}
+                </div>
+              {% endif %}
+
+              <!-- Action Bar -->
+              <div class="pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex gap-2">
+                  <a href="{{ itw.google_calendar_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill" title="Add to Google Calendar">
+                    <i class="bi bi-google me-1 text-danger"></i> Google Calendar
+                  </a>
+                  <a href="{% url 'applications:interview_ics' itw.id %}" class="btn btn-sm btn-outline-secondary rounded-pill" title="Download .ics event file">
+                    <i class="bi bi-calendar-plus me-1"></i> .ICS File
+                  </a>
+                  <a href="{% url 'communications:start_from_applicant' itw.application.id %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                    <i class="bi bi-chat-dots me-1"></i> Message
+                  </a>
+                </div>
+
+                <div class="d-flex gap-2">
+                  {% if itw.status in 'scheduled,confirmed,reschedule_requested' %}
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold js-complete-interview" data-id="{{ itw.id }}">
+                      <i class="bi bi-check2-circle me-1"></i> Mark Done
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 js-open-cancel" data-id="{{ itw.id }}" data-candidate-name="{{ itw.candidate.first_name }} {{ itw.candidate.last_name }}">
+                      <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State -->
+    <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-3">
+      <div class="card-body py-5">
+        <div class="rounded-circle bg-light-primary d-inline-flex p-4 mb-3 text-primary shadow-sm">
+          <i class="bi bi-calendar-x fs-1"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">No {{ tab|title }} Interviews</h4>
+        <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+          {% if tab == 'upcoming' %}
+            You don't have any upcoming interviews scheduled. Review your shortlisted candidates and schedule interviews directly from the applicants drawer.
+          {% else %}
+            No past interview records found.
+          {% endif %}
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{% url 'company:applicants_all' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            Go to Applicants Pipeline
+          </a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Recruiter Cancel Interview Modal -->
+<div class="modal fade" id="cancelInterviewModal" tabindex="-1" aria-labelledby="cancelInterviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-light border-bottom">
+        <h5 class="modal-title fw-bold text-dark" id="cancelInterviewModalLabel">
+          <i class="bi bi-x-circle text-danger me-2"></i>Cancel Interview Session
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="cancelInterviewForm" method="post" action="">
+        {% csrf_token %}
+        <div class="modal-body p-4">
+          <div class="alert alert-danger bg-danger-subtle border-danger-subtle py-2 px-3 small mb-3">
+            Candidate: <strong id="cancelCandidateName">Candidate</strong>
+          </div>
+          <p class="small text-muted mb-3">
+            Cancelling this interview will update its status and notify the candidate. Please provide a brief cancellation reason.
+          </p>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Cancellation Reason</label>
+            <textarea class="form-control form-control-sm" name="reason" rows="3" placeholder="e.g. The hiring manager is unavailable / Role requirements updated..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-sm btn-danger fw-semibold px-3">
+            <i class="bi bi-x-circle me-1"></i> Confirm Cancellation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  function getCookie(name){const m=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return m?m.pop():'';}
+
+  // Cancel Interview Modal
+  const cancelModalEl = document.getElementById('cancelInterviewModal');
+  const cancelModal = cancelModalEl ? new bootstrap.Modal(cancelModalEl) : null;
+  const cancelForm = document.getElementById('cancelInterviewForm');
+  const cancelCandName = document.getElementById('cancelCandidateName');
+
+  document.querySelectorAll('.js-open-cancel').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const interviewId = btn.getAttribute('data-id');
+      const candName = btn.getAttribute('data-candidate-name');
+      if (cancelForm && interviewId) {
+        cancelForm.action = `{% url 'applications:interview_cancel' 0 %}`.replace('/0/', `/${interviewId}/`);
+        if (cancelCandName) cancelCandName.textContent = candName || 'Candidate';
+        cancelModal.show();
+      }
+    });
+  });
+
+  // Mark Completed AJAX
+  document.querySelectorAll('.js-complete-interview').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Mark this interview as completed?')) return;
+      btn.disabled = true;
+      try {
+        const resp = await fetch(`{% url 'applications:interview_complete' 0 %}`.replace('/0/', `/${id}/`), {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          window.location.reload();
+        } else {
+          alert(data.error || 'Failed to complete interview.');
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Network error.');
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // Copy Link
+  document.querySelectorAll('.js-copy-link').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const link = btn.getAttribute('data-link');
+      if (link) {
+        try {
+          await navigator.clipboard.writeText(link);
+          const original = btn.innerHTML;
+          btn.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Copied!';
+          setTimeout(() => { btn.innerHTML = original; }, 2000);
+        } catch (err) {
+          prompt('Copy meeting link:', link);
+        }
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

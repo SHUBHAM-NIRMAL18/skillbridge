@@ -72,13 +72,50 @@
             <i class="bi bi-file-earmark-plus me-1"></i> Issue Offer Letter
           </a>
         {% endif %}
-        <a href="{% url 'communications:start_from_applicant' app.id %}" class="btn btn-sm btn-outline-primary w-100 fw-semibold mt-2">
-          <i class="bi bi-chat-dots me-1"></i> Message Candidate
-        </a>
+        <button type="button" class="btn btn-sm btn-outline-info w-100 fw-semibold mt-2 js-btn-schedule-interview" data-app="{{ app.id }}" data-candidate-name="{{ profile.first_name }} {{ profile.last_name }}" data-target-title="{{ app.target_title }}">
+          <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
+        </button>
       </div>
     </div>
   </div>
 </div>
+
+{% if latest_interview %}
+<div class="p-3 border-bottom" style="background-color: #f8fbff;">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="small fw-bold text-dark">
+      <i class="bi bi-calendar-event text-primary me-1"></i> {{ latest_interview.round_name }}
+    </div>
+    <span class="badge 
+      {% if latest_interview.status == 'confirmed' %}bg-success
+      {% elif latest_interview.status == 'reschedule_requested' %}bg-warning text-dark
+      {% elif latest_interview.status == 'completed' %}bg-secondary
+      {% elif latest_interview.status == 'cancelled' %}bg-danger
+      {% else %}bg-primary{% endif %}">
+      {{ latest_interview.get_status_display }}
+    </span>
+  </div>
+  <div class="small mb-1 text-muted">
+    <i class="bi bi-clock me-1"></i> {{ latest_interview.scheduled_at|date:"M j, Y, g:i a" }} ({{ latest_interview.duration_minutes }} mins)
+  </div>
+  {% if latest_interview.meeting_link %}
+    <div class="small mb-1">
+      <i class="bi bi-link-45deg me-1"></i>
+      <a href="{{ latest_interview.meeting_link }}" target="_blank" class="text-decoration-none fw-semibold">Join Call / Meeting Link</a>
+    </div>
+  {% endif %}
+  {% if latest_interview.interviewer_name %}
+    <div class="small mb-1 text-muted">
+      <i class="bi bi-person me-1"></i> Interviewer: {{ latest_interview.interviewer_name }}
+    </div>
+  {% endif %}
+  {% if latest_interview.candidate_notes %}
+    <div class="alert alert-warning py-1 px-2 small mt-2 mb-0">
+      <strong>Candidate Note:</strong> {{ latest_interview.candidate_notes }}
+    </div>
+  {% endif %}
+</div>
+{% endif %}
 
 
 <div class="p-3 border-bottom">
@@ -167,5 +204,12 @@
       Status: <strong>{{ app.get_status_display }}</strong>
       <span class="text-muted"> · updated {{ app.updated_at|naturaltime }}</span>
     </li>
+    {% for itw in interviews %}
+    <li class="mb-1">
+      <i class="bi bi-calendar2-check text-primary me-1"></i>
+      {{ itw.round_name }}: <strong>{{ itw.get_status_display }}</strong>
+      <span class="text-muted"> — {{ itw.scheduled_at|date:"M j, Y, g:i a" }}</span>
+    </li>
+    {% endfor %}
   </ul>
 </div>

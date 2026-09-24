@@ -13,6 +13,7 @@ from .views import (
     company_settings,
     deactivate_account,
 )
+from applications.views import company_interviews
 
 app_name = 'company'
 
@@ -53,6 +54,9 @@ urlpatterns = [
     path("applicants/",                      views.applicants_list, name="applicants_all"),
     path("applicants/new/",                  views.applicants_list, {"status": "applied"},     name="applicants_new"),
     path("applicants/shortlisted/",          views.applicants_list, {"status": "shortlisted"}, name="applicants_shortlisted"),
+
+    # Scheduled Interviews
+    path("interviews/",                      company_interviews, name="interviews"),
 
     # Per-posting applicant lists
     path("jobs/<int:pk>/applicants/",        views.applicants_list, name="job_applicants"),

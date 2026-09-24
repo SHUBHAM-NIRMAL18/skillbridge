@@ -195,6 +195,25 @@ def company_dashboard(request):
                   .values("id", "title", "application_deadline")
     )
 
+    # Scheduled upcoming interviews
+    upcoming_interviews = []
+    try:
+        from applications.models import Interview
+        upcoming_interviews = list(
+            Interview.objects
+            .select_related("candidate", "application__job_post", "application__internship_post")
+            .filter(
+                company=company,
+                scheduled_at__gte=timezone.now(),
+                status__in=["scheduled", "confirmed", "reschedule_requested"]
+            )
+            .order_by("scheduled_at")[:5]
+        )
+    except Exception:
+        upcoming_interviews = []
+
+    metrics["upcoming_interviews"] = len(upcoming_interviews)
+
     context = {
         "company": company,
         "metrics": metrics,
@@ -202,6 +221,7 @@ def company_dashboard(request):
         "profile_missing": profile_missing,
         "profile_completion_percent": profile_completion_percent,
         "new_applications": new_applications,
+        "upcoming_interviews": upcoming_interviews,
         "recent_activities": recent_activities,
         "expiring_soon": expiring_soon,
     }
@@ -842,6 +862,8 @@ def applicant_detail_partial(request, pk: int):
 
     # Status choices for drawer dropdown
     statuses = Application.STATUS_CHOICES
+    interviews = app.interviews.all().order_by("-scheduled_at")
+    latest_interview = interviews.first()
 
     html = render_to_string("company/_applicant_detail.html", {
         "app": app,
@@ -853,6 +875,8 @@ def applicant_detail_partial(request, pk: int):
         "overlap_skills": overlap_skills,
         "missing_skills": missing_skills,
         "statuses": statuses,
+        "interviews": interviews,
+        "latest_interview": latest_interview,
     }, request=request)
 
     return JsonResponse({"ok": True, "html": html, "title": f"{profile.first_name} {profile.last_name}".strip() or profile.user.username})
