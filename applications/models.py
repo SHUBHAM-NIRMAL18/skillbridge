@@ -125,3 +125,142 @@ class OfferLetter(models.Model):
             return True
         return False
 
+
+class Interview(models.Model):
+    STATUS_CHOICES = [
+        ("scheduled", "Scheduled"),
+        ("confirmed", "Confirmed by Candidate"),
+        ("reschedule_requested", "Reschedule Requested"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    TYPE_CHOICES = [
+        ("video", "Online Video Call"),
+        ("in_person", "In-Person"),
+        ("phone", "Phone Screening"),
+    ]
+
+    ROUND_CHOICES = [
+        ("Screening Call", "Screening Call"),
+        ("Technical Interview", "Technical Interview"),
+        ("System Design", "System Design"),
+        ("HR & Culture Fit", "HR & Culture Fit"),
+        ("Managerial Round", "Managerial Round"),
+        ("Final Interview", "Final Interview"),
+    ]
+
+    application = models.ForeignKey(
+        Application, 
+        on_delete=models.CASCADE, 
+        related_name="interviews"
+    )
+    company = models.ForeignKey(
+        "company.CompanyProfile", 
+        on_delete=models.CASCADE, 
+        related_name="scheduled_interviews"
+    )
+    candidate = models.ForeignKey(
+        "candidate.Profile", 
+        on_delete=models.CASCADE, 
+        related_name="interviews"
+    )
+
+    round_name = models.CharField(max_length=150, default="Technical Interview")
+    interview_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default="video")
+    
+    scheduled_at = models.DateTimeField(help_text="Scheduled date and time of the interview")
+    duration_minutes = models.PositiveIntegerField(default=45, help_text="Duration in minutes")
+    
+    meeting_link = models.CharField(
+        max_length=500, 
+        blank=True, 
+        help_text="Meeting URL (Google Meet, Zoom, MS Teams) or physical location address"
+    )
+    interviewer_name = models.CharField(max_length=150, blank=True, help_text="Name of the interviewer or panel")
+    instructions = models.TextField(blank=True, help_text="Preparation notes, topics, or agenda for the candidate")
+    
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="scheduled")
+    candidate_notes = models.TextField(blank=True, null=True, help_text="Notes/reason provided by candidate on RSVP or reschedule")
+    cancellation_reason = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-scheduled_at"]
+
+    def __str__(self):
+        return f"{self.round_name} for {self.candidate} at {self.company.company_name} ({self.get_status_display()})"
+
+    @property
+    def end_time(self):
+        import datetime
+        return self.scheduled_at + datetime.timedelta(minutes=self.duration_minutes)
+
+    @property
+    def is_upcoming(self):
+        return self.scheduled_at >= timezone.now() and self.status in ["scheduled", "confirmed", "reschedule_requested"]
+
+    @property
+    def google_calendar_url(self):
+        import urllib.parse
+        start_utc = self.scheduled_at.astimezone(timezone.utc)
+        end_utc = self.end_time.astimezone(timezone.utc)
+        start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
+        end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
+        title = f"Interview: {self.round_name} - {self.company.company_name}"
+        details = (
+            f"Position: {self.application.target_title}\n"
+            f"Company: {self.company.company_name}\n"
+            f"Interviewer: {self.interviewer_name or 'Hiring Team'}\n"
+            f"Meeting Link / Location: {self.meeting_link or 'Online'}\n\n"
+            f"Instructions:\n{self.instructions}"
+        )
+        location = self.meeting_link or "Online"
+        params = {
+            "action": "TEMPLATE",
+            "text": title,
+            "dates": f"{start_str}/{end_str}",
+            "details": details,
+            "location": location,
+        }
+        return "https://calendar.google.com/calendar/render?" + urllib.parse.urlencode(params)
+
+    def generate_ics(self):
+        import datetime
+        start_utc = self.scheduled_at.astimezone(timezone.utc)
+        end_utc = self.end_time.astimezone(timezone.utc)
+        start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
+        end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
+        now_str = datetime.datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        summary = f"Interview: {self.round_name} at {self.company.company_name}"
+        description = (
+            f"Position: {self.application.target_title}\\n"
+            f"Interviewer: {self.interviewer_name or 'Hiring Team'}\\n"
+            f"Meeting Link: {self.meeting_link or 'Online'}\\n\\n"
+            f"Notes: {self.instructions or 'No additional instructions.'}"
+        ).replace("\r", "").replace("\n", "\\n")
+        location = (self.meeting_link or "Online").replace(",", "\\,")
+
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//SkillBridge//Interview Scheduling//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:REQUEST",
+            "BEGIN:VEVENT",
+            f"UID:skillbridge-interview-{self.id}@skillbridge.com",
+            f"DTSTAMP:{now_str}",
+            f"DTSTART:{start_str}",
+            f"DTEND:{end_str}",
+            f"SUMMARY:{summary}",
+            f"DESCRIPTION:{description}",
+            f"LOCATION:{location}",
+            "STATUS:CONFIRMED",
+            "END:VEVENT",
+            "END:VCALENDAR",
+        ]
+        return "\r\n".join(lines) + "\r\n"
+
+
