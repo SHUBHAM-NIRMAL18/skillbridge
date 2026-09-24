@@ -7,7 +7,7 @@ from .views import (
     candidate_registered_events, candidate_bookmarks_list, toggle_bookmark,
     download_candidate_resume
 )
-from applications.views import my_applications
+from applications.views import my_applications, candidate_interviews
 
 app_name = "candidate"
 
@@ -29,8 +29,9 @@ urlpatterns = [
     path('profile/<str:step>/', ProfileWizardView.as_view(), name='profile'),
     path('resume/<int:pk>/download/', download_candidate_resume, name='download_resume'),
 
-    # Applications
+    # Applications & Interviews
     path('applications/', my_applications, name='applications'),
+    path('interviews/', candidate_interviews, name='interviews'),
 
     # Recommendations
     path('recommendations/', recommended_demo, name='recommendations'),
@@ -39,3 +40,4 @@ urlpatterns = [
 
     path('events/', candidate_registered_events, name='registered_events'),
 ]
+

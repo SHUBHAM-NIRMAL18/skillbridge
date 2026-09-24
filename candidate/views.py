@@ -241,11 +241,29 @@ def candidate_dashboard(request):
     except Exception:
         pass
 
+    upcoming_interviews = []
+    if profile:
+        try:
+            from applications.models import Interview
+            upcoming_interviews = list(
+                Interview.objects
+                .select_related('company', 'application__job_post', 'application__internship_post')
+                .filter(
+                    candidate=profile,
+                    scheduled_at__gte=timezone.now(),
+                    status__in=['scheduled', 'confirmed', 'reschedule_requested']
+                )
+                .order_by('scheduled_at')[:3]
+            )
+        except Exception:
+            upcoming_interviews = []
+
     context = {
         'profile': profile,
         'progress': progress,
         'stats': stats,
         'recent_applications': recent_applications,
+        'upcoming_interviews': upcoming_interviews,
         'activities': activities,
         'recommended_jobs': recommended_items,
         'remote_opportunities': remote_opportunities,
@@ -253,6 +271,7 @@ def candidate_dashboard(request):
         'remote_internships_count': sum(1 for x in remote_opportunities if not x['is_job']),
     }
     return render(request, "candidate/dashboard.html", context)
+
 
 
 
