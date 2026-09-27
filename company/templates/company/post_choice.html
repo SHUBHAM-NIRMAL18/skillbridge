@@ -1,5 +1,11 @@
 {% extends "company/base.html" %}
 {% load static %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-muted">Internships &amp; Jobs</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Post Choice</li>
+{% endblock %}
+
 {% block content %}
 <style>
 /* Enhanced Post Selection Styles */
