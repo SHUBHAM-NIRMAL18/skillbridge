@@ -1,140 +1,313 @@
 {% extends "company/base.html" %}
 {% load humanize %}
+{% load static %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item active" aria-current="page">
+    <i class="bi bi-speedometer2 me-1 text-danger"></i> Dashboard Overview
+  </li>
+{% endblock %}
+
+{% block breadcrumb_actions %}
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-light text-dark border px-3 py-1.5 rounded-pill d-inline-flex align-items-center">
+      <i class="bi bi-calendar3 text-danger me-1.5"></i> {% now "F d, Y" %}
+    </span>
+    <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center shadow-sm">
+      <i class="bi bi-plus-lg me-1"></i> Post Opportunity
+    </a>
+  </div>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
+<div class="container-fluid px-4 pb-5">
 
-  <!-- Greeting Block -->
-  <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-    <div>
-      <h2 class="fw-bold mb-1 text-dark">Hey there, {{ company.first_name }} {{ company.last_name }}!</h2>
-      <p class="text-muted small mb-0">Welcome back to your recruiting hub. Here is a summary of your workspace.</p>
-    </div>
-    <div class="d-none d-md-block">
-      <span class="badge bg-light text-dark border p-2">
-        <i class="bi bi-calendar3 me-2 text-danger"></i>{% now "F d, Y" %}
-      </span>
-    </div>
-  </div>
+  <!-- ==========================================
+       1. Executive Welcome & Command Hub
+       ========================================== -->
+  <div class="dashboard-welcome-banner p-4 mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="company-avatar-box flex-shrink-0">
+          {% if company.logo %}
+            <img src="{{ company.logo.url }}" alt="{{ company.first_name }}" />
+          {% else %}
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-danger-subtle text-danger fw-bold fs-4">
+              {{ company.first_name|slice:":1"|default:"C" }}
+            </div>
+          {% endif %}
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h2 class="fw-bold mb-0 text-dark">
+              {{ greeting_time }}, {{ company.first_name }}{% if company.last_name %} {{ company.last_name }}{% endif %}!
+            </h2>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small">
+              <i class="bi bi-patch-check-fill text-primary me-1"></i> Verified Recruiter
+            </span>
+          </div>
+          <p class="text-muted small mb-0 mt-1">
+            Welcome back to your hiring command center. Manage talent pipelines, interviews, and active listings in real time.
+          </p>
+        </div>
+      </div>
 
-  <!-- Metric Stat Cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-md-3">
-      <a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-reset">
-        <div class="card stat-card border-0 border-top-accent-primary shadow-sm">
-          <div class="card-body d-flex justify-content-between align-items-center py-3">
-            <div>
-              <h3 class="mb-0 fw-bold">{{ metrics.total_jobs|intcomma }}</h3>
-              <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Total Opportunities</small>
-            </div>
-            <div class="icon-box bg-light-primary text-primary rounded-3 p-3">
-              <i class="bi bi-briefcase fs-3"></i>
-            </div>
+      <!-- Quick Status & Wallet Bar -->
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="card border-0 bg-white shadow-2xs rounded-pill px-3 py-2 d-flex flex-row align-items-center gap-2 border">
+          <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+            <i class="bi bi-lightning-charge-fill"></i>
           </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-reset">
-        <div class="card stat-card border-0 border-top-accent-success shadow-sm">
-          <div class="card-body d-flex justify-content-between align-items-center py-3">
-            <div>
-              <h3 class="mb-0 fw-bold">{{ metrics.total_applicants|intcomma }}</h3>
-              <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Total Applicants</small>
-            </div>
-            <div class="icon-box bg-light-success text-success rounded-3 p-3">
-              <i class="bi bi-people fs-3"></i>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <a href="{% url 'company:applicants_shortlisted' %}" class="text-decoration-none text-reset">
-        <div class="card stat-card border-0 border-top-accent-warning shadow-sm">
-          <div class="card-body d-flex justify-content-between align-items-center py-3">
-            <div>
-              <h3 class="mb-0 fw-bold">{{ metrics.shortlisted|intcomma }}</h3>
-              <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Shortlisted</small>
-            </div>
-            <div class="icon-box bg-light-warning text-warning rounded-3 p-3">
-              <i class="bi bi-award fs-3"></i>
-            </div>
-          </div>
-        </div>
-      </a>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <div class="card stat-card border-0 border-top-accent-purple shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center py-3">
           <div>
-            <h3 class="mb-0 fw-bold">{{ metrics.views|intcomma }}</h3>
-            <small class="text-muted text-uppercase fw-semibold tracking-wider" style="font-size: 0.75rem;">Page Views</small>
+            <div class="xsmall text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">Credits Balance</div>
+            <div class="fw-bold text-dark lh-1" style="font-size: 0.95rem;">
+              {{ metrics.credits }} <span class="fw-normal text-muted" style="font-size: 0.75rem;">pts</span>
+            </div>
           </div>
-          <div class="icon-box bg-light-purple text-purple rounded-3 p-3">
-            <i class="bi bi-eye fs-3"></i>
+          <a href="{% url 'membership:select' %}" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-0.5 ms-1 fw-semibold text-dark" style="font-size: 0.72rem;">
+            + Add
+          </a>
+        </div>
+
+        <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center shadow-sm hover-lift">
+          <i class="bi bi-plus-circle me-1.5 fs-6"></i> Post Job / Intern
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       2. KPI Metrics Grid (5 Dimensions)
+       ========================================== -->
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Active Listings -->
+    <div class="col-sm-6 col-xl">
+      <a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-reset">
+        <div class="kpi-card-v2 p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Opportunities</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.total_jobs }}</h3>
+            </div>
+            <div class="kpi-icon-pill kpi-icon-red">
+              <i class="bi bi-briefcase-fill"></i>
+            </div>
           </div>
+          <div class="d-flex align-items-center gap-1.5 mt-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+              {{ metrics.active_opportunities }} Active Now
+            </span>
+            <small class="text-muted" style="font-size: 0.72rem;">in market</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 2: Applicants -->
+    <div class="col-sm-6 col-xl">
+      <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-reset">
+        <div class="kpi-card-v2 p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Applicants</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.total_applicants|intcomma }}</h3>
+            </div>
+            <div class="kpi-icon-pill kpi-icon-blue">
+              <i class="bi bi-people-fill"></i>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-1.5 mt-2">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+              {{ new_applications|length }} New
+            </span>
+            <small class="text-muted" style="font-size: 0.72rem;">last 7 days</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 3: Shortlisted -->
+    <div class="col-sm-6 col-xl">
+      <a href="{% url 'company:applicants_shortlisted' %}" class="text-decoration-none text-reset">
+        <div class="kpi-card-v2 p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Shortlisted</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.shortlisted }}</h3>
+            </div>
+            <div class="kpi-icon-pill kpi-icon-amber">
+              <i class="bi bi-star-fill"></i>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-1.5 mt-2">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+              Screened Talent
+            </span>
+            <small class="text-muted" style="font-size: 0.72rem;">pipeline</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 4: Upcoming Interviews -->
+    <div class="col-sm-6 col-xl">
+      <a href="{% url 'company:interviews' %}" class="text-decoration-none text-reset">
+        <div class="kpi-card-v2 p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Interviews</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.upcoming_interviews }}</h3>
+            </div>
+            <div class="kpi-icon-pill kpi-icon-emerald">
+              <i class="bi bi-camera-video-fill"></i>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-1.5 mt-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+              Scheduled
+            </span>
+            <small class="text-muted" style="font-size: 0.72rem;">sessions</small>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 5: Views -->
+    <div class="col-sm-6 col-xl">
+      <div class="kpi-card-v2 p-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Impressions</span>
+            <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.views|intcomma }}</h3>
+          </div>
+          <div class="kpi-icon-pill kpi-icon-purple">
+            <i class="bi bi-eye-fill"></i>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-1.5 mt-2">
+          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+            Listing Views
+          </span>
+          <small class="text-muted" style="font-size: 0.72rem;">reach</small>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Upcoming Interviews Widget -->
-  {% if upcoming_interviews %}
-  <div class="card border-0 shadow-sm rounded-3 mb-4 border-start border-4 border-primary">
-    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+  <!-- ==========================================
+       3. Interactive Hiring Pipeline Funnel
+       ========================================== -->
+  <div class="pipeline-funnel-card p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-0 fw-bold text-dark">
-          <i class="bi bi-calendar2-event text-primary me-2"></i>Upcoming Candidate Interviews
+        <h5 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-diagram-3-fill text-danger me-2"></i>Recruitment Pipeline Funnel
         </h5>
-        <small class="text-muted">You have {{ upcoming_interviews|length }} scheduled sessions coming up.</small>
+        <small class="text-muted">Bird's-eye overview of candidates across every recruitment milestone.</small>
       </div>
-      <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-        View All Interviews &rarr;
+      <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+        View Candidate Pool &rarr;
       </a>
     </div>
-    <div class="card-body p-0">
+
+    <div class="row g-2 align-items-center">
+      {% for stage in pipeline_funnel %}
+        <div class="col-6 col-md-3">
+          <a href="{% url stage.url_name %}" class="pipeline-step-item d-block">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-{{ stage.color }}-subtle text-{{ stage.color }} rounded-pill px-2.5 py-1">
+                <i class="bi {{ stage.icon }} me-1"></i> {{ stage.stage }}
+              </span>
+              <h4 class="fw-bold mb-0 text-dark">{{ stage.count }}</h4>
+            </div>
+            <div class="progress" style="height: 6px; background-color: rgba(0,0,0,0.05); border-radius: 6px;">
+              <div class="progress-bar bg-{{ stage.color }}" role="progressbar" 
+                   style="width: {% if metrics.total_applicants > 0 %}{% widthratio stage.count metrics.total_applicants 100 %}{% else %}0{% endif %}%; border-radius: 6px;">
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ==========================================
+       4. Priority Section: Upcoming Interviews
+       ========================================== -->
+  {% if upcoming_interviews %}
+  <div class="modern-section-card mb-4 border-start border-4 border-primary">
+    <div class="card-header-styled d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+          <i class="bi bi-calendar2-check-fill text-primary me-2"></i>Upcoming Candidate Interviews
+          <span class="badge bg-primary text-white rounded-pill ms-2 small">{{ upcoming_interviews|length }} Active</span>
+        </h5>
+        <small class="text-muted">Scheduled evaluation meetings with shortlisted candidates.</small>
+      </div>
+      <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
+        Manage All Interviews &rarr;
+      </a>
+    </div>
+    <div class="p-0">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
+          <thead class="table-light text-muted small text-uppercase">
             <tr>
-              <th class="border-0 px-4">Candidate</th>
-              <th class="border-0">Position & Round</th>
-              <th class="border-0">Date & Time</th>
-              <th class="border-0">Status</th>
-              <th class="border-0 text-end px-4">Meeting Action</th>
+              <th class="border-0 px-4 py-3">Candidate</th>
+              <th class="border-0 py-3">Position & Round</th>
+              <th class="border-0 py-3">Schedule Date & Time</th>
+              <th class="border-0 py-3">Status</th>
+              <th class="border-0 text-end px-4 py-3">Meeting Action</th>
             </tr>
           </thead>
           <tbody>
             {% for itw in upcoming_interviews %}
               <tr>
-                <td class="px-4 fw-bold text-dark">
-                  {{ itw.candidate.first_name }} {{ itw.candidate.last_name }}
+                <td class="px-4 py-3">
+                  <div class="d-flex align-items-center gap-2.5">
+                    {% if itw.candidate.profile_picture %}
+                      <img src="{{ itw.candidate.profile_picture.url }}" class="candidate-avatar-thumb" alt="Avatar" />
+                    {% else %}
+                      <div class="candidate-avatar-fallback">
+                        {{ itw.candidate.first_name|slice:":1"|default:"C" }}
+                      </div>
+                    {% endif %}
+                    <div>
+                      <div class="fw-bold text-dark">{{ itw.candidate.first_name }} {{ itw.candidate.last_name }}</div>
+                      <small class="text-muted">{{ itw.candidate.user.email }}</small>
+                    </div>
+                  </div>
                 </td>
-                <td>
-                  <span class="fw-semibold text-dark">{{ itw.round_name }}</span>
-                  <div class="small text-muted">{{ itw.application.target_title }}</div>
+                <td class="py-3">
+                  <div class="fw-semibold text-dark">{{ itw.round_name }}</div>
+                  <small class="text-muted">{{ itw.application.target_title }}</small>
                 </td>
-                <td>
-                  <div class="small fw-bold text-dark">{{ itw.scheduled_at|date:"M d, Y" }}</div>
+                <td class="py-3">
+                  <div class="fw-bold text-dark">{{ itw.scheduled_at|date:"M d, Y" }}</div>
                   <div class="small text-muted">{{ itw.scheduled_at|date:"g:i A" }} ({{ itw.duration_minutes }}m)</div>
                 </td>
-                <td>
+                <td class="py-3">
                   {% if itw.status == 'confirmed' %}
-                    <span class="badge bg-success-subtle text-success border border-success">Confirmed</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                      <i class="bi bi-check2-circle me-1"></i> Confirmed
+                    </span>
                   {% elif itw.status == 'reschedule_requested' %}
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">Reschedule Requested</span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                      <i class="bi bi-clock-history me-1"></i> Reschedule
+                    </span>
                   {% else %}
-                    <span class="badge bg-primary-subtle text-primary border border-primary">Scheduled</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
+                      Scheduled
+                    </span>
                   {% endif %}
                 </td>
-                <td class="text-end px-4">
+                <td class="text-end px-4 py-3">
                   {% if itw.meeting_link and "http" in itw.meeting_link %}
-                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">
-                      <i class="bi bi-box-arrow-up-right me-1"></i> Join Call
+                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center">
+                      <i class="bi bi-camera-video me-1.5"></i> Join Call
                     </a>
                   {% else %}
-                    <a href="{% url 'company:interviews' %}" class="btn btn-sm btn-light border rounded-pill px-3 py-1">
+                    <a href="{% url 'company:interviews' %}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-medium">
                       Details
                     </a>
                   {% endif %}
@@ -148,223 +321,233 @@
   </div>
   {% endif %}
 
-  <!-- New Applications & Recent Activities Lists -->
-  <div class="row mb-4">
-    <!-- LEFT: New Applications -->
-    <div class="col-lg-6 mb-4 mb-lg-0">
-      <div class="card border-0 shadow-sm rounded-3 h-100">
-        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-bell-fill text-danger me-2"></i>New Applications</h5>
+  <!-- ==========================================
+       5. Two-Column Operations Center
+       ========================================== -->
+  <div class="row g-4 mb-4">
+    <!-- LEFT: Recent Candidate Applications Stream -->
+    <div class="col-lg-7">
+      <div class="modern-section-card h-100">
+        <div class="card-header-styled d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+            <i class="bi bi-inbox-fill text-danger me-2"></i>New Applications
+            <span class="badge bg-light text-dark border ms-2 small">{{ new_applications|length }} Recent</span>
+          </h5>
           {% if new_applications %}
-            <a href="{% url 'company:applicants_new' %}" class="btn btn-link btn-sm text-danger text-decoration-none fw-semibold">View All &rarr;</a>
+            <a href="{% url 'company:applicants_new' %}" class="btn btn-sm btn-link text-danger text-decoration-none fw-semibold p-0">
+              View All &rarr;
+            </a>
           {% endif %}
         </div>
-        <div class="card-body p-0">
+        <div class="p-0">
           {% if new_applications %}
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th class="border-0 px-4">Applicant</th>
-                    <th class="border-0">Position</th>
-                    <th class="border-0 text-end px-4">Date Applied</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for app in new_applications %}
-                    <tr>
-                      <td class="px-4 fw-bold text-dark">{{ app.candidate_name }}</td>
-                      <td>
-                        <span class="text-muted small">{{ app.job_title }}</span>
-                      </td>
-                      <td class="text-end px-4 small text-muted">
-                        {{ app.created_at|date:"M d, Y" }}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="text-center py-5 text-muted">
-              <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-              No new applications in the last 7 days.
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Recent Activities -->
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm rounded-3 h-100">
-        <div class="card-header bg-white py-3 border-0">
-          <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-activity text-danger me-2"></i>Recent Posting Updates</h5>
-        </div>
-        <div class="card-body p-0">
-          {% if recent_activities %}
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th class="border-0 px-4">Post Title</th>
-                    <th class="border-0">Type</th>
-                    <th class="border-0 text-end px-4">Updated At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for act in recent_activities %}
-                    <tr>
-                      <td class="px-4 fw-bold text-dark">{{ act.title }}</td>
-                      <td>
-                        <span class="badge {% if act.kind == 'Job' %}bg-primary-subtle text-primary{% else %}bg-success-subtle text-success{% endif %} text-capitalize">
-                          {{ act.kind }}
+            <div class="applicant-feed-list">
+              {% for app in new_applications %}
+                <div class="applicant-feed-row d-flex justify-content-between align-items-center gap-2">
+                  <div class="d-flex align-items-center gap-3 min-w-0">
+                    {% if app.profile_pic %}
+                      <img src="{{ app.profile_pic }}" class="candidate-avatar-thumb flex-shrink-0" alt="{{ app.candidate_name }}" />
+                    {% else %}
+                      <div class="candidate-avatar-fallback flex-shrink-0">
+                        {{ app.candidate_name|slice:":1"|default:"C" }}
+                      </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                      <div class="fw-bold text-dark text-truncate">{{ app.candidate_name }}</div>
+                      <div class="d-flex align-items-center gap-1.5 text-muted small flex-wrap">
+                        <span class="badge {% if app.post_type == 'Job' %}bg-primary-subtle text-primary{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                          {{ app.post_type }}
                         </span>
-                      </td>
-                      <td class="text-end px-4 small text-muted">
-                        {{ act.when|date:"M d, Y @ h:i A" }}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+                        <span class="text-truncate" style="max-width: 220px;">{{ app.job_title }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-end flex-shrink-0">
+                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small">
+                      <i class="bi bi-clock me-1"></i>{{ app.created_at|naturaltime }}
+                    </span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="p-3 bg-light text-center border-top">
+              <a href="{% url 'company:applicants_all' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium">
+                Browse Full Candidate Pipeline &rarr;
+              </a>
             </div>
           {% else %}
             <div class="text-center py-5 text-muted">
-              <i class="bi bi-calendar2-x fs-2 d-block mb-2"></i>
-              No recent changes to active listings.
+              <div class="rounded-circle bg-light d-inline-flex p-3 mb-3">
+                <i class="bi bi-inbox fs-2 text-muted"></i>
+              </div>
+              <h6 class="fw-semibold text-dark">No new applications this week</h6>
+              <p class="small text-muted mb-3">Post a new opportunity or boost your listings to attract top talent.</p>
+              <a href="{% url 'company:company_post_choice' %}" class="btn btn-sm btn-danger rounded-pill px-3">
+                Post Opportunity
+              </a>
             </div>
           {% endif %}
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Profile completeness progress banner (Moved down) -->
-  {% if not is_profile_complete %}
-  <div class="card mb-4 shadow-sm border-0 bg-light-warning-grad">
-    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-      <div class="d-flex align-items-center">
-        <div class="bg-warning text-dark rounded-circle p-3 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
-          <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-        </div>
-        <div>
-          <h5 class="mb-1 fw-bold text-dark">Complete your company profile!</h5>
-          <p class="mb-0 text-muted small">Your profile is currently <strong>{{ profile_completion_percent }}%</strong> complete. A complete profile attracts more applicants.
-            {% if profile_missing %}
-              <span class="text-danger-emphasis d-block mt-1">Missing: {{ profile_missing|join:", " }}</span>
-            {% endif %}
-          </p>
-        </div>
-      </div>
-      <div class="d-flex align-items-center gap-3 flex-grow-1 flex-md-grow-0" style="max-width: 350px; width: 100%;">
-        <div class="progress flex-grow-1" style="height: 10px; background-color: rgba(0,0,0,0.06); border-radius: 10px;">
-          <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ profile_completion_percent }}%; border-radius: 10px;" aria-valuenow="{{ profile_completion_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        <a href="{% url 'company:profile' %}" class="btn btn-warning text-dark btn-sm text-nowrap px-3 rounded-pill fw-semibold shadow-sm">
-          Complete Now <i class="bi bi-arrow-right"></i>
-        </a>
-      </div>
-    </div>
-  </div>
-  {% else %}
-  <div class="card mb-4 shadow-sm border-0 bg-light-success-grad">
-    <div class="card-body d-flex justify-content-between align-items-center py-3">
-      <div class="d-flex align-items-center">
-        <div class="bg-success text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
-          <i class="bi bi-check-circle-fill fs-4"></i>
-        </div>
-        <div>
-          <h5 class="mb-1 fw-bold text-dark">Your company profile is 100% complete!</h5>
-          <p class="mb-0 text-muted small">Excellent! Your company brand profile looks great and is fully visible to candidates.</p>
-        </div>
-      </div>
-      <a href="{% url 'company:profile' %}" class="btn btn-outline-success btn-sm px-3 rounded-pill fw-semibold">
-        View Profile <i class="bi bi-eye ms-1"></i>
-      </a>
-    </div>
-  </div>
-  {% endif %}
+    <!-- RIGHT: Quick Hub, Profile Progress & Deadline Watch -->
+    <div class="col-lg-5">
+      <div class="d-flex flex-column gap-4">
 
-  <!-- "Post your Internship/Job" Banner (Moved down) -->
-  <div class="card mb-4 border-0 shadow-sm bg-light-danger-grad position-relative overflow-hidden">
-    <div class="card-body p-4 position-relative z-1">
-      <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-          <h4 class="fw-bold mb-2 text-danger-emphasis">
-            <i class="bi bi-megaphone-fill text-danger me-2"></i>Post an Opportunity
-          </h4>
-          <p class="mb-0 text-muted small">Hire top talent easily—post your job or internship opening on SkillBridge.</p>
-        </div>
-        <div class="mt-3 mt-md-0">
-          <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-lg rounded-pill px-4 py-2.5 shadow-lg hover-scale">
-            Post Choice <i class="bi bi-arrow-right ms-1"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Expiring Soon Banner -->
-  {% if expiring_soon %}
-  <div class="card border-0 shadow-sm border-start border-danger border-4 mb-4">
-    <div class="card-header bg-white border-bottom-0 py-3">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-hourglass-split text-danger me-2 fs-5"></i>
-        <h6 class="mb-0 fw-bold">Active Listings Expiring in Next 7 Days</h6>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="list-group list-group-flush">
-        {% for p in expiring_soon %}
-          <div class="list-group-item px-0 border-0 py-2">
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-calendar-event text-danger me-2"></i>
-                <span class="fw-semibold text-dark">{{ p.title }}</span>
-              </div>
-              <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1.5 small">
-                Deadline: {{ p.application_deadline|date:"M d, Y" }}
-              </span>
+        <!-- Quick Post CTA Banner -->
+        <div class="premium-cta-card p-4 shadow-sm">
+          <div class="position-relative z-1">
+            <span class="badge bg-danger rounded-pill px-2.5 py-1 mb-2 small fw-semibold text-uppercase tracking-wider">Fast Track</span>
+            <h4 class="fw-bold mb-1 text-white">Need to Hire Fast?</h4>
+            <p class="text-white-50 small mb-3">
+              Post an internship or full-time opening with our AI matching engine to reach qualified candidates in minutes.
+            </p>
+            <div class="d-flex gap-2">
+              <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Create Listing
+              </a>
+              <a href="{% url 'company:company_all_jobs' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold">
+                Manage Posts
+              </a>
             </div>
           </div>
-        {% endfor %}
+        </div>
+
+        <!-- Expiring Soon Watcher -->
+        {% if expiring_soon %}
+        <div class="modern-section-card border-start border-4 border-danger">
+          <div class="card-header-styled d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+              <i class="bi bi-hourglass-split text-danger me-2"></i>Expiring in 7 Days
+            </h6>
+            <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1 small">{{ expiring_soon|length }}</span>
+          </div>
+          <div class="p-3">
+            <div class="list-group list-group-flush">
+              {% for p in expiring_soon %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                  <div class="min-w-0 me-2">
+                    <div class="fw-semibold text-dark text-truncate small">{{ p.title }}</div>
+                    <div class="xsmall text-muted" style="font-size: 0.72rem;">
+                      Deadline: {{ p.application_deadline|date:"M d, Y" }}
+                    </div>
+                  </div>
+                  <a href="{% url 'company:company_all_jobs' %}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small flex-shrink-0">
+                    Extend
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Profile Completeness Card -->
+        {% if not is_profile_complete %}
+        <div class="modern-section-card bg-light-warning-grad border-0">
+          <div class="p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                <i class="bi bi-building-gear fs-5"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Complete Company Profile</h6>
+                <small class="text-muted">A complete profile gets 3x more candidate applications.</small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center small mb-1">
+                <span class="fw-semibold text-dark">Profile Completion</span>
+                <span class="fw-bold text-warning-emphasis">{{ profile_completion_percent }}%</span>
+              </div>
+              <div class="progress" style="height: 8px; border-radius: 8px;">
+                <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" 
+                     style="width: {{ profile_completion_percent }}%; border-radius: 8px;">
+                </div>
+              </div>
+              {% if profile_missing %}
+                <div class="small text-danger-emphasis mt-2">
+                  <i class="bi bi-info-circle me-1"></i> Missing: {{ profile_missing|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <a href="{% url 'company:profile' %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-sm w-100">
+              Complete Setup <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <div class="modern-section-card bg-light-success-grad border-0">
+          <div class="p-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                <i class="bi bi-check-lg fs-5"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">Profile 100% Complete</h6>
+                <small class="text-muted">Your company branding is fully optimized.</small>
+              </div>
+            </div>
+            <a href="{% url 'company:profile' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+              Preview
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Listing Updates -->
+        {% if recent_activities %}
+        <div class="modern-section-card">
+          <div class="card-header-styled">
+            <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+              <i class="bi bi-activity text-danger me-2"></i>Recent Listing Updates
+            </h6>
+          </div>
+          <div class="p-3">
+            <div class="list-group list-group-flush">
+              {% for act in recent_activities %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                  <div class="min-w-0 me-2">
+                    <span class="badge {% if act.kind == 'Job' %}bg-primary-subtle text-primary{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-2 py-0.5 me-1" style="font-size: 0.65rem;">
+                      {{ act.kind }}
+                    </span>
+                    <span class="fw-semibold text-dark small text-truncate">{{ act.title }}</span>
+                  </div>
+                  <span class="xsmall text-muted flex-shrink-0" style="font-size: 0.72rem;">
+                    {{ act.when|date:"M d" }}
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
     </div>
   </div>
-  {% endif %}
 
 </div>
 
 <style>
-  /* Profile Progress Accent Gradients */
-  .bg-light-warning-grad {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 193, 7, 0.02) 100%) !important;
-    border: 1px solid rgba(255, 193, 7, 0.15) !important;
-    border-radius: 16px;
-  }
-  .bg-light-success-grad {
-    background: linear-gradient(135deg, rgba(25, 135, 84, 0.08) 0%, rgba(25, 135, 84, 0.02) 100%) !important;
-    border: 1px solid rgba(25, 135, 84, 0.15) !important;
-    border-radius: 16px;
-  }
-  .bg-light-danger-grad {
-    background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, rgba(220, 53, 69, 0.02) 100%) !important;
-    border: 1px solid rgba(220, 53, 69, 0.15) !important;
-    border-radius: 16px;
-  }
-  .hover-scale {
+  .hover-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .hover-scale:hover {
-    transform: scale(1.02);
+  .hover-lift:hover {
+    transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(220, 53, 69, 0.25) !important;
   }
-  .tracking-wider {
-    letter-spacing: 0.06em;
+  .bg-light-warning-grad {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.03) 100%) !important;
+    border: 1px solid rgba(255, 193, 7, 0.2) !important;
   }
-  .table tbody tr:hover {
-    background-color: rgba(0,0,0,0.015);
+  .bg-light-success-grad {
+    background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.03) 100%) !important;
+    border: 1px solid rgba(25, 135, 84, 0.2) !important;
   }
 </style>
 {% endblock %}
