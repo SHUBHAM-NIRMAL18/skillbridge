@@ -122,10 +122,19 @@ def company_dashboard(request):
     company = request.user.company_profile
     today = timezone.localdate()
 
+    # Time-aware greeting
+    current_hour = timezone.localtime().hour
+    if current_hour < 12:
+        greeting_time = "Good morning"
+    elif current_hour < 17:
+        greeting_time = "Good afternoon"
+    else:
+        greeting_time = "Good evening"
+
     # profile completeness (matches your checklist in the UI)
     profile_missing = []
     if not company.logo:
-        profile_missing.append("Upload Company Images")
+        profile_missing.append("Upload Company Logo / Images")
     if not company.social_link:
         profile_missing.append("Add Social Links")
     total_checks = 2
@@ -134,7 +143,10 @@ def company_dashboard(request):
     # posts
     jobs_qs = JobPost.objects.filter(company=company)
     interns_qs = InternshipPost.objects.filter(company=company)
-    total_posts = jobs_qs.count() + interns_qs.count()  # used for "Total Jobs" card per your screenshot text
+    total_posts = jobs_qs.count() + interns_qs.count()
+    active_jobs = jobs_qs.filter(is_active=True, application_deadline__gte=today).count()
+    active_interns = interns_qs.filter(is_active=True, application_deadline__gte=today).count()
+    active_opportunities = active_jobs + active_interns
 
     # applicants
     apps_qs = (
@@ -144,6 +156,10 @@ def company_dashboard(request):
     )
     total_applicants = apps_qs.count()
     shortlisted = apps_qs.filter(status="shortlisted").count()
+    under_review_count = apps_qs.filter(status__in=["applied", "under_review"]).count()
+    interview_stage_count = apps_qs.filter(status="interview").count()
+    offered_count = apps_qs.filter(status__in=["offered", "accepted"]).count()
+    hired_count = apps_qs.filter(status="accepted").count()
 
     # views (sum if fields exist; else 0)
     try:
@@ -153,38 +169,60 @@ def company_dashboard(request):
         views_sum = 0
 
     metrics = {
-        "total_jobs": total_posts,          # change to jobs_qs.count() if you want only job posts
+        "total_jobs": total_posts,
+        "active_opportunities": active_opportunities,
         "total_applicants": total_applicants,
         "shortlisted": shortlisted,
+        "under_review": under_review_count,
+        "interview_stage": interview_stage_count,
+        "offered": offered_count,
+        "hired": hired_count,
         "views": views_sum,
+        "credits": getattr(company, "credits_balance", 0) or 0,
     }
+
+    # Pipeline funnel stats
+    pipeline_funnel = [
+        {"stage": "Applied & Review", "count": under_review_count, "color": "primary", "icon": "bi-inbox-fill", "url_name": "company:applicants_new"},
+        {"stage": "Shortlisted", "count": shortlisted, "color": "warning", "icon": "bi-star-fill", "url_name": "company:applicants_shortlisted"},
+        {"stage": "Interviewing", "count": interview_stage_count, "color": "info", "icon": "bi-camera-video-fill", "url_name": "company:interviews"},
+        {"stage": "Offered / Hired", "count": offered_count, "color": "success", "icon": "bi-patch-check-fill", "url_name": "company:applicants_all"},
+    ]
 
     # new applications (last 7 days, newest first)
     last_7 = timezone.now() - timezone.timedelta(days=7)
     new_apps = apps_qs.filter(applied_at__gte=last_7).order_by("-applied_at")
 
     new_applications = []
-    for a in new_apps[:8]:
+    for a in new_apps[:6]:
         posting = a.job_post or a.internship_post
         title = getattr(posting, "title", "—")
+        post_type = "Job" if a.job_post else "Internship"
         candidate = getattr(a, "candidate", None)
         cand_name = (f"{getattr(candidate, 'first_name', '')} {getattr(candidate, 'last_name', '')}").strip() \
                     or getattr(getattr(candidate, "user", None), "username", "Candidate")
+        profile_pic = getattr(getattr(candidate, "profile_picture", None), "url", None)
+        cand_designation = getattr(candidate, "designation", "") or "Candidate"
         new_applications.append({
             "id": a.id,
             "candidate_name": cand_name,
+            "candidate_designation": cand_designation,
+            "profile_pic": profile_pic,
             "job_title": title,
+            "post_type": post_type,
+            "status": a.status,
+            "status_display": a.get_status_display(),
             "created_at": a.applied_at,
         })
 
     # recent activities (last updates on posts)
     recent_activities = []
-    for j in jobs_qs.values("title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
-        recent_activities.append({"kind": "Job", "title": j["title"], "when": j["updated_at"] or j["created_at"]})
-    for i in interns_qs.values("title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
-        recent_activities.append({"kind": "Internship", "title": i["title"], "when": i["updated_at"] or i["created_at"]})
+    for j in jobs_qs.values("id", "title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
+        recent_activities.append({"kind": "Job", "title": j["title"], "id": j["id"], "when": j["updated_at"] or j["created_at"]})
+    for i in interns_qs.values("id", "title", "created_at", "updated_at").order_by("-updated_at", "-created_at")[:5]:
+        recent_activities.append({"kind": "Internship", "title": i["title"], "id": i["id"], "when": i["updated_at"] or i["created_at"]})
     recent_activities.sort(key=lambda x: x["when"], reverse=True)
-    recent_activities = recent_activities[:6]
+    recent_activities = recent_activities[:5]
 
     # expiring soon (next 7 days)
     expiring_soon = list(
@@ -201,7 +239,7 @@ def company_dashboard(request):
         from applications.models import Interview
         upcoming_interviews = list(
             Interview.objects
-            .select_related("candidate", "application__job_post", "application__internship_post")
+            .select_related("candidate__user", "application__job_post", "application__internship_post")
             .filter(
                 company=company,
                 scheduled_at__gte=timezone.now(),
@@ -216,7 +254,9 @@ def company_dashboard(request):
 
     context = {
         "company": company,
+        "greeting_time": greeting_time,
         "metrics": metrics,
+        "pipeline_funnel": pipeline_funnel,
         "is_profile_complete": len(profile_missing) == 0,
         "profile_missing": profile_missing,
         "profile_completion_percent": profile_completion_percent,
