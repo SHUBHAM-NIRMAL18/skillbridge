@@ -222,7 +222,7 @@
 
   <div class="content-area">
     <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+    <nav class="navbar navbar-expand-lg navbar-custom mb-0">
       <div class="container-fluid px-3">
         <!-- Sidebar Toggle Hamburger -->
         <button class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center" 
@@ -301,6 +301,34 @@
         </ul>
       </div>
     </nav>
+
+    <!-- Global Breadcrumb Subheader -->
+    <div class="app-breadcrumb-bar border-bottom bg-white px-4 py-2.5 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb custom-admin-breadcrumb mb-0 align-items-center">
+            <li class="breadcrumb-item">
+              <a href="{% url 'website:index' %}" class="d-inline-flex align-items-center text-decoration-none text-muted">
+                <i class="bi bi-house-door me-1"></i> Home
+              </a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'company:dashboard' %}" class="text-decoration-none text-muted">Company Portal</a>
+            </li>
+            {% block breadcrumb %}
+              <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+            {% endblock %}
+          </ol>
+        </nav>
+        <div class="breadcrumb-extra-actions d-none d-sm-flex align-items-center gap-2">
+          {% block breadcrumb_actions %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 d-inline-flex align-items-center fw-medium" style="font-size: 0.75rem;">
+              <span class="status-pulse-dot me-1.5"></span> Portal Active
+            </span>
+          {% endblock %}
+        </div>
+      </div>
+    </div>
 
     {% block content %}{% endblock %}
   </div>
