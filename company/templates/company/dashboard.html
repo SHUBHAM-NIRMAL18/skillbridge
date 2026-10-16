@@ -10,7 +10,7 @@
 
 {% block breadcrumb_actions %}
   <div class="d-flex align-items-center gap-2">
-    <span class="badge bg-light text-dark border px-3 py-1.5 rounded-pill d-inline-flex align-items-center">
+    <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-pill d-none d-md-inline-flex align-items-center small">
       <i class="bi bi-calendar3 text-danger me-1.5"></i> {% now "F d, Y" %}
     </span>
     <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center shadow-sm">
@@ -20,14 +20,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 pb-5">
+<div class="container-fluid px-3 px-md-4 pb-4 pb-md-5">
 
   <!-- ==========================================
        1. Executive Welcome & Command Hub
        ========================================== -->
-  <div class="dashboard-welcome-banner p-4 mb-4">
+  <div class="dashboard-welcome-banner p-3 p-sm-4 mb-3 mb-sm-4">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2.5 gap-sm-3">
         <div class="company-avatar-box flex-shrink-0">
           {% if company.logo %}
             <img src="{{ company.logo.url }}" alt="{{ company.first_name }}" />
@@ -39,22 +39,22 @@
         </div>
         <div>
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h2 class="fw-bold mb-0 text-dark">
+            <h2 class="fw-bold mb-0 text-dark fs-4 fs-sm-3">
               {{ greeting_time }}, {{ company.first_name }}{% if company.last_name %} {{ company.last_name }}{% endif %}!
             </h2>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small">
               <i class="bi bi-patch-check-fill text-primary me-1"></i> Verified Recruiter
             </span>
           </div>
-          <p class="text-muted small mb-0 mt-1">
+          <p class="text-muted small mb-0 mt-1 d-none d-sm-block">
             Welcome back to your hiring command center. Manage talent pipelines, interviews, and active listings in real time.
           </p>
         </div>
       </div>
 
       <!-- Quick Status & Wallet Bar -->
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <div class="card border-0 bg-white shadow-2xs rounded-pill px-3 py-2 d-flex flex-row align-items-center gap-2 border">
+      <div class="d-flex align-items-center justify-content-between justify-content-lg-start gap-2 flex-wrap w-100 w-lg-auto pt-2 pt-lg-0 border-top border-lg-0">
+        <div class="card border-0 bg-white shadow-2xs rounded-pill px-3 py-2 d-flex flex-row align-items-center gap-2 border flex-grow-1 flex-sm-grow-0">
           <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-lightning-charge-fill"></i>
           </div>
@@ -64,12 +64,12 @@
               {{ metrics.credits }} <span class="fw-normal text-muted" style="font-size: 0.75rem;">pts</span>
             </div>
           </div>
-          <a href="{% url 'membership:select' %}" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-0.5 ms-1 fw-semibold text-dark" style="font-size: 0.72rem;">
+          <a href="{% url 'membership:select' %}" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-0.5 ms-auto ms-sm-1 fw-semibold text-dark" style="font-size: 0.72rem;">
             + Add
           </a>
         </div>
 
-        <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center shadow-sm hover-lift">
+        <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger rounded-pill px-3.5 py-2 fw-semibold d-inline-flex align-items-center justify-content-center shadow-sm hover-lift flex-grow-1 flex-sm-grow-0">
           <i class="bi bi-plus-circle me-1.5 fs-6"></i> Post Job / Intern
         </a>
       </div>
@@ -77,118 +77,118 @@
   </div>
 
   <!-- ==========================================
-       2. KPI Metrics Grid (5 Dimensions)
+       2. KPI Metrics Grid (5 Dimensions - Responsive Layout)
        ========================================== -->
-  <div class="row g-3 mb-4">
+  <div class="row g-2 g-sm-3 mb-3 mb-sm-4">
     <!-- Card 1: Active Listings -->
-    <div class="col-sm-6 col-xl">
+    <div class="col-6 col-md-4 col-xl">
       <a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-3">
+        <div class="kpi-card-v2 p-2.5 p-sm-3">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Opportunities</span>
-              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.total_jobs }}</h3>
+              <span class="text-muted text-uppercase fw-semibold kpi-label">Opportunities</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1 kpi-number">{{ metrics.total_jobs }}</h3>
             </div>
             <div class="kpi-icon-pill kpi-icon-red">
               <i class="bi bi-briefcase-fill"></i>
             </div>
           </div>
-          <div class="d-flex align-items-center gap-1.5 mt-2">
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-              {{ metrics.active_opportunities }} Active Now
+          <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 kpi-badge">
+              {{ metrics.active_opportunities }} Active
             </span>
-            <small class="text-muted" style="font-size: 0.72rem;">in market</small>
+            <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">in market</small>
           </div>
         </div>
       </a>
     </div>
 
     <!-- Card 2: Applicants -->
-    <div class="col-sm-6 col-xl">
+    <div class="col-6 col-md-4 col-xl">
       <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-3">
+        <div class="kpi-card-v2 p-2.5 p-sm-3">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Applicants</span>
-              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.total_applicants|intcomma }}</h3>
+              <span class="text-muted text-uppercase fw-semibold kpi-label">Applicants</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1 kpi-number">{{ metrics.total_applicants|intcomma }}</h3>
             </div>
             <div class="kpi-icon-pill kpi-icon-blue">
               <i class="bi bi-people-fill"></i>
             </div>
           </div>
-          <div class="d-flex align-items-center gap-1.5 mt-2">
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+          <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 kpi-badge">
               {{ new_applications|length }} New
             </span>
-            <small class="text-muted" style="font-size: 0.72rem;">last 7 days</small>
+            <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">last 7d</small>
           </div>
         </div>
       </a>
     </div>
 
     <!-- Card 3: Shortlisted -->
-    <div class="col-sm-6 col-xl">
+    <div class="col-6 col-md-4 col-xl">
       <a href="{% url 'company:applicants_shortlisted' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-3">
+        <div class="kpi-card-v2 p-2.5 p-sm-3">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Shortlisted</span>
-              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.shortlisted }}</h3>
+              <span class="text-muted text-uppercase fw-semibold kpi-label">Shortlisted</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1 kpi-number">{{ metrics.shortlisted }}</h3>
             </div>
             <div class="kpi-icon-pill kpi-icon-amber">
               <i class="bi bi-star-fill"></i>
             </div>
           </div>
-          <div class="d-flex align-items-center gap-1.5 mt-2">
-            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-              Screened Talent
+          <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5 kpi-badge">
+              Screened
             </span>
-            <small class="text-muted" style="font-size: 0.72rem;">pipeline</small>
+            <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">pipeline</small>
           </div>
         </div>
       </a>
     </div>
 
     <!-- Card 4: Upcoming Interviews -->
-    <div class="col-sm-6 col-xl">
+    <div class="col-6 col-md-6 col-xl">
       <a href="{% url 'company:interviews' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-3">
+        <div class="kpi-card-v2 p-2.5 p-sm-3">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Interviews</span>
-              <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.upcoming_interviews }}</h3>
+              <span class="text-muted text-uppercase fw-semibold kpi-label">Interviews</span>
+              <h3 class="fw-bold mb-0 text-dark mt-1 kpi-number">{{ metrics.upcoming_interviews }}</h3>
             </div>
             <div class="kpi-icon-pill kpi-icon-emerald">
               <i class="bi bi-camera-video-fill"></i>
             </div>
           </div>
-          <div class="d-flex align-items-center gap-1.5 mt-2">
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+          <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 kpi-badge">
               Scheduled
             </span>
-            <small class="text-muted" style="font-size: 0.72rem;">sessions</small>
+            <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">sessions</small>
           </div>
         </div>
       </a>
     </div>
 
     <!-- Card 5: Views -->
-    <div class="col-sm-6 col-xl">
-      <div class="kpi-card-v2 p-3">
+    <div class="col-12 col-md-6 col-xl">
+      <div class="kpi-card-v2 p-2.5 p-sm-3">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
-            <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Impressions</span>
-            <h3 class="fw-bold mb-0 text-dark mt-1">{{ metrics.views|intcomma }}</h3>
+            <span class="text-muted text-uppercase fw-semibold kpi-label">Impressions</span>
+            <h3 class="fw-bold mb-0 text-dark mt-1 kpi-number">{{ metrics.views|intcomma }}</h3>
           </div>
           <div class="kpi-icon-pill kpi-icon-purple">
             <i class="bi bi-eye-fill"></i>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-1.5 mt-2">
-          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+        <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
+          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5 kpi-badge">
             Listing Views
           </span>
-          <small class="text-muted" style="font-size: 0.72rem;">reach</small>
+          <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">reach</small>
         </div>
       </div>
     </div>
@@ -197,10 +197,10 @@
   <!-- ==========================================
        3. Interactive Hiring Pipeline Funnel
        ========================================== -->
-  <div class="pipeline-funnel-card p-4 mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="pipeline-funnel-card p-3 p-sm-4 mb-3 mb-sm-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
       <div>
-        <h5 class="fw-bold mb-0 text-dark">
+        <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5">
           <i class="bi bi-diagram-3-fill text-danger me-2"></i>Recruitment Pipeline Funnel
         </h5>
         <small class="text-muted">Bird's-eye overview of candidates across every recruitment milestone.</small>
@@ -214,11 +214,11 @@
       {% for stage in pipeline_funnel %}
         <div class="col-6 col-md-3">
           <a href="{% url stage.url_name %}" class="pipeline-step-item d-block">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <span class="badge bg-{{ stage.color }}-subtle text-{{ stage.color }} rounded-pill px-2.5 py-1">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+              <span class="badge bg-{{ stage.color }}-subtle text-{{ stage.color }} rounded-pill px-2 py-1 pipeline-stage-badge">
                 <i class="bi {{ stage.icon }} me-1"></i> {{ stage.stage }}
               </span>
-              <h4 class="fw-bold mb-0 text-dark">{{ stage.count }}</h4>
+              <h4 class="fw-bold mb-0 text-dark pipeline-stage-count">{{ stage.count }}</h4>
             </div>
             <div class="progress" style="height: 6px; background-color: rgba(0,0,0,0.05); border-radius: 6px;">
               <div class="progress-bar bg-{{ stage.color }}" role="progressbar" 
@@ -253,17 +253,17 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light text-muted small text-uppercase">
             <tr>
-              <th class="border-0 px-4 py-3">Candidate</th>
-              <th class="border-0 py-3">Position & Round</th>
-              <th class="border-0 py-3">Schedule Date & Time</th>
-              <th class="border-0 py-3">Status</th>
-              <th class="border-0 text-end px-4 py-3">Meeting Action</th>
+              <th class="border-0 px-3 px-sm-4 py-3 text-nowrap">Candidate</th>
+              <th class="border-0 py-3 text-nowrap">Position & Round</th>
+              <th class="border-0 py-3 text-nowrap">Schedule Date & Time</th>
+              <th class="border-0 py-3 text-nowrap">Status</th>
+              <th class="border-0 text-end px-3 px-sm-4 py-3 text-nowrap">Meeting Action</th>
             </tr>
           </thead>
           <tbody>
             {% for itw in upcoming_interviews %}
               <tr>
-                <td class="px-4 py-3">
+                <td class="px-3 px-sm-4 py-3 text-nowrap">
                   <div class="d-flex align-items-center gap-2.5">
                     {% if itw.candidate.profile_picture %}
                       <img src="{{ itw.candidate.profile_picture.url }}" class="candidate-avatar-thumb" alt="Avatar" />
@@ -278,15 +278,15 @@
                     </div>
                   </div>
                 </td>
-                <td class="py-3">
+                <td class="py-3 text-nowrap">
                   <div class="fw-semibold text-dark">{{ itw.round_name }}</div>
                   <small class="text-muted">{{ itw.application.target_title }}</small>
                 </td>
-                <td class="py-3">
+                <td class="py-3 text-nowrap">
                   <div class="fw-bold text-dark">{{ itw.scheduled_at|date:"M d, Y" }}</div>
                   <div class="small text-muted">{{ itw.scheduled_at|date:"g:i A" }} ({{ itw.duration_minutes }}m)</div>
                 </td>
-                <td class="py-3">
+                <td class="py-3 text-nowrap">
                   {% if itw.status == 'confirmed' %}
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
                       <i class="bi bi-check2-circle me-1"></i> Confirmed
@@ -301,7 +301,7 @@
                     </span>
                   {% endif %}
                 </td>
-                <td class="text-end px-4 py-3">
+                <td class="text-end px-3 px-sm-4 py-3 text-nowrap">
                   {% if itw.meeting_link and "http" in itw.meeting_link %}
                     <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center">
                       <i class="bi bi-camera-video me-1.5"></i> Join Call
@@ -324,12 +324,12 @@
   <!-- ==========================================
        5. Two-Column Operations Center
        ========================================== -->
-  <div class="row g-4 mb-4">
+  <div class="row g-3 g-lg-4 mb-4">
     <!-- LEFT: Recent Candidate Applications Stream -->
     <div class="col-lg-7">
       <div class="modern-section-card h-100">
         <div class="card-header-styled d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+          <h5 class="mb-0 fw-bold text-dark d-flex align-items-center fs-6 fs-sm-5">
             <i class="bi bi-inbox-fill text-danger me-2"></i>New Applications
             <span class="badge bg-light text-dark border ms-2 small">{{ new_applications|length }} Recent</span>
           </h5>
@@ -344,7 +344,7 @@
             <div class="applicant-feed-list">
               {% for app in new_applications %}
                 <div class="applicant-feed-row d-flex justify-content-between align-items-center gap-2">
-                  <div class="d-flex align-items-center gap-3 min-w-0">
+                  <div class="d-flex align-items-center gap-2.5 min-w-0">
                     {% if app.profile_pic %}
                       <img src="{{ app.profile_pic }}" class="candidate-avatar-thumb flex-shrink-0" alt="{{ app.candidate_name }}" />
                     {% else %}
@@ -353,12 +353,12 @@
                       </div>
                     {% endif %}
                     <div class="min-w-0">
-                      <div class="fw-bold text-dark text-truncate">{{ app.candidate_name }}</div>
+                      <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">{{ app.candidate_name }}</div>
                       <div class="d-flex align-items-center gap-1.5 text-muted small flex-wrap">
                         <span class="badge {% if app.post_type == 'Job' %}bg-primary-subtle text-primary{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
                           {{ app.post_type }}
                         </span>
-                        <span class="text-truncate" style="max-width: 220px;">{{ app.job_title }}</span>
+                        <span class="text-truncate feed-job-title">{{ app.job_title }}</span>
                       </div>
                     </div>
                   </div>
@@ -394,21 +394,21 @@
 
     <!-- RIGHT: Quick Hub, Profile Progress & Deadline Watch -->
     <div class="col-lg-5">
-      <div class="d-flex flex-column gap-4">
+      <div class="d-flex flex-column gap-3 gap-sm-4">
 
         <!-- Quick Post CTA Banner -->
-        <div class="premium-cta-card p-4 shadow-sm">
+        <div class="premium-cta-card p-3 p-sm-4 shadow-sm">
           <div class="position-relative z-1">
             <span class="badge bg-danger rounded-pill px-2.5 py-1 mb-2 small fw-semibold text-uppercase tracking-wider">Fast Track</span>
-            <h4 class="fw-bold mb-1 text-white">Need to Hire Fast?</h4>
+            <h4 class="fw-bold mb-1 text-white fs-5 fs-sm-4">Need to Hire Fast?</h4>
             <p class="text-white-50 small mb-3">
               Post an internship or full-time opening with our AI matching engine to reach qualified candidates in minutes.
             </p>
-            <div class="d-flex gap-2">
-              <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm">
+            <div class="d-flex flex-wrap gap-2">
+              <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm flex-grow-1 flex-sm-grow-0">
                 <i class="bi bi-plus-lg me-1"></i> Create Listing
               </a>
-              <a href="{% url 'company:company_all_jobs' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold">
+              <a href="{% url 'company:company_all_jobs' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold flex-grow-1 flex-sm-grow-0">
                 Manage Posts
               </a>
             </div>
@@ -447,7 +447,7 @@
         <!-- Profile Completeness Card -->
         {% if not is_profile_complete %}
         <div class="modern-section-card bg-light-warning-grad border-0">
-          <div class="p-4">
+          <div class="p-3 p-sm-4">
             <div class="d-flex align-items-center gap-3 mb-3">
               <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
                 <i class="bi bi-building-gear fs-5"></i>
