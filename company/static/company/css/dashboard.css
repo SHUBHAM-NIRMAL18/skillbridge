@@ -830,4 +830,166 @@ body.sidebar-collapsed .sidebar .nav-item:hover > .collapse .nav-link.active {
   border-radius: 50%;
 }
 
+/* ==========================================================================
+   Responsive Adaptations & Mobile Polish
+   ========================================================================== */
+
+/* Dropdown auto-containment for mobile viewports */
+.custom-dropdown-responsive {
+  max-width: calc(100vw - 20px) !important;
+}
+
+/* Breadcrumb nav scrolling wrapper */
+.breadcrumb-nav-wrapper {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Feed item job title clamp */
+.feed-job-title {
+  max-width: clamp(120px, 35vw, 240px);
+}
+
+/* KPI label and number styling */
+.kpi-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.4px;
+}
+
+.kpi-number {
+  font-size: 1.55rem;
+}
+
+.kpi-badge {
+  font-size: 0.7rem;
+}
+
+/* Pipeline stage count and badge */
+.pipeline-stage-badge {
+  font-size: 0.75rem;
+}
+
+.pipeline-stage-count {
+  font-size: 1.25rem;
+}
+
+/* Tablet & Mobile Screens (<= 991.98px) */
+@media (max-width: 991.98px) {
+  .dashboard-welcome-banner::before {
+    display: none;
+  }
+}
+
+/* Mobile Screens (<= 767.98px) */
+@media (max-width: 767.98px) {
+  .center-wrapper {
+    padding: 1.25rem 0.85rem !important;
+    margin: 1rem auto !important;
+  }
+
+  .nav-tabs,
+  .nav-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 4px !important;
+  }
+  .nav-tabs::-webkit-scrollbar,
+  .nav-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+  .nav-tabs .nav-item,
+  .nav-pills .nav-item {
+    flex-shrink: 0 !important;
+  }
+
+  .card-header-styled {
+    padding: 0.95rem 1.15rem !important;
+  }
+
+  .applicant-feed-row {
+    padding: 0.8rem 1rem !important;
+  }
+}
+
+/* Small Mobile Screens (<= 575.98px) */
+@media (max-width: 575.98px) {
+  /* Breadcrumb Mobile Touch Scroll */
+  .custom-admin-breadcrumb {
+    font-size: 0.78rem !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 2px !important;
+  }
+  .custom-admin-breadcrumb::-webkit-scrollbar {
+    display: none !important;
+  }
+  .custom-admin-breadcrumb .breadcrumb-item {
+    flex-shrink: 0 !important;
+  }
+
+  .breadcrumb-extra-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Welcome Hub */
+  .company-avatar-box {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+  }
+
+  /* KPI Cards */
+  .kpi-card-v2 {
+    border-radius: 14px !important;
+  }
+  .kpi-icon-pill {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.15rem !important;
+    border-radius: 10px !important;
+  }
+  .kpi-number {
+    font-size: 1.25rem !important;
+  }
+  .kpi-label {
+    font-size: 0.65rem !important;
+  }
+  .kpi-badge {
+    font-size: 0.65rem !important;
+    padding: 0.15rem 0.45rem !important;
+  }
+
+  /* Pipeline Funnel */
+  .pipeline-step-item {
+    padding: 0.75rem 0.65rem !important;
+    border-radius: 10px !important;
+  }
+  .pipeline-stage-badge {
+    font-size: 0.68rem !important;
+    padding: 0.15rem 0.45rem !important;
+  }
+  .pipeline-stage-count {
+    font-size: 1.1rem !important;
+  }
+
+  /* Tables in cards */
+  .table-responsive {
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 0 0 14px 14px !important;
+  }
+
+  /* Avatars in feed */
+  .candidate-avatar-thumb,
+  .candidate-avatar-fallback {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
 
