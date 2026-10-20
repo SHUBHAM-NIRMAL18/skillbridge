@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib import messages
 from company.models import InternshipPost, JobPost, CompanyProfile
 from applications.models import Application
@@ -11,7 +11,7 @@ from website.models import BlogPost
 # Create your views here.
 def home_view(request):
     """
-    Render the home page with the upcoming internships AND jobs.
+    Render the home page with the upcoming internships, jobs, and featured partner companies.
     """
     today = timezone.localdate()
 
@@ -27,6 +27,24 @@ def home_view(request):
         .order_by('application_deadline')[:6]
     )
 
+    featured_companies = (
+        CompanyProfile.objects
+        .filter(is_active=True)
+        .annotate(
+            active_internships_count=Count(
+                'internships',
+                filter=Q(internships__is_active=True, internships__application_deadline__gte=today),
+                distinct=True
+            ),
+            active_jobs_count=Count(
+                'job_posts',
+                filter=Q(job_posts__is_active=True, job_posts__application_deadline__gte=today),
+                distinct=True
+            )
+        )
+        .order_by('-active_jobs_count', '-active_internships_count', '-created_at')[:6]
+    )
+
     latest_blogs = (
         BlogPost.objects
         .filter(is_verified=True)
@@ -34,9 +52,10 @@ def home_view(request):
     )
 
     return render(request, 'index.html', {
-        'internships': internships,
-        'jobs':        jobs,
-        'blogs':       latest_blogs,
+        'internships':        internships,
+        'jobs':               jobs,
+        'featured_companies': featured_companies,
+        'blogs':              latest_blogs,
     })
 
 
