@@ -266,3 +266,37 @@ CKEDITOR_CONFIGS = {
     }
 }
 
+
+# Cache Configuration
+# Uses Redis if REDIS_URL is provided in environment, otherwise falls back to local-memory cache.
+REDIS_URL = env("REDIS_URL", default=None)
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "skillbridge-cache",
+        }
+    }
+
+# Rate Limiting Configuration
+RATELIMIT_ENABLE = env.bool("RATELIMIT_ENABLE", default=True)
+RATELIMIT_USE_CACHE = "default"
+RATELIMIT_RATES = {
+    "login": env("RATELIMIT_LOGIN", default="5/m"),
+    "register": env("RATELIMIT_REGISTER", default="5/h"),
+    "check_email": env("RATELIMIT_CHECK_EMAIL", default="15/m"),
+    "apply_submit": env("RATELIMIT_APPLY_SUBMIT", default="10/m"),
+    "chat_send": env("RATELIMIT_CHAT_SEND", default="30/m"),
+    "log_event": env("RATELIMIT_LOG_EVENT", default="60/m"),
+    "bookmark_toggle": env("RATELIMIT_BOOKMARK_TOGGLE", default="30/m"),
+    "support_contact": env("RATELIMIT_SUPPORT_CONTACT", default="5/m"),
+}
+
+
