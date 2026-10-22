@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
+from skillbridge.ratelimit import ratelimit_endpoint
 
 from datetime import timedelta
 from candidate.models import Profile
@@ -87,6 +88,13 @@ def apply_preview(request):
     })
 
 
+@ratelimit_endpoint(
+    rate_key="apply_submit",
+    default_rate="10/m",
+    key="user_or_ip",
+    methods=["POST"],
+    error_msg="You are submitting applications too quickly. Please wait a moment."
+)
 @require_POST
 @login_required(login_url="accounts:login")
 def apply_submit(request):
