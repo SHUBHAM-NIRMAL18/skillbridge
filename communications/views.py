@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_GET
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.core.paginator import Paginator
+from skillbridge.ratelimit import ratelimit_endpoint
 from django.urls import reverse
 from django.utils import timezone
 
@@ -114,6 +115,13 @@ def start_conversation_from_applicant(request, app_id):
     return redirect(f"{reverse('company:inbox')}?chat_id={convo.id}")
 
 
+@ratelimit_endpoint(
+    rate_key="chat_send",
+    default_rate="30/m",
+    key="user_or_ip",
+    methods=["POST"],
+    error_msg="You are sending messages too quickly. Please pause for a moment."
+)
 @login_required
 @require_POST
 def conversation_send_message_api(request, conversation_id):
