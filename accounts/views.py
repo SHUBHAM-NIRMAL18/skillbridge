@@ -6,12 +6,16 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import logout, login
 
+from django.utils.decorators import method_decorator
+from skillbridge.ratelimit import ratelimit_endpoint
+
 from .forms import (
     CompanyRegistrationForm,
     CandidateRegistrationForm,
     EmailAuthenticationForm,
 )
 
+@ratelimit_endpoint(rate_key="register", default_rate="5/h", key="ip", methods=["POST"])
 def register_company(request):
     if request.method == "POST":
         form = CompanyRegistrationForm(request.POST)
@@ -25,6 +29,7 @@ def register_company(request):
     return render(request, "accounts/company_register.html", {"form": form})
 
 
+@ratelimit_endpoint(rate_key="register", default_rate="5/h", key="ip", methods=["POST"])
 def register_candidate(request):
     if request.method == "POST":
         form = CandidateRegistrationForm(request.POST)
@@ -38,6 +43,16 @@ def register_candidate(request):
     return render(request, "accounts/candidate_register.html", {"form": form})
 
 
+@method_decorator(
+    ratelimit_endpoint(
+        rate_key="login",
+        default_rate="5/m",
+        key="ip",
+        methods=["POST"],
+        error_msg="Too many login attempts. Please wait a moment before trying again."
+    ),
+    name="post"
+)
 class CustomLoginView(LoginView):
     template_name       = "accounts/login.html"
     authentication_form = EmailAuthenticationForm
@@ -129,6 +144,13 @@ def google_login_start(request):
 from django.http import JsonResponse
 from .models import User
 
+@ratelimit_endpoint(
+    rate_key="check_email",
+    default_rate="15/m",
+    key="ip",
+    methods=["GET"],
+    error_msg="Too many verification attempts. Please wait a moment."
+)
 def check_email_exists(request):
     email = request.GET.get("email", "").strip().lower()
     exists = False
