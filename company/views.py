@@ -13,6 +13,7 @@ from formtools.wizard.views import SessionWizardView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count, F
 from django.http import HttpResponseForbidden, JsonResponse
+from skillbridge.ratelimit import ratelimit_endpoint
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.db import transaction
@@ -1044,6 +1045,13 @@ def company_support(request):
     return render(request, "company/support.html")
 
 
+@ratelimit_endpoint(
+    rate_key="support_contact",
+    default_rate="5/m",
+    key="user_or_ip",
+    methods=["POST"],
+    error_msg="You are submitting feedback too quickly. Please wait a moment."
+)
 @login_required
 def company_feedback(request):
     """

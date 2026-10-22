@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse, HttpResponseForbidden, FileResponse
 from django.views.decorators.http import require_POST
+from skillbridge.ratelimit import ratelimit_endpoint
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views.generic import FormView, TemplateView
@@ -760,6 +761,13 @@ def recommended_demo(request):
     )
 
 
+@ratelimit_endpoint(
+    rate_key="log_event",
+    default_rate="60/m",
+    key="user_or_ip",
+    methods=["POST"],
+    error_msg="Event logging rate exceeded."
+)
 @login_required
 @require_POST
 def log_candidate_event(request):
@@ -892,6 +900,13 @@ def support(request):
     """
     return render(request, "candidate/support.html")
 
+@ratelimit_endpoint(
+    rate_key="support_contact",
+    default_rate="5/m",
+    key="user_or_ip",
+    methods=["POST"],
+    error_msg="You are submitting feedback too quickly. Please wait a moment."
+)
 @login_required
 def feedback(request):
     """
@@ -979,6 +994,13 @@ def candidate_bookmarks_list(request):
     })
 
 
+@ratelimit_endpoint(
+    rate_key="bookmark_toggle",
+    default_rate="30/m",
+    key="user_or_ip",
+    methods=["POST", "GET"],
+    error_msg="You are updating bookmarks too quickly. Please wait a moment."
+)
 @login_required
 def toggle_bookmark(request):
     """
