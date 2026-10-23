@@ -4,17 +4,17 @@
 
 {% block breadcrumb %}
   <li class="breadcrumb-item active" aria-current="page">
-    <i class="bi bi-speedometer2 me-1 text-danger"></i> Dashboard Overview
+    <i class="bi bi-speedometer2 me-1.5 text-danger"></i> Dashboard Overview
   </li>
 {% endblock %}
 
 {% block breadcrumb_actions %}
   <div class="d-flex align-items-center gap-2">
-    <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-pill d-none d-md-inline-flex align-items-center small">
+    <span class="badge bg-white text-muted border px-3 py-2 rounded-pill d-none d-md-inline-flex align-items-center small shadow-2xs">
       <i class="bi bi-calendar3 text-danger me-1.5"></i> {% now "F d, Y" %}
     </span>
-    <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3 py-1.5 d-inline-flex align-items-center shadow-sm">
-      <i class="bi bi-plus-lg me-1"></i> Post Opportunity
+    <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 d-inline-flex align-items-center shadow-sm hover-lift fw-medium">
+      <i class="bi bi-plus-lg me-1.5"></i> Post Opportunity
     </a>
   </div>
 {% endblock %}
@@ -27,7 +27,7 @@
        ========================================== -->
   <div class="dashboard-welcome-banner p-3 p-sm-4 mb-3 mb-sm-4">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-      <div class="d-flex align-items-center gap-2.5 gap-sm-3">
+      <div class="d-flex align-items-center gap-3">
         <div class="company-avatar-box flex-shrink-0">
           {% if company.logo %}
             <img src="{{ company.logo.url }}" alt="{{ company.first_name }}" />
@@ -39,32 +39,32 @@
         </div>
         <div>
           <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h2 class="fw-bold mb-0 text-dark fs-4 fs-sm-3">
+            <h2 class="fw-bold mb-0 text-dark fs-4 fs-sm-3 tracking-tight">
               {{ greeting_time }}, {{ company.first_name }}{% if company.last_name %} {{ company.last_name }}{% endif %}!
             </h2>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small">
-              <i class="bi bi-patch-check-fill text-primary me-1"></i> Verified Recruiter
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 small d-inline-flex align-items-center gap-1.5">
+              <span class="status-pulse-dot"></span> Verified Recruiter
             </span>
           </div>
           <p class="text-muted small mb-0 mt-1 d-none d-sm-block">
-            Welcome back to your hiring command center. Manage talent pipelines, interviews, and active listings in real time.
+            Welcome back to your hiring command center. Manage talent pipelines, track candidate conversions, and oversee active openings.
           </p>
         </div>
       </div>
 
       <!-- Quick Status & Wallet Bar -->
       <div class="d-flex align-items-center justify-content-between justify-content-lg-start gap-2 flex-wrap w-100 w-lg-auto pt-2 pt-lg-0 border-top border-lg-0">
-        <div class="card border-0 bg-white shadow-2xs rounded-pill px-3 py-2 d-flex flex-row align-items-center gap-2 border flex-grow-1 flex-sm-grow-0">
+        <div class="card border bg-white shadow-2xs rounded-pill px-3 py-2 d-flex flex-row align-items-center gap-2 flex-grow-1 flex-sm-grow-0">
           <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
             <i class="bi bi-lightning-charge-fill"></i>
           </div>
           <div>
-            <div class="xsmall text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">Credits Balance</div>
+            <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.3px;">Credits Balance</div>
             <div class="fw-bold text-dark lh-1" style="font-size: 0.95rem;">
               {{ metrics.credits }} <span class="fw-normal text-muted" style="font-size: 0.75rem;">pts</span>
             </div>
           </div>
-          <a href="{% url 'membership:select' %}" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-0.5 ms-auto ms-sm-1 fw-semibold text-dark" style="font-size: 0.72rem;">
+          <a href="{% url 'membership:select' %}" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-0.5 ms-auto ms-sm-1 fw-semibold text-dark" style="font-size: 0.72rem;">
             + Add
           </a>
         </div>
@@ -77,13 +77,13 @@
   </div>
 
   <!-- ==========================================
-       2. KPI Metrics Grid (5 Dimensions - Responsive Layout)
+       2. KPI Metrics Grid (5 Dimensions - Modern Tech SaaS)
        ========================================== -->
   <div class="row g-2 g-sm-3 mb-3 mb-sm-4">
     <!-- Card 1: Active Listings -->
     <div class="col-6 col-md-4 col-xl">
-      <a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-2.5 p-sm-3">
+      <a href="{% url 'company:company_all_jobs' %}" class="text-decoration-none text-reset d-block h-100">
+        <div class="kpi-card-v2 p-3 p-sm-3.5">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <span class="text-muted text-uppercase fw-semibold kpi-label">Opportunities</span>
@@ -94,7 +94,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 kpi-badge">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 kpi-badge fw-semibold">
               {{ metrics.active_opportunities }} Active
             </span>
             <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">in market</small>
@@ -105,8 +105,8 @@
 
     <!-- Card 2: Applicants -->
     <div class="col-6 col-md-4 col-xl">
-      <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-2.5 p-sm-3">
+      <a href="{% url 'company:applicants_all' %}" class="text-decoration-none text-reset d-block h-100">
+        <div class="kpi-card-v2 p-3 p-sm-3.5">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <span class="text-muted text-uppercase fw-semibold kpi-label">Applicants</span>
@@ -117,7 +117,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 kpi-badge">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 kpi-badge fw-semibold">
               {{ new_applications|length }} New
             </span>
             <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">last 7d</small>
@@ -128,8 +128,8 @@
 
     <!-- Card 3: Shortlisted -->
     <div class="col-6 col-md-4 col-xl">
-      <a href="{% url 'company:applicants_shortlisted' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-2.5 p-sm-3">
+      <a href="{% url 'company:applicants_shortlisted' %}" class="text-decoration-none text-reset d-block h-100">
+        <div class="kpi-card-v2 p-3 p-sm-3.5">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <span class="text-muted text-uppercase fw-semibold kpi-label">Shortlisted</span>
@@ -140,7 +140,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
-            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5 kpi-badge">
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5 kpi-badge fw-semibold">
               Screened
             </span>
             <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">pipeline</small>
@@ -151,8 +151,8 @@
 
     <!-- Card 4: Upcoming Interviews -->
     <div class="col-6 col-md-6 col-xl">
-      <a href="{% url 'company:interviews' %}" class="text-decoration-none text-reset">
-        <div class="kpi-card-v2 p-2.5 p-sm-3">
+      <a href="{% url 'company:interviews' %}" class="text-decoration-none text-reset d-block h-100">
+        <div class="kpi-card-v2 p-3 p-sm-3.5">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <span class="text-muted text-uppercase fw-semibold kpi-label">Interviews</span>
@@ -163,7 +163,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 kpi-badge">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 kpi-badge fw-semibold">
               Scheduled
             </span>
             <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">sessions</small>
@@ -174,7 +174,7 @@
 
     <!-- Card 5: Views -->
     <div class="col-12 col-md-6 col-xl">
-      <div class="kpi-card-v2 p-2.5 p-sm-3">
+      <div class="kpi-card-v2 p-3 p-sm-3.5">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <span class="text-muted text-uppercase fw-semibold kpi-label">Impressions</span>
@@ -185,7 +185,7 @@
           </div>
         </div>
         <div class="d-flex align-items-center gap-1.5 mt-2 flex-wrap">
-          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5 kpi-badge">
+          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-0.5 kpi-badge fw-semibold">
             Listing Views
           </span>
           <small class="text-muted d-none d-sm-inline" style="font-size: 0.72rem;">reach</small>
@@ -195,37 +195,93 @@
   </div>
 
   <!-- ==========================================
-       3. Interactive Hiring Pipeline Funnel
+       3. Visual Recruitment Funnel with Conversion Rates
        ========================================== -->
   <div class="pipeline-funnel-card p-3 p-sm-4 mb-3 mb-sm-4">
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
+    <!-- Funnel Header & Overall Conversion Summary -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3.5 pb-3 border-bottom">
       <div>
-        <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5">
-          <i class="bi bi-diagram-3-fill text-danger me-2"></i>Recruitment Pipeline Funnel
-        </h5>
-        <small class="text-muted">Bird's-eye overview of candidates across every recruitment milestone.</small>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h5 class="fw-bold mb-0 text-dark fs-6 fs-sm-5 d-flex align-items-center">
+            <i class="bi bi-funnel-fill text-danger me-2"></i>Recruitment Pipeline & Conversion Funnel
+          </h5>
+          <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">
+            Live Conversion Analytics
+          </span>
+        </div>
+        <small class="text-muted mt-1 d-block">
+          Track stage-to-stage candidate throughput and optimize your hiring velocity from application to hire.
+        </small>
       </div>
-      <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
-        View Candidate Pool &rarr;
-      </a>
+
+      <!-- Funnel Quick Stats Indicators -->
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 d-inline-flex align-items-center gap-1.5 small fw-semibold">
+          <i class="bi bi-graph-up-arrow"></i>
+          Overall Hire Rate: {{ funnel_summary.overall_hire_rate }}%
+        </div>
+        <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold hover-lift">
+          Candidate Pool ({{ funnel_summary.active_in_pipeline }}) &rarr;
+        </a>
+      </div>
     </div>
 
-    <div class="row g-2 align-items-center">
+    <!-- 4-Step Interactive Connected Funnel Grid -->
+    <div class="pipeline-funnel-grid">
       {% for stage in pipeline_funnel %}
-        <div class="col-6 col-md-3">
-          <a href="{% url stage.url_name %}" class="pipeline-step-item d-block">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
-              <span class="badge bg-{{ stage.color }}-subtle text-{{ stage.color }} rounded-pill px-2 py-1 pipeline-stage-badge">
-                <i class="bi {{ stage.icon }} me-1"></i> {{ stage.stage }}
-              </span>
-              <h4 class="fw-bold mb-0 text-dark pipeline-stage-count">{{ stage.count }}</h4>
+        <div class="position-relative">
+          <a href="{% url stage.url_name %}" class="pipeline-step-item d-flex flex-column justify-content-between">
+            <!-- Stage Header -->
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-{{ stage.color }}-subtle text-{{ stage.color }} border border-{{ stage.color }}-subtle rounded-pill px-2.5 py-1 pipeline-stage-badge">
+                  <i class="bi {{ stage.icon }} me-1"></i> {{ stage.stage }}
+                </span>
+                {% if stage.conversion_rate is not None %}
+                  <span class="conversion-pill {% if stage.conversion_rate >= 20 %}positive{% else %}neutral{% endif %}" title="Conversion rate from previous milestone">
+                    <i class="bi bi-arrow-down-right"></i> {{ stage.conversion_rate }}%
+                  </span>
+                {% else %}
+                  <span class="conversion-pill" title="Top of the hiring funnel">
+                    <i class="bi bi-database"></i> Pool
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Main Stage Metric -->
+              <div class="d-flex align-items-baseline gap-2 mb-2">
+                <h4 class="fw-bold mb-0 text-dark pipeline-stage-count">{{ stage.count }}</h4>
+                <span class="text-muted small" style="font-size: 0.78rem;">
+                  candidates ({{ stage.total_share }}%)
+                </span>
+              </div>
             </div>
-            <div class="progress" style="height: 6px; background-color: rgba(0,0,0,0.05); border-radius: 6px;">
-              <div class="progress-bar bg-{{ stage.color }}" role="progressbar" 
-                   style="width: {% if metrics.total_applicants > 0 %}{% widthratio stage.count metrics.total_applicants 100 %}{% else %}0{% endif %}%; border-radius: 6px;">
+
+            <!-- Progress Bar & Milestone Subtext -->
+            <div>
+              <div class="progress" style="height: 7px; background-color: rgba(0,0,0,0.06); border-radius: 9999px;">
+                <div class="progress-bar bg-{{ stage.color }}" role="progressbar" 
+                     style="width: {% if metrics.total_applicants > 0 %}{{ stage.total_share }}{% else %}0{% endif %}%; border-radius: 9999px;"
+                     aria-valuenow="{{ stage.total_share }}" aria-valuemin="0" aria-valuemax="100">
+                </div>
+              </div>
+              <div class="funnel-meta-box">
+                <span class="text-muted small" style="font-size: 0.72rem;">
+                  {{ stage.conversion_label }}
+                </span>
+                <span class="text-{{ stage.color }} small fw-semibold" style="font-size: 0.72rem;">
+                  Explore stage &rarr;
+                </span>
               </div>
             </div>
           </a>
+
+          <!-- Step Connector Arrow (visible on desktop between items except last) -->
+          {% if not forloop.last %}
+            <div class="funnel-connector-arrow">
+              <i class="bi bi-chevron-right"></i>
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
@@ -238,13 +294,13 @@
   <div class="modern-section-card mb-4 border-start border-4 border-primary">
     <div class="card-header-styled d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
-        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center fs-6 fs-sm-5">
           <i class="bi bi-calendar2-check-fill text-primary me-2"></i>Upcoming Candidate Interviews
           <span class="badge bg-primary text-white rounded-pill ms-2 small">{{ upcoming_interviews|length }} Active</span>
         </h5>
         <small class="text-muted">Scheduled evaluation meetings with shortlisted candidates.</small>
       </div>
-      <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold">
+      <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold hover-lift">
         Manage All Interviews &rarr;
       </a>
     </div>
@@ -303,7 +359,7 @@
                 </td>
                 <td class="text-end px-3 px-sm-4 py-3 text-nowrap">
                   {% if itw.meeting_link and "http" in itw.meeting_link %}
-                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center">
+                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center shadow-sm hover-lift">
                       <i class="bi bi-camera-video me-1.5"></i> Join Call
                     </a>
                   {% else %}
@@ -372,7 +428,7 @@
               {% endfor %}
             </div>
             <div class="p-3 bg-light text-center border-top">
-              <a href="{% url 'company:applicants_all' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium">
+              <a href="{% url 'company:applicants_all' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3.5 py-1.5 fw-medium hover-lift">
                 Browse Full Candidate Pipeline &rarr;
               </a>
             </div>
@@ -383,7 +439,7 @@
               </div>
               <h6 class="fw-semibold text-dark">No new applications this week</h6>
               <p class="small text-muted mb-3">Post a new opportunity or boost your listings to attract top talent.</p>
-              <a href="{% url 'company:company_post_choice' %}" class="btn btn-sm btn-danger rounded-pill px-3">
+              <a href="{% url 'company:company_post_choice' %}" class="btn btn-sm btn-danger rounded-pill px-3.5 py-1.5 fw-medium shadow-sm hover-lift">
                 Post Opportunity
               </a>
             </div>
@@ -405,7 +461,7 @@
               Post an internship or full-time opening with our AI matching engine to reach qualified candidates in minutes.
             </p>
             <div class="d-flex flex-wrap gap-2">
-              <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm flex-grow-1 flex-sm-grow-0">
+              <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm hover-lift flex-grow-1 flex-sm-grow-0">
                 <i class="bi bi-plus-lg me-1"></i> Create Listing
               </a>
               <a href="{% url 'company:company_all_jobs' %}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-2 fw-semibold flex-grow-1 flex-sm-grow-0">
@@ -475,7 +531,7 @@
               {% endif %}
             </div>
 
-            <a href="{% url 'company:profile' %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-sm w-100">
+            <a href="{% url 'company:profile' %}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-sm w-100 hover-lift">
               Complete Setup <i class="bi bi-arrow-right ms-1"></i>
             </a>
           </div>
@@ -492,7 +548,7 @@
                 <small class="text-muted">Your company branding is fully optimized.</small>
               </div>
             </div>
-            <a href="{% url 'company:profile' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold">
+            <a href="{% url 'company:profile' %}" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1 fw-semibold hover-lift">
               Preview
             </a>
           </div>
@@ -535,11 +591,14 @@
 
 <style>
   .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.25) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+  }
+  .btn-danger.hover-lift:hover {
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.28) !important;
   }
   .bg-light-warning-grad {
     background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.03) 100%) !important;
@@ -548,6 +607,9 @@
   .bg-light-success-grad {
     background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.03) 100%) !important;
     border: 1px solid rgba(25, 135, 84, 0.2) !important;
+  }
+  .tracking-tight {
+    letter-spacing: -0.02em;
   }
 </style>
 {% endblock %}
