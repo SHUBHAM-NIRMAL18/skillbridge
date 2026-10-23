@@ -182,13 +182,66 @@ def company_dashboard(request):
         "credits": getattr(company, "credits_balance", 0) or 0,
     }
 
-    # Pipeline funnel stats
+    # Pipeline funnel stats with conversion rates and percentages
+    shortlist_rate = round((shortlisted / total_applicants * 100), 1) if total_applicants > 0 else 0
+    interview_rate = round((interview_stage_count / shortlisted * 100), 1) if shortlisted > 0 else 0
+    offer_rate = round((offered_count / interview_stage_count * 100), 1) if interview_stage_count > 0 else 0
+    overall_hire_rate = round((offered_count / total_applicants * 100), 1) if total_applicants > 0 else 0
+
     pipeline_funnel = [
-        {"stage": "Applied & Review", "count": under_review_count, "color": "primary", "icon": "bi-inbox-fill", "url_name": "company:applicants_new"},
-        {"stage": "Shortlisted", "count": shortlisted, "color": "warning", "icon": "bi-star-fill", "url_name": "company:applicants_shortlisted"},
-        {"stage": "Interviewing", "count": interview_stage_count, "color": "info", "icon": "bi-camera-video-fill", "url_name": "company:interviews"},
-        {"stage": "Offered / Hired", "count": offered_count, "color": "success", "icon": "bi-patch-check-fill", "url_name": "company:applicants_all"},
+        {
+            "stage": "Applied & Review",
+            "count": under_review_count,
+            "total_share": round((under_review_count / total_applicants * 100), 1) if total_applicants > 0 else 0,
+            "conversion_label": "Initial Pool",
+            "conversion_rate": None,
+            "color": "primary",
+            "accent_hex": "#3b82f6",
+            "icon": "bi-inbox-fill",
+            "url_name": "company:applicants_new",
+        },
+        {
+            "stage": "Shortlisted",
+            "count": shortlisted,
+            "total_share": round((shortlisted / total_applicants * 100), 1) if total_applicants > 0 else 0,
+            "conversion_label": "from Applied",
+            "conversion_rate": shortlist_rate,
+            "color": "warning",
+            "accent_hex": "#f59e0b",
+            "icon": "bi-star-fill",
+            "url_name": "company:applicants_shortlisted",
+        },
+        {
+            "stage": "Interviewing",
+            "count": interview_stage_count,
+            "total_share": round((interview_stage_count / total_applicants * 100), 1) if total_applicants > 0 else 0,
+            "conversion_label": "from Shortlist",
+            "conversion_rate": interview_rate,
+            "color": "info",
+            "accent_hex": "#06b6d4",
+            "icon": "bi-camera-video-fill",
+            "url_name": "company:interviews",
+        },
+        {
+            "stage": "Offered / Hired",
+            "count": offered_count,
+            "total_share": round((offered_count / total_applicants * 100), 1) if total_applicants > 0 else 0,
+            "conversion_label": "from Interview",
+            "conversion_rate": offer_rate,
+            "color": "success",
+            "accent_hex": "#10b981",
+            "icon": "bi-patch-check-fill",
+            "url_name": "company:applicants_all",
+        },
     ]
+
+    funnel_summary = {
+        "overall_hire_rate": overall_hire_rate,
+        "active_in_pipeline": total_applicants,
+        "shortlist_rate": shortlist_rate,
+        "interview_rate": interview_rate,
+        "offer_rate": offer_rate,
+    }
 
     # new applications (last 7 days, newest first)
     last_7 = timezone.now() - timezone.timedelta(days=7)
@@ -258,6 +311,7 @@ def company_dashboard(request):
         "greeting_time": greeting_time,
         "metrics": metrics,
         "pipeline_funnel": pipeline_funnel,
+        "funnel_summary": funnel_summary,
         "is_profile_complete": len(profile_missing) == 0,
         "profile_missing": profile_missing,
         "profile_completion_percent": profile_completion_percent,
