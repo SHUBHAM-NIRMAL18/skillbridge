@@ -2,15 +2,87 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ internship.title }}{% endblock %}
+{% block title %}{{ internship.title }} Internship at {{ internship.company.company_name }} | SkillBridge{% endblock %}
+
+{% block meta_description %}{{ internship.title }} internship at {{ internship.company.company_name }} in {{ internship.city }} ({{ internship.location }}). Apply online via SkillBridge before {{ internship.application_deadline }}.{% endblock %}
+{% block og_title %}{{ internship.title }} Internship at {{ internship.company.company_name }} | SkillBridge{% endblock %}
+{% block og_description %}Exciting internship opportunity: {{ internship.title }} at {{ internship.company.company_name }}. Location: {{ internship.city }} ({{ internship.location }}). Stipend: Rs. {{ internship.comp_min|intcomma }} - Rs. {{ internship.comp_max|intcomma }}.{% endblock %}
+{% if internship.company.logo %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ internship.company.logo.url }}{% endblock %}
+{% endif %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "JobPosting",
+  "title": "{{ internship.title|escapejs }}",
+  "description": "{{ internship.responsibilities|default:internship.title|striptags|escapejs }}",
+  "datePosted": "{{ internship.created_at|date:'c' }}",
+  "validThrough": "{{ internship.application_deadline|date:'Y-m-d' }}T23:59:59",
+  "employmentType": "INTERN",
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "{{ internship.company.company_name|escapejs }}",
+    {% if internship.company.website_url %}"sameAs": "{{ internship.company.website_url|escapejs }}",{% endif %}
+    {% if internship.company.logo %}"logo": "{{ request.scheme }}://{{ request.get_host }}{{ internship.company.logo.url }}"{% else %}"logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}"{% endif %}
+  },
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{{ internship.city|escapejs }}",
+      "addressCountry": "NP"
+    }
+  }{% if internship.location == 'Remote' %},
+  "jobLocationType": "TELECOMMUTE"{% endif %}{% if internship.comp_min and internship.comp_max %},
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "NPR",
+    "value": {
+      "@type": "QuantitativeValue",
+      "minValue": {{ internship.comp_min }},
+      "maxValue": {{ internship.comp_max }},
+      "unitText": "{% if internship.comp_frequency == 'Hourly' %}HOUR{% elif internship.comp_frequency == 'Daily' %}DAY{% else %}MONTH{% endif %}"
+    }
+  }{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Internships",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:internship' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ internship.title|escapejs }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-3 px-lg-4 py-4">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
-      <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Internships</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'website:index' %}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'website:internship' %}" class="text-decoration-none">Internships</a></li>
       <li class="breadcrumb-item active" aria-current="page">{{ internship.title }}</li>
     </ol>
   </nav>
