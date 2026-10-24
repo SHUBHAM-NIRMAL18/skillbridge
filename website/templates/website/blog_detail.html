@@ -1,7 +1,71 @@
 {% extends "website/base.html" %}
 {% load static %}
 
-{% block title %}{{ blog.title }} | SkillBridge Blogs{% endblock %}
+{% block title %}{{ blog.title }} | SkillBridge Blog{% endblock %}
+
+{% block meta_description %}{{ blog.content|striptags|truncatewords:25 }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ blog.title }} | SkillBridge Blog{% endblock %}
+{% block og_description %}{{ blog.content|striptags|truncatewords:25 }}{% endblock %}
+{% if blog.cover_image %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ blog.cover_image.url }}{% endblock %}
+{% endif %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ blog.title|escapejs }}",
+  "description": "{{ blog.content|striptags|truncatewords:30|escapejs }}",
+  "datePublished": "{{ blog.created_at|date:'c' }}",
+  "dateModified": "{{ blog.updated_at|date:'c' }}",
+  {% if blog.cover_image %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ blog.cover_image.url }}"],{% endif %}
+  "author": {
+    "@type": "Person",
+    "name": "{{ blog.author.get_full_name|default:blog.author.username|default:'SkillBridge Contributor'|escapejs }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "SkillBridge",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ request.build_absolute_uri }}"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blogs",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:blog_list' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ blog.title|escapejs }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_head %}
 <style>
