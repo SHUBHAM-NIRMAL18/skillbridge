@@ -2,7 +2,62 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ company.first_name }} {{ company.last_name }}{% endblock %}
+{% block title %}{{ company.company_name }} - Company Profile & Careers | SkillBridge{% endblock %}
+
+{% block meta_description %}Explore careers, job openings, and internship opportunities at {{ company.company_name }} ({{ company.industry }}) located in {{ company.city }}, {{ company.province }}.{% endblock %}
+{% block og_title %}{{ company.company_name }} | SkillBridge{% endblock %}
+{% block og_description %}Learn about {{ company.company_name }}, their open roles, company culture, and career opportunities on SkillBridge.{% endblock %}
+{% if company.logo %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ company.logo.url }}{% endblock %}
+{% endif %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "{{ company.company_name|escapejs }}",
+  {% if company.website_url %}"url": "{{ company.website_url|escapejs }}",{% endif %}
+  {% if company.logo %}"logo": "{{ request.scheme }}://{{ request.get_host }}{{ company.logo.url }}",{% endif %}
+  "description": "{{ company.about_company|striptags|truncatewords:30|escapejs }}",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "{{ company.city|escapejs }}",
+    "addressRegion": "{{ company.province|escapejs }}",
+    "addressCountry": "NP"
+  }{% if company.social_link %},
+  "sameAs": [
+    "{{ company.social_link|escapejs }}"
+  ]{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Companies",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}#companies"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ company.company_name|escapejs }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
