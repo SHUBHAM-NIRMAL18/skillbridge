@@ -2,7 +2,75 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ event.title }} - SkillBridge{% endblock %}
+{% block title %}{{ event.title }} | SkillBridge Events{% endblock %}
+
+{% block meta_description %}Join {{ event.title }} on SkillBridge. Event Type: {{ event.get_event_type_display }}. Starts {{ event.start_date|date:"F j, Y, g:i a" }}.{% endblock %}
+{% block og_title %}{{ event.title }} | SkillBridge Event{% endblock %}
+{% block og_description %}{{ event.description|striptags|truncatewords:25 }}{% endblock %}
+{% if event.cover_image %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ event.cover_image.url }}{% endblock %}
+{% endif %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "{{ event.title|escapejs }}",
+  "description": "{{ event.description|striptags|truncatewords:35|escapejs }}",
+  "startDate": "{{ event.start_date|date:'c' }}",
+  "endDate": "{{ event.end_date|date:'c' }}",
+  "eventAttendanceMode": "{% if event.location_type == 'online' %}https://schema.org/OnlineEventAttendanceMode{% else %}https://schema.org/OfflineEventAttendanceMode{% endif %}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  {% if event.cover_image %}"image": ["{{ request.scheme }}://{{ request.get_host }}{{ event.cover_image.url }}"],{% endif %}
+  "location": {
+    {% if event.location_type == 'online' %}
+    "@type": "VirtualLocation",
+    "url": "{{ request.build_absolute_uri }}"
+    {% else %}
+    "@type": "Place",
+    "name": "{{ event.location|escapejs }}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ event.location|escapejs }}",
+      "addressCountry": "NP"
+    }
+    {% endif %}
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "{% if event.organizer %}{{ event.organizer.company_name|escapejs }}{% else %}SkillBridge{% endif %}",
+    "url": "{% if event.organizer and event.organizer.website_url %}{{ event.organizer.website_url|escapejs }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% endif %}"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Events",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:events_list' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ event.title|escapejs }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
