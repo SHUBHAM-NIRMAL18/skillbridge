@@ -5,7 +5,8 @@ def communications_context(request):
     """
     Supplies unread notification and messaging metrics to all templates.
     """
-    if not request.user.is_authenticated:
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
         return {
             "unread_notifications_count": 0,
             "recent_notifications": [],
