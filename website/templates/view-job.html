@@ -2,7 +2,80 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ job.title }} - SkillBridge{% endblock %}
+{% block title %}{{ job.title }} at {{ job.company.company_name }} | SkillBridge{% endblock %}
+
+{% block meta_description %}{{ job.title }} opportunity at {{ job.company.company_name }} in {{ job.city }} ({{ job.location_type }}). Apply directly on SkillBridge before {{ job.application_deadline }}.{% endblock %}
+{% block og_title %}{{ job.title }} at {{ job.company.company_name }} | SkillBridge{% endblock %}
+{% block og_description %}{{ job.title }} opportunity at {{ job.company.company_name }} in {{ job.city }}. Type: {{ job.job_type }}. Apply on SkillBridge today!{% endblock %}
+{% if job.company.logo %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ job.company.logo.url }}{% endblock %}
+{% endif %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "JobPosting",
+  "title": "{{ job.title|escapejs }}",
+  "description": "{{ job.responsibilities|default:job.title|striptags|escapejs }}",
+  "datePosted": "{{ job.created_at|date:'c' }}",
+  "validThrough": "{{ job.application_deadline|date:'Y-m-d' }}T23:59:59",
+  "employmentType": "{% if 'Part' in job.job_type %}PART_TIME{% elif 'Contract' in job.job_type %}CONTRACTOR{% elif 'Intern' in job.job_type %}INTERN{% else %}FULL_TIME{% endif %}",
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "{{ job.company.company_name|escapejs }}",
+    {% if job.company.website_url %}"sameAs": "{{ job.company.website_url|escapejs }}",{% endif %}
+    {% if job.company.logo %}"logo": "{{ request.scheme }}://{{ request.get_host }}{{ job.company.logo.url }}"{% else %}"logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}"{% endif %}
+  },
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{{ job.city|escapejs }}",
+      "addressRegion": "{{ job.province|escapejs }}",
+      "addressCountry": "NP"
+    }
+  }{% if job.location_type == 'Remote' %},
+  "jobLocationType": "TELECOMMUTE"{% endif %}{% if job.salary_min and job.salary_max %},
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "NPR",
+    "value": {
+      "@type": "QuantitativeValue",
+      "minValue": {{ job.salary_min }},
+      "maxValue": {{ job.salary_max }},
+      "unitText": "{% if job.salary_period == 'Yearly' %}YEAR{% else %}MONTH{% endif %}"
+    }
+  }{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Jobs",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:jobs_list' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ job.title|escapejs }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="job-detail-wrapper py-4 py-lg-5">
