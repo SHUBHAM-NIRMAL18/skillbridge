@@ -1,7 +1,40 @@
 {% extends 'website/base.html' %}
 {% load static %}
 
-{% block title %}Home – SkillBridge{% endblock %}
+{% block title %}SkillBridge | Connecting Emerging Talent with Top Companies{% endblock %}
+
+{% block meta_description %}SkillBridge is the premier platform connecting students and professionals with verified internships, jobs, leading companies, and career events.{% endblock %}
+{% block og_title %}SkillBridge | Bridging Talent with Opportunities{% endblock %}
+{% block og_description %}Discover curated internships and job openings from top employers. Build your career with SkillBridge.{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "name": "SkillBridge",
+      "description": "Connecting talent with internships, job opportunities, and leading companies.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.scheme }}://{{ request.get_host }}{% url 'website:jobs_list' %}?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
+      "name": "SkillBridge",
+      "url": "{{ request.scheme }}://{{ request.get_host }}/",
+      "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_head %}
 <style>
