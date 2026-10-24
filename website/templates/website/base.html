@@ -5,7 +5,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}SkillBridge{% endblock %}</title>
+  <title>{% block title %}SkillBridge | Connecting Talent with Opportunities{% endblock %}</title>
+
+  <!-- SEO & Search Engine Optimization -->
+  <meta name="description" content="{% block meta_description %}SkillBridge is a premier career development platform connecting students, interns, and professionals with verified jobs, internships, companies, and skill-building events.{% endblock %}" />
+  <meta name="keywords" content="{% block meta_keywords %}internships, tech jobs, career opportunities, skillbridge, student internships, hiring, Nepal jobs{% endblock %}" />
+  <meta name="robots" content="{% block meta_robots %}index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1{% endblock %}" />
+  <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:site_name" content="SkillBridge" />
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+  <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}{% block title_plain %}SkillBridge | Connecting Talent with Opportunities{% endblock %}{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}SkillBridge is a premier career development platform connecting students, interns, and professionals with verified jobs, internships, companies, and skill-building events.{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}{% endblock %}" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}" />
+  <meta name="twitter:url" content="{% block twitter_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+  <meta name="twitter:title" content="{% block twitter_title %}{% block title_twitter %}SkillBridge | Connecting Talent with Opportunities{% endblock %}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}SkillBridge is a premier career development platform connecting students, interns, and professionals with verified jobs, internships, companies, and skill-building events.{% endblock %}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'icons/sb-logo.png' %}{% endblock %}" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="{% static 'icons/favicon.ico' %}" />
@@ -22,6 +43,9 @@
   {# Your custom styles #}
   <link href="{% static 'css/style.css' %}?v=1.3" rel="stylesheet" />
   <script src="{% static 'applications/apply.js' %}"></script>
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  {% block schema_markup %}{% endblock %}
 
   {% block extra_head %}{% endblock %}
 </head>
