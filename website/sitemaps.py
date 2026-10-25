@@ -107,7 +107,9 @@ class CompanySitemap(Sitemap):
         return obj.updated_at
 
     def location(self, obj):
-        return reverse('website:company_detail', kwargs={'pk': obj.pk})
+        if obj.slug:
+            return reverse('website:company_detail', kwargs={'slug': obj.slug})
+        return reverse('website:company_detail_by_pk', kwargs={'pk': obj.pk})
 
 
 class BlogPostSitemap(Sitemap):
