@@ -69,6 +69,7 @@ class CompanyProfile(models.Model):
     notify_on_message   = models.BooleanField(default=True)
     notify_on_application = models.BooleanField(default=False)
     is_active       = models.BooleanField("Active?", default=True)
+    slug            = models.SlugField(max_length=255, unique=True, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -93,8 +94,22 @@ class CompanyProfile(models.Model):
     def email(self):
         return self.user.email
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        if self.slug:
+            return reverse("website:company_detail", kwargs={"slug": self.slug})
+        return reverse("website:company_detail_by_pk", kwargs={"pk": self.pk})
 
     def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            import uuid
+            base_slug = slugify(self.company_name) or "company"
+            slug = base_slug
+            while CompanyProfile.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+            self.slug = slug
+
         # keep the real user.is_active in sync
         if self.user and self.user.is_active != self.is_active:
             self.user.is_active = self.is_active
