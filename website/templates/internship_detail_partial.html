@@ -19,7 +19,7 @@
             <div>
               <h3 class="fw-bold text-dark mb-1">{{ internship.title }}</h3>
               <div class="job-meta">
-                <a href="{% url 'website:company_detail' internship.company.id %}" class="company-link text-danger fw-semibold text-decoration-none d-inline-block mb-2">
+                <a href="{{ internship.company.get_absolute_url }}" class="company-link text-danger fw-semibold text-decoration-none d-inline-block mb-2">
                   <i class="bi bi-building me-1"></i>
                   {{ internship.company.first_name }} {{ internship.company.last_name }}
                 </a>
