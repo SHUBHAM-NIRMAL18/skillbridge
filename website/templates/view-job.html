@@ -117,7 +117,7 @@
                   <div>
                     <h1 class="hero-job-title">{{ job.title }}</h1>
                     <div class="company-meta-line mt-2">
-                      <a href="{% url 'website:company_detail' job.company.id %}" class="company-brand-link">
+                      <a href="{{ job.company.get_absolute_url }}" class="company-brand-link">
                         <i class="bi bi-patch-check-fill text-primary me-1"></i>
                         {{ job.company.first_name }} {{ job.company.last_name }}
                       </a>
@@ -406,7 +406,7 @@
             </div>
 
             <div class="mt-4 pt-2">
-              <a href="{% url 'website:company_detail' job.company.id %}" class="btn btn-outline-primary rounded-pill px-4">
+              <a href="{{ job.company.get_absolute_url }}" class="btn btn-outline-primary rounded-pill px-4">
                 <i class="bi bi-building me-2"></i>Explore Company Profile
               </a>
             </div>
