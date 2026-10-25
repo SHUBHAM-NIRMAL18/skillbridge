@@ -190,8 +190,24 @@ def internship_detail_view(request, pk: int):
         "has_applied_intern": has_applied_intern,
     })
 
-def company_detail_view(request, pk: int):
-    company = get_object_or_404(CompanyProfile, pk=pk)
+def company_detail_view(request, slug=None, pk=None):
+    from django.http import Http404
+    company = None
+
+    if slug:
+        company = CompanyProfile.objects.filter(slug=slug).first()
+        if not company and slug.isdigit():
+            company = CompanyProfile.objects.filter(pk=int(slug)).first()
+            if company and company.slug:
+                return redirect("website:company_detail", slug=company.slug, permanent=True)
+    elif pk is not None:
+        company = CompanyProfile.objects.filter(pk=pk).first()
+        if company and company.slug:
+            return redirect("website:company_detail", slug=company.slug, permanent=True)
+
+    if not company:
+        raise Http404("Company profile not found.")
+
     today = timezone.localdate()
 
     active_internships = (
@@ -207,10 +223,48 @@ def company_detail_view(request, pk: int):
         .prefetch_related("skills")
     )
 
+    # Calculate company age / years in operation
+    years_in_business = None
+    if company.founded_date:
+        years_in_business = max(0, today.year - company.founded_date.year)
+
+    # Check if current logged-in user is the owner
+    is_owner = (
+        request.user.is_authenticated
+        and hasattr(request.user, "company_profile")
+        and request.user.company_profile.pk == company.pk
+    )
+
+    # Fetch other active hiring companies for recommendations
+    other_companies = (
+        CompanyProfile.objects
+        .filter(is_active=True)
+        .exclude(pk=company.pk)
+        .annotate(
+            open_jobs_count=Count(
+                'job_posts',
+                filter=Q(job_posts__is_active=True, job_posts__application_deadline__gte=today),
+                distinct=True
+            ),
+            open_internships_count=Count(
+                'internships',
+                filter=Q(internships__is_active=True, internships__application_deadline__gte=today),
+                distinct=True
+            )
+        )
+        .order_by('-open_jobs_count', '-open_internships_count', '-created_at')[:4]
+    )
+
+    total_openings = active_jobs.count() + active_internships.count()
+
     return render(request, "company_detail.html", {
         "company": company,
         "active_internships": active_internships,
         "active_jobs": active_jobs,
+        "total_openings": total_openings,
+        "years_in_business": years_in_business,
+        "is_owner": is_owner,
+        "other_companies": other_companies,
     })
 
 
