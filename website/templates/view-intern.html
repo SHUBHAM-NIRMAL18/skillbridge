@@ -107,7 +107,7 @@
                 <div>
                   <h1 class="job-title">{{ internship.title }}</h1>
                   <div class="job-meta">
-                    <a href="{% url 'website:company_detail' internship.company.id %}" class="company-link">
+                    <a href="{{ internship.company.get_absolute_url }}" class="company-link">
                       <i class="bi bi-building-fill me-2"></i>
                       {{ internship.company.first_name }} {{ internship.company.last_name }}
                     </a>
@@ -310,7 +310,7 @@
             {% endif %}
           </div>
 
-          <a href="{% url 'website:company_detail' internship.company.id %}"
+          <a href="{{ internship.company.get_absolute_url }}"
              class="btn btn-outline-primary mt-3">
              <i class="bi bi-building me-2"></i>View Full Company Profile
           </a>
