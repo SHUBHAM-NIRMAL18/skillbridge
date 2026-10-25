@@ -2,14 +2,19 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ company.company_name }} - Company Profile & Careers | SkillBridge{% endblock %}
+{% block title %}{{ company.company_name }} - Company Profile, Jobs & Internships | SkillBridge{% endblock %}
 
-{% block meta_description %}Explore careers, job openings, and internship opportunities at {{ company.company_name }} ({{ company.industry }}) located in {{ company.city }}, {{ company.province }}.{% endblock %}
+{% block meta_description %}Explore careers, verified job openings, and internship opportunities at {{ company.company_name }} ({{ company.industry }}), located in {{ company.city }}, {{ company.province }}. Connect and apply on SkillBridge.{% endblock %}
+{% block meta_keywords %}{{ company.company_name }}, {{ company.company_name }} careers, {{ company.company_name }} jobs, {{ company.industry }} jobs Nepal, SkillBridge company{% endblock %}
+
 {% block og_title %}{{ company.company_name }} | SkillBridge{% endblock %}
-{% block og_description %}Learn about {{ company.company_name }}, their open roles, company culture, and career opportunities on SkillBridge.{% endblock %}
+{% block og_description %}Discover career opportunities, culture, and active job/internship openings at {{ company.company_name }} on SkillBridge.{% endblock %}
+{% block og_type %}profile{% endblock %}
 {% if company.logo %}
 {% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ company.logo.url }}{% endblock %}
 {% endif %}
+
+{% block canonical_url %}{{ request.scheme }}://{{ request.get_host }}{{ company.get_absolute_url }}{% endblock %}
 
 {% block schema_markup %}
 <script type="application/ld+json">
@@ -17,17 +22,27 @@
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "{{ company.company_name|escapejs }}",
+  "legalName": "{{ company.first_name|escapejs }} {{ company.last_name|escapejs }}",
   {% if company.website_url %}"url": "{{ company.website_url|escapejs }}",{% endif %}
   {% if company.logo %}"logo": "{{ request.scheme }}://{{ request.get_host }}{{ company.logo.url }}",{% endif %}
-  "description": "{{ company.about_company|striptags|truncatewords:30|escapejs }}",
+  "description": "{{ company.about_company|striptags|truncatewords:40|escapejs }}",
+  "foundingDate": "{{ company.founded_date|date:'Y-m-d' }}",
+  "numberOfEmployees": {
+    "@type": "QuantitativeValue",
+    "name": "{{ company.get_company_size_display|default:company.company_size|escapejs }}"
+  },
   "address": {
     "@type": "PostalAddress",
+    "streetAddress": "{{ company.current_address|escapejs }}",
     "addressLocality": "{{ company.city|escapejs }}",
     "addressRegion": "{{ company.province|escapejs }}",
+    "postalCode": "{{ company.postal_code|escapejs }}",
     "addressCountry": "NP"
-  }{% if company.social_link %},
+  }{% if company.social_link or company.website_url %},
   "sameAs": [
-    "{{ company.social_link|escapejs }}"
+    {% if company.website_url %}"{{ company.website_url|escapejs }}"{% endif %}
+    {% if company.website_url and company.social_link %},{% endif %}
+    {% if company.social_link %}"{{ company.social_link|escapejs }}"{% endif %}
   ]{% endif %}
 }
 </script>
@@ -52,7 +67,7 @@
       "@type": "ListItem",
       "position": 3,
       "name": "{{ company.company_name|escapejs }}",
-      "item": "{{ request.build_absolute_uri }}"
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ company.get_absolute_url }}"
     }
   ]
 }
@@ -60,147 +75,970 @@
 {% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <div class="row g-4">
-    <!-- Left -->
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center">
-            {% if company.logo %}
-              <img src="{{ company.logo.url }}" alt="Logo" class="rounded me-3" style="width:64px;height:64px;object-fit:cover;">
-            {% else %}
-              <img src="{% static 'icons/sb-logo.png' %}" alt="Logo" class="rounded me-3" style="width:64px;height:64px;">
-            {% endif %}
-            <div>
-              <h1 class="h5 mb-1">{{ company.first_name }} {{ company.last_name }}</h1>
-              <div class="small text-muted">
-                {{ company.city }}, {{ company.province }}
-              </div>
-            </div>
-            <div class="ms-auto">
-              <a class="btn btn-outline-danger btn-sm" href="#">Follow</a>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="company-detail-page py-3 py-md-4">
 
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-2">About Company</h5>
-          <div>{{ company.about_company|linebreaks }}</div>
-        </div>
-      </div>
+  <!-- Breadcrumbs Bar -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb custom-breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'website:index' %}"><i class="bi bi-house-door-fill me-1"></i>Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'website:index' %}#companies">Companies</a></li>
+      <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width: 280px;">{{ company.company_name }}</li>
+    </ol>
+  </nav>
 
-      {% if active_jobs %}
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Active Jobs</h5>
-          {% for job in active_jobs %}
-          <a href="#" class="text-decoration-none d-block p-3 rounded border mb-2">
-            <div class="fw-semibold">{{ job.title }}</div>
-            <div class="small text-muted">
-              {{ job.city }}, {{ job.province }} · {{ job.job_type }} ·
-              {% if job.days_left > 0 %}{{ job.days_left }} days left{% else %}Closed{% endif %}
-            </div>
+  <!-- Hero Header Showcase Banner -->
+  <div class="company-hero-card mb-4 position-relative overflow-hidden rounded-4 border shadow-sm">
+    <!-- Atmospheric Cover Background -->
+    <div class="company-hero-cover position-relative">
+      <div class="cover-mesh-gradient"></div>
+      <div class="cover-overlay-pattern"></div>
+      
+      <!-- Top Badges Row inside Cover -->
+      <div class="position-absolute top-0 end-0 p-3 p-md-4 d-flex align-items-center gap-2 z-2">
+        {% if is_owner %}
+          <a href="{% url 'company:profile' %}" id="btn-owner-edit" class="btn btn-sm btn-light rounded-pill px-3 shadow-sm fw-semibold">
+            <i class="bi bi-pencil-square text-danger me-1"></i> Edit Profile
           </a>
-          {% endfor %}
-        </div>
+        {% endif %}
+        <span class="badge bg-dark bg-opacity-50 text-white rounded-pill px-3 py-2 backdrop-blur border border-white border-opacity-25 small d-inline-flex align-items-center gap-1">
+          <i class="bi bi-shield-check text-success"></i> Verified Employer
+        </span>
       </div>
-      {% endif %}
-
-      {% if active_internships %}
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <h5 class="h6 mb-3">Active Internships</h5>
-          {% for intern in active_internships %}
-          <a href="{% url 'website:internship_detail' intern.id %}" class="text-decoration-none d-block p-3 rounded border mb-2">
-            <div class="fw-semibold">{{ intern.title }}</div>
-            <div class="small text-muted">
-              {{ intern.city }} · {{ intern.type }} ·
-              {% if intern.days_left > 0 %}{{ intern.days_left }} days left{% else %}Closed{% endif %}
-            </div>
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
     </div>
 
-    <!-- Right -->
-    <div class="col-lg-4">
-      <div class="position-sticky" style="top: 88px;">
-        <div class="card border-0 shadow-sm mb-4">
-          <div class="card-body p-4">
-            <h6 class="h6 mb-3">Company Overview</h6>
-            <div class="small mb-2"><span class="text-muted">Industry:</span> {{ company.industry }}</div>
-            <div class="small mb-2"><span class="text-muted">Company Size:</span> {{ company.company_size }}</div>
-            <div class="small mb-2"><span class="text-muted">Founded:</span> {{ company.founded_date|date:"F j, Y" }}</div>
-            <div class="small mb-2"><span class="text-muted">Location:</span> {{ company.city }}, {{ company.province }}</div>
-            <div class="small mb-2"><span class="text-muted">Address:</span> {{ company.current_address }}</div>
-            {% if company.website_url %}
-              <div class="small"><span class="text-muted">Website:</span> <a href="{{ company.website_url }}" target="_blank" rel="noopener">Visit</a></div>
+    <!-- Company Identity Strip Overlapping Cover -->
+    <div class="company-identity-wrapper bg-white px-4 px-md-5 pb-4 pt-0 position-relative z-2">
+      <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-end justify-content-between gap-4">
+        
+        <!-- Left: Logo & Company Name/Meta -->
+        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-4 company-brand-block">
+          <!-- Logo Container -->
+          <div class="company-logo-frame flex-shrink-0 shadow-lg rounded-4 bg-white p-2 border">
+            {% if company.logo %}
+              <img src="{{ company.logo.url }}" alt="{{ company.company_name }} Logo" class="company-main-logo img-fluid rounded-3">
+            {% else %}
+              <div class="company-logo-fallback rounded-3 d-flex align-items-center justify-content-center text-danger fw-bold fs-2">
+                {{ company.first_name|slice:":1" }}{{ company.last_name|slice:":1" }}
+              </div>
             {% endif %}
           </div>
-        </div>
 
-        <!-- Recommended Jobs Section -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-body p-4">
-            <h6 class="h6 mb-3">Recommended Jobs</h6>
-            
-            <!-- Job 1 -->
-            <div class="border rounded p-3 mb-3">
-              <a href="#" class="text-decoration-none">
-                <div class="d-flex align-items-start">
-                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
-                  <div class="flex-grow-1">
-                    <div class="fw-semibold small">Frontend Developer</div>
-                    <div class="text-muted" style="font-size:0.75rem;">TechCorp Inc.</div>
-                    <div class="text-muted" style="font-size:0.75rem;">Kathmandu · Full-time</div>
-                    <div class="text-success" style="font-size:0.75rem;">15 days left</div>
-                  </div>
-                </div>
-              </a>
+          <!-- Brand Meta -->
+          <div class="company-title-meta pt-2">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+              <h1 class="h2 fw-bold text-dark mb-0 company-headline">{{ company.company_name }}</h1>
+              <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small fw-semibold" title="Official Verified Partner">
+                <i class="bi bi-patch-check-fill text-primary me-1"></i>Verified
+              </span>
             </div>
 
-            <!-- Job 2 -->
-            <div class="border rounded p-3 mb-3">
-              <a href="#" class="text-decoration-none">
-                <div class="d-flex align-items-start">
-                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
-                  <div class="flex-grow-1">
-                    <div class="fw-semibold small">UI/UX Designer</div>
-                    <div class="text-muted" style="font-size:0.75rem;">Design Studio</div>
-                    <div class="text-muted" style="font-size:0.75rem;">Lalitpur · Part-time</div>
-                    <div class="text-success" style="font-size:0.75rem;">22 days left</div>
-                  </div>
-                </div>
-              </a>
-            </div>
+            <!-- Industry & Location line -->
+            <p class="text-muted mb-2 fs-6 d-flex flex-wrap align-items-center gap-3">
+              <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                <i class="bi bi-briefcase text-danger"></i> {{ company.industry }}
+              </span>
+              <span class="bullet-divider text-muted">•</span>
+              <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                <i class="bi bi-geo-alt-fill text-danger"></i> {{ company.city }}, {{ company.province }}
+              </span>
+              {% if company.company_size %}
+                <span class="bullet-divider text-muted">•</span>
+                <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                  <i class="bi bi-people-fill text-primary"></i> {{ company.get_company_size_display|default:company.company_size }}
+                </span>
+              {% endif %}
+            </p>
 
-            <!-- Job 3 -->
-            <div class="border rounded p-3 mb-3">
-              <a href="#" class="text-decoration-none">
-                <div class="d-flex align-items-start">
-                  <img src="{% static 'icons/sb-logo.png' %}" alt="Company" class="rounded me-2" style="width:32px;height:32px;">
-                  <div class="flex-grow-1">
-                    <div class="fw-semibold small">Backend Developer</div>
-                    <div class="text-muted" style="font-size:0.75rem;">StartupXYZ</div>
-                    <div class="text-muted" style="font-size:0.75rem;">Remote · Full-time</div>
-                    <div class="text-success" style="font-size:0.75rem;">8 days left</div>
-                  </div>
-                </div>
-              </a>
-            </div>
-
-            <div class="text-center">
-              <a href="#" class="btn btn-outline-primary btn-sm">View All Jobs</a>
+            <!-- Status Pill -->
+            <div class="d-flex align-items-center gap-2">
+              {% if total_openings > 0 %}
+                <span class="badge rounded-pill status-pill-hiring">
+                  <span class="pulse-dot"></span> Actively Hiring ({{ total_openings }} {{ total_openings|pluralize:"opening,openings" }})
+                </span>
+              {% else %}
+                <span class="badge rounded-pill status-pill-idle">
+                  <i class="bi bi-building-check me-1"></i> Registered Employer
+                </span>
+              {% endif %}
+              
+              {% if years_in_business is not None and years_in_business > 0 %}
+                <span class="badge rounded-pill bg-light text-muted border px-2 py-1 small">
+                  <i class="bi bi-award me-1 text-warning"></i>{{ years_in_business }}+ Years in Industry
+                </span>
+              {% endif %}
             </div>
           </div>
         </div>
+
+        <!-- Right: Action CTA Buttons -->
+        <div class="company-header-actions d-flex flex-wrap align-items-center gap-2 w-100 w-lg-auto justify-content-start justify-content-lg-end mt-2 mt-lg-0">
+          {% if company.website_url %}
+            <a href="{{ company.website_url }}" id="btn-visit-website" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+              <i class="bi bi-globe2"></i>
+              <span>Official Website</span>
+              <i class="bi bi-box-arrow-up-right small"></i>
+            </a>
+          {% endif %}
+
+          <button type="button" id="btn-share-profile" class="btn btn-light rounded-pill border px-3 py-2 fw-semibold text-secondary d-inline-flex align-items-center gap-2" onclick="shareCompanyProfile()">
+            <i class="bi bi-share"></i>
+            <span>Share</span>
+          </button>
+
+          <a href="#openings-section" id="btn-jump-openings" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
+            <i class="bi bi-briefcase-fill"></i>
+            <span>View Openings</span>
+            {% if total_openings > 0 %}
+              <span class="badge bg-white text-danger rounded-pill ms-1">{{ total_openings }}</span>
+            {% endif %}
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Quick Stats Grid Strip -->
+    <div class="company-stats-strip bg-light border-top border-light-subtle px-4 px-md-5 py-3">
+      <div class="row g-3 text-center text-sm-start">
+        
+        <div class="col-6 col-md-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon-bubble bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center">
+              <i class="bi bi-briefcase fs-5"></i>
+            </div>
+            <div>
+              <div class="stat-value fw-bold text-dark fs-5">{{ total_openings }}</div>
+              <div class="stat-label small text-muted text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Active Roles</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon-bubble bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center">
+              <i class="bi bi-people fs-5"></i>
+            </div>
+            <div>
+              <div class="stat-value fw-bold text-dark fs-5">{{ company.get_company_size_display|default:company.company_size }}</div>
+              <div class="stat-label small text-muted text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Company Size</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon-bubble bg-success bg-opacity-10 text-success rounded-circle p-2 d-flex align-items-center justify-content-center">
+              <i class="bi bi-calendar-event fs-5"></i>
+            </div>
+            <div>
+              <div class="stat-value fw-bold text-dark fs-5">{{ company.founded_date|date:"Y" }}</div>
+              <div class="stat-label small text-muted text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Founded Year</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon-bubble bg-info bg-opacity-10 text-info rounded-circle p-2 d-flex align-items-center justify-content-center">
+              <i class="bi bi-geo-alt fs-5"></i>
+            </div>
+            <div>
+              <div class="stat-value fw-bold text-dark fs-5 text-truncate" style="max-width: 140px;" title="{{ company.city }}">{{ company.city }}</div>
+              <div class="stat-label small text-muted text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;">Headquarters</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
+  <!-- Share Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="shareToast" class="toast align-items-center text-bg-dark border-0 rounded-4 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i class="bi bi-check-circle-fill text-success fs-5"></i>
+          <span>Profile link copied to clipboard!</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="row g-4">
+    
+    <!-- LEFT COLUMN (Main Overview & Openings) -->
+    <div class="col-lg-8">
+
+      <!-- About Company Card -->
+      <section id="about-section" class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in-card">
+        <div class="card-header bg-white border-bottom border-light-subtle px-4 py-3 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="section-icon-badge bg-danger bg-opacity-10 text-danger rounded-3 p-2 d-flex">
+              <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <h2 class="h5 fw-bold mb-0 text-dark">About {{ company.company_name }}</h2>
+          </div>
+          <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 small fw-medium">
+            <i class="bi bi-shield-check text-success me-1"></i>Verified Profile
+          </span>
+        </div>
+        
+        <div class="card-body p-4">
+          <div class="company-about-text fs-6 lh-lg text-secondary">
+            {{ company.about_company|linebreaks }}
+          </div>
+
+          <!-- Highlight Value Cards -->
+          <div class="row g-3 mt-3 pt-3 border-top border-light-subtle">
+            <div class="col-sm-6">
+              <div class="p-3 rounded-3 bg-light border border-light-subtle h-100 d-flex gap-3 align-items-start">
+                <div class="text-danger fs-4"><i class="bi bi-rocket-takeoff-fill"></i></div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">Career Acceleration</h6>
+                  <p class="small text-muted mb-0">Direct industry experience, mentorship, and opportunities to make meaningful impact.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6">
+              <div class="p-3 rounded-3 bg-light border border-light-subtle h-100 d-flex gap-3 align-items-start">
+                <div class="text-primary fs-4"><i class="bi bi-lightning-charge-fill"></i></div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">Modern Ecosystem</h6>
+                  <p class="small text-muted mb-0">Working with forward-thinking methodologies and next-generation workplace standards.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Open Positions Section -->
+      <section id="openings-section" class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in-card">
+        <div class="card-header bg-white border-bottom border-light-subtle px-4 py-3">
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <div class="section-icon-badge bg-primary bg-opacity-10 text-primary rounded-3 p-2 d-flex">
+                <i class="bi bi-briefcase-fill"></i>
+              </div>
+              <div>
+                <h2 class="h5 fw-bold mb-0 text-dark">Open Opportunities</h2>
+                <div class="small text-muted">Currently active listings for {{ company.company_name }}</div>
+              </div>
+            </div>
+
+            <!-- Position Filter Tabs -->
+            <ul class="nav nav-pills custom-pill-tabs" id="openingsTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-3 py-1 small fw-semibold" id="tab-all-btn" data-bs-toggle="pill" data-bs-target="#tab-all" type="button" role="tab">
+                  All <span class="badge bg-secondary ms-1">{{ total_openings }}</span>
+                </button>
+              </li>
+              {% if active_jobs %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-3 py-1 small fw-semibold" id="tab-jobs-btn" data-bs-toggle="pill" data-bs-target="#tab-jobs" type="button" role="tab">
+                  Jobs <span class="badge bg-danger ms-1">{{ active_jobs|length }}</span>
+                </button>
+              </li>
+              {% endif %}
+              {% if active_internships %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-3 py-1 small fw-semibold" id="tab-internships-btn" data-bs-toggle="pill" data-bs-target="#tab-internships" type="button" role="tab">
+                  Internships <span class="badge bg-primary ms-1">{{ active_internships|length }}</span>
+                </button>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <div class="tab-content" id="openingsTabContent">
+
+            <!-- TAB 1: ALL OPENINGS -->
+            <div class="tab-pane fade show active" id="tab-all" role="tabpanel">
+              {% if not active_jobs and not active_internships %}
+                <!-- Empty State -->
+                <div class="empty-openings-state text-center py-5 px-3">
+                  <div class="empty-icon-wrap rounded-circle bg-light d-inline-flex p-4 mb-3 text-muted">
+                    <i class="bi bi-briefcase text-secondary display-5"></i>
+                  </div>
+                  <h4 class="h5 fw-bold text-dark mb-2">No Active Openings Right Now</h4>
+                  <p class="text-muted small mx-auto mb-4" style="max-width: 460px;">
+                    {{ company.company_name }} does not have public openings at this moment. You can bookmark this page or explore other companies hiring in {{ company.industry }}.
+                  </p>
+                  <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="{% url 'website:jobs_list' %}" class="btn btn-outline-danger rounded-pill px-4 py-2 btn-sm fw-semibold">
+                      <i class="bi bi-search me-1"></i> Browse All Jobs
+                    </a>
+                    <a href="{% url 'website:internship' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 btn-sm fw-semibold">
+                      <i class="bi bi-mortarboard me-1"></i> Browse Internships
+                    </a>
+                  </div>
+                </div>
+              {% else %}
+                <div class="d-flex flex-column gap-3">
+                  <!-- Active Jobs in All Tab -->
+                  {% for job in active_jobs %}
+                    <div class="opening-card p-3 p-md-4 rounded-3 border bg-white shadow-sm position-relative transition-all">
+                      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                        <div class="flex-grow-1">
+                          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2 py-1 small fw-semibold">
+                              <i class="bi bi-briefcase-fill me-1"></i>Job
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                              {{ job.job_type }}
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                              <i class="bi bi-building-gear me-1"></i>{{ job.location_type }}
+                            </span>
+                          </div>
+
+                          <h3 class="h5 fw-bold text-dark mb-1">
+                            <a href="{% if job.slug %}{% url 'website:job_detail' slug=job.slug %}{% else %}{% url 'website:job_detail_by_pk' pk=job.pk %}{% endif %}" class="text-dark text-decoration-none hover-primary stretched-link">
+                              {{ job.title }}
+                            </a>
+                          </h3>
+
+                          <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+                            <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ job.city }}{% if job.province %}, {{ job.province }}{% endif %}</span>
+                            <span>•</span>
+                            <span><i class="bi bi-clock-history me-1 text-warning"></i>Deadline: {{ job.application_deadline|date:"M j, Y" }}</span>
+                            {% if job.days_left > 0 %}
+                              <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0">
+                                {{ job.days_left }} {{ job.days_left|pluralize:"day,days" }} left
+                              </span>
+                            {% endif %}
+                          </div>
+
+                          {% if job.skills.all %}
+                            <div class="d-flex flex-wrap gap-1 mt-3 position-relative z-2">
+                              {% for s in job.skills.all|slice:":4" %}
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ s.name }}</span>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        </div>
+
+                        <!-- Right CTA Button -->
+                        <div class="flex-shrink-0 text-md-end position-relative z-2">
+                          <a href="{% if job.slug %}{% url 'website:job_detail' slug=job.slug %}{% else %}{% url 'website:job_detail_by_pk' pk=job.pk %}{% endif %}" class="btn btn-outline-danger rounded-pill px-3 py-2 btn-sm fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>Apply</span>
+                            <i class="bi bi-arrow-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                  <!-- Active Internships in All Tab -->
+                  {% for intern in active_internships %}
+                    <div class="opening-card p-3 p-md-4 rounded-3 border bg-white shadow-sm position-relative transition-all">
+                      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                        <div class="flex-grow-1">
+                          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-semibold">
+                              <i class="bi bi-mortarboard-fill me-1"></i>Internship
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                              {{ intern.type }}
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                              <i class="bi bi-laptop me-1"></i>{{ intern.location }}
+                            </span>
+                          </div>
+
+                          <h3 class="h5 fw-bold text-dark mb-1">
+                            <a href="{% url 'website:internship_detail' intern.pk %}" class="text-dark text-decoration-none hover-primary stretched-link">
+                              {{ intern.title }}
+                            </a>
+                          </h3>
+
+                          <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+                            <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ intern.city }}</span>
+                            <span>•</span>
+                            <span><i class="bi bi-clock-history me-1 text-warning"></i>Deadline: {{ intern.application_deadline|date:"M j, Y" }}</span>
+                            {% if intern.days_left > 0 %}
+                              <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0">
+                                {{ intern.days_left }} {{ intern.days_left|pluralize:"day,days" }} left
+                              </span>
+                            {% endif %}
+                          </div>
+
+                          {% if intern.skills.all %}
+                            <div class="d-flex flex-wrap gap-1 mt-3 position-relative z-2">
+                              {% for s in intern.skills.all|slice:":4" %}
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ s.name }}</span>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        </div>
+
+                        <!-- Right CTA Button -->
+                        <div class="flex-shrink-0 text-md-end position-relative z-2">
+                          <a href="{% url 'website:internship_detail' intern.pk %}" class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-semibold d-inline-flex align-items-center gap-1">
+                            <span>View Role</span>
+                            <i class="bi bi-arrow-right"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- TAB 2: JOBS ONLY -->
+            {% if active_jobs %}
+            <div class="tab-pane fade" id="tab-jobs" role="tabpanel">
+              <div class="d-flex flex-column gap-3">
+                {% for job in active_jobs %}
+                  <div class="opening-card p-3 p-md-4 rounded-3 border bg-white shadow-sm position-relative transition-all">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                      <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                          <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2 py-1 small fw-semibold">Job</span>
+                          <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ job.job_type }}</span>
+                          <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ job.location_type }}</span>
+                        </div>
+                        <h3 class="h5 fw-bold text-dark mb-1">
+                          <a href="{% if job.slug %}{% url 'website:job_detail' slug=job.slug %}{% else %}{% url 'website:job_detail_by_pk' pk=job.pk %}{% endif %}" class="text-dark text-decoration-none hover-primary stretched-link">
+                            {{ job.title }}
+                          </a>
+                        </h3>
+                        <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+                          <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ job.city }}</span>
+                          <span>•</span>
+                          <span><i class="bi bi-clock-history me-1 text-warning"></i>Deadline: {{ job.application_deadline|date:"M j, Y" }}</span>
+                        </div>
+                      </div>
+                      <div class="flex-shrink-0 position-relative z-2">
+                        <a href="{% if job.slug %}{% url 'website:job_detail' slug=job.slug %}{% else %}{% url 'website:job_detail_by_pk' pk=job.pk %}{% endif %}" class="btn btn-outline-danger rounded-pill px-3 py-2 btn-sm fw-semibold">
+                          Apply Now
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- TAB 3: INTERNSHIPS ONLY -->
+            {% if active_internships %}
+            <div class="tab-pane fade" id="tab-internships" role="tabpanel">
+              <div class="d-flex flex-column gap-3">
+                {% for intern in active_internships %}
+                  <div class="opening-card p-3 p-md-4 rounded-3 border bg-white shadow-sm position-relative transition-all">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                      <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-2 py-1 small fw-semibold">Internship</span>
+                          <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ intern.type }}</span>
+                          <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">{{ intern.location }}</span>
+                        </div>
+                        <h3 class="h5 fw-bold text-dark mb-1">
+                          <a href="{% url 'website:internship_detail' intern.pk %}" class="text-dark text-decoration-none hover-primary stretched-link">
+                            {{ intern.title }}
+                          </a>
+                        </h3>
+                        <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+                          <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ intern.city }}</span>
+                          <span>•</span>
+                          <span><i class="bi bi-clock-history me-1 text-warning"></i>Deadline: {{ intern.application_deadline|date:"M j, Y" }}</span>
+                        </div>
+                      </div>
+                      <div class="flex-shrink-0 position-relative z-2">
+                        <a href="{% url 'website:internship_detail' intern.pk %}" class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-semibold">
+                          View Details
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN (Sidebar: Company Overview, Contact, Similar Companies) -->
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 24px;">
+
+        <!-- Company Overview Quick Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in-card">
+          <div class="card-header bg-white border-bottom border-light-subtle px-4 py-3 d-flex align-items-center gap-2">
+            <i class="bi bi-building-check text-danger fs-5"></i>
+            <h3 class="h6 fw-bold mb-0 text-dark">Company Information</h3>
+          </div>
+
+          <div class="card-body p-4">
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-tag-fill text-danger"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Industry Sector</div>
+                  <div class="fw-semibold text-dark">{{ company.industry }}</div>
+                </div>
+              </li>
+
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-people-fill text-primary"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Workforce Scale</div>
+                  <div class="fw-semibold text-dark">{{ company.get_company_size_display|default:company.company_size }}</div>
+                </div>
+              </li>
+
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-calendar2-check-fill text-success"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Founded</div>
+                  <div class="fw-semibold text-dark">{{ company.founded_date|date:"F j, Y" }}</div>
+                </div>
+              </li>
+
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-geo-alt-fill text-danger"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Region & Province</div>
+                  <div class="fw-semibold text-dark">{{ company.city }}, {{ company.province }}</div>
+                </div>
+              </li>
+
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-signpost-2-fill text-secondary"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Address</div>
+                  <div class="fw-semibold text-dark">{{ company.current_address }}</div>
+                  {% if company.postal_code %}
+                    <div class="small text-muted">Postal Code: {{ company.postal_code }}</div>
+                  {% endif %}
+                </div>
+              </li>
+
+              {% if company.website_url %}
+              <li class="d-flex align-items-start gap-3 pt-2 border-top border-light-subtle">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-globe2 text-info"></i>
+                </div>
+                <div class="w-100">
+                  <div class="text-muted small fw-medium">Official Website</div>
+                  <a href="{{ company.website_url }}" target="_blank" rel="noopener noreferrer" class="text-truncate d-block fw-semibold text-danger text-decoration-none">
+                    {{ company.website_url }}
+                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                  </a>
+                </div>
+              </li>
+              {% endif %}
+
+              {% if company.social_link %}
+              <li class="d-flex align-items-start gap-3">
+                <div class="sidebar-info-icon text-muted flex-shrink-0 mt-1">
+                  <i class="bi bi-share-fill text-primary"></i>
+                </div>
+                <div>
+                  <div class="text-muted small fw-medium">Social Profile</div>
+                  <a href="{{ company.social_link }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-primary text-decoration-none">
+                    Connect on Social Media <i class="bi bi-arrow-up-right ms-1 small"></i>
+                  </a>
+                </div>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Contact & Inquiries Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in-card">
+          <div class="card-header bg-white border-bottom border-light-subtle px-4 py-3 d-flex align-items-center gap-2">
+            <i class="bi bi-headset text-primary fs-5"></i>
+            <h3 class="h6 fw-bold mb-0 text-dark">Contact Information</h3>
+          </div>
+          <div class="card-body p-4">
+            <p class="small text-muted mb-3">For hiring partnerships, student inquiries, or corporate verification:</p>
+            
+            {% if company.phone %}
+            <div class="p-3 bg-light rounded-3 mb-2 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-telephone-fill text-success"></i>
+                <span class="small fw-semibold text-dark">{{ company.phone }}</span>
+              </div>
+              <a href="tel:{{ company.phone }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1">Call</a>
+            </div>
+            {% endif %}
+
+            {% if company.email %}
+            <div class="p-3 bg-light rounded-3 mb-3 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                <i class="bi bi-envelope-fill text-danger"></i>
+                <span class="small fw-semibold text-dark text-truncate">{{ company.email }}</span>
+              </div>
+              <a href="mailto:{{ company.email }}?subject=Inquiry via SkillBridge" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1">Email</a>
+            </div>
+            {% endif %}
+
+            <button type="button" class="btn btn-light border w-100 rounded-pill py-2 small fw-semibold text-secondary d-flex align-items-center justify-content-center gap-2" onclick="copyAddress('{{ company.current_address|escapejs }}, {{ company.city|escapejs }}')">
+              <i class="bi bi-clipboard"></i>
+              <span>Copy Full Address</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Recommended Companies Card -->
+        {% if other_companies %}
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden fade-in-card">
+          <div class="card-header bg-white border-bottom border-light-subtle px-4 py-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-stars text-warning fs-5"></i>
+              <h3 class="h6 fw-bold mb-0 text-dark">Explore Other Companies</h3>
+            </div>
+            <a href="{% url 'website:index' %}#companies" class="small text-danger text-decoration-none fw-semibold">View All</a>
+          </div>
+
+          <div class="card-body p-3">
+            <div class="d-flex flex-column gap-2">
+              {% for other in other_companies %}
+                <a href="{{ other.get_absolute_url }}" class="other-company-item p-2 rounded-3 text-decoration-none d-flex align-items-center gap-3 transition-all">
+                  <div class="other-logo-box rounded-3 border bg-white p-1 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    {% if other.logo %}
+                      <img src="{{ other.logo.url }}" alt="{{ other.company_name }}" class="rounded-2" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                      <span class="small fw-bold text-danger">{{ other.first_name|slice:":1" }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold text-dark text-truncate small other-name">{{ other.company_name }}</div>
+                    <div class="text-muted small text-truncate" style="font-size: 0.75rem;">
+                      {{ other.industry }} · {{ other.city }}
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0 text-end">
+                    <i class="bi bi-chevron-right text-muted other-chevron small"></i>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+
 </div>
+
+<!-- Custom Page Styling -->
+<style>
+/* Design tokens & Theme Variables */
+:root {
+  --sb-primary: #d2232a;
+  --sb-primary-hover: #b11b21;
+  --sb-dark: #0f172a;
+  --sb-card-bg: #ffffff;
+}
+
+/* Breadcrumb Styling */
+.custom-breadcrumb {
+  font-size: 0.875rem;
+}
+.custom-breadcrumb a {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.custom-breadcrumb a:hover {
+  color: var(--sb-primary);
+}
+
+/* Hero Card Cover */
+.company-hero-card {
+  background: #ffffff;
+}
+
+.company-hero-cover {
+  height: 180px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+}
+
+@media (min-width: 768px) {
+  .company-hero-cover {
+    height: 220px;
+  }
+}
+
+.cover-mesh-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 30%, rgba(210, 35, 42, 0.4), transparent 50%),
+              radial-gradient(circle at 85% 70%, rgba(59, 130, 246, 0.35), transparent 50%),
+              radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.25), transparent 60%);
+}
+
+.cover-overlay-pattern {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.6;
+}
+
+.backdrop-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Brand block & Logo frame */
+.company-identity-wrapper {
+  margin-top: -60px;
+}
+
+@media (min-width: 768px) {
+  .company-identity-wrapper {
+    margin-top: -75px;
+  }
+}
+
+.company-logo-frame {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px !important;
+  background-color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .company-logo-frame {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+.company-main-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.company-logo-fallback {
+  width: 100%;
+  height: 100%;
+  background-color: #fff1f2;
+  border: 1px dashed rgba(210, 35, 42, 0.3);
+}
+
+.company-headline {
+  font-size: 1.6rem;
+  letter-spacing: -0.5px;
+}
+
+@media (min-width: 768px) {
+  .company-headline {
+    font-size: 2.1rem;
+  }
+}
+
+/* Status Pills */
+.status-pill-hiring {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.825rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseAnimation 2s infinite;
+}
+
+@keyframes pulseAnimation {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.status-pill-idle {
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.825rem;
+}
+
+/* Stat Icon bubble */
+.stat-icon-bubble {
+  width: 44px;
+  height: 44px;
+}
+
+/* Custom Pill Tabs */
+.custom-pill-tabs .nav-link {
+  color: #64748b;
+  background-color: #f1f5f9;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.custom-pill-tabs .nav-link:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.custom-pill-tabs .nav-link.active {
+  background-color: var(--sb-primary) !important;
+  color: #ffffff !important;
+}
+
+.custom-pill-tabs .nav-link.active .badge {
+  background-color: #ffffff !important;
+  color: var(--sb-primary) !important;
+}
+
+/* Openings cards */
+.opening-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border-color: #e2e8f0 !important;
+}
+
+.opening-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(210, 35, 42, 0.3) !important;
+}
+
+.hover-primary {
+  transition: color 0.2s ease;
+}
+
+.opening-card:hover .hover-primary {
+  color: var(--sb-primary) !important;
+}
+
+/* Other companies list item */
+.other-company-item {
+  background-color: transparent;
+}
+
+.other-company-item:hover {
+  background-color: #f8fafc;
+}
+
+.other-company-item:hover .other-name {
+  color: var(--sb-primary) !important;
+}
+
+.other-company-item:hover .other-chevron {
+  color: var(--sb-primary) !important;
+  transform: translateX(2px);
+}
+
+.other-chevron {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Fade in animation */
+.fade-in-card {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<!-- Micro-Interactions Script -->
+<script>
+function shareCompanyProfile() {
+  const pageUrl = window.location.href;
+  const pageTitle = "{{ company.company_name|escapejs }} on SkillBridge";
+
+  if (navigator.share) {
+    navigator.share({
+      title: pageTitle,
+      text: "Check out {{ company.company_name|escapejs }} on SkillBridge!",
+      url: pageUrl
+    }).catch(() => {
+      // User cancelled or share failed, fallback to copy
+      copyToClipboard(pageUrl);
+    });
+  } else {
+    copyToClipboard(pageUrl);
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    showToast();
+  }).catch(function() {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    showToast();
+  });
+}
+
+function copyAddress(address) {
+  navigator.clipboard.writeText(address).then(function() {
+    const toastEl = document.getElementById('shareToast');
+    if (toastEl) {
+      toastEl.querySelector('.toast-body span').textContent = "Address copied to clipboard!";
+      const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+      toast.show();
+    }
+  });
+}
+
+function showToast() {
+  const toastEl = document.getElementById('shareToast');
+  if (toastEl) {
+    toastEl.querySelector('.toast-body span').textContent = "Profile link copied to clipboard!";
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+  }
+}
+</script>
 {% endblock %}
