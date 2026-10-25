@@ -285,7 +285,7 @@
           {% endif %}
           <h5 class="fw-bold text-dark mb-1">{{ event.organizer.first_name }} {{ event.organizer.last_name }}</h5>
           <p class="small text-muted mb-3">{{ event.organizer.industry }}</p>
-          <a href="{% url 'website:company_detail' event.organizer.id %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+          <a href="{{ event.organizer.get_absolute_url }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             View Profile
           </a>
         {% else %}
