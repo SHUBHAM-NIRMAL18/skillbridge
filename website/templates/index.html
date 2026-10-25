@@ -228,7 +228,7 @@
             </div>
 
             <!-- CTA -->
-            <a href="{% url 'website:company_detail' pk=company.pk %}" class="btn-company-view">
+            <a href="{{ company.get_absolute_url }}" class="btn-company-view">
               <span>Explore Company & Openings</span>
               <i class="bi bi-arrow-right"></i>
             </a>
