@@ -31,7 +31,7 @@ from .models import CompanyProfile, InternshipPost, JobPost
 from applications.models import Application
 from candidate.models import Profile, Feedback
 from communications.models import Conversation, Message
-from communications.services import notify_user
+from communications.services import notify_user, get_or_create_conversation, send_conversation_message
 
 # Membership wallet helpers
 from membership.services import spend_credits, get_spendable_balance
@@ -299,12 +299,59 @@ def company_dashboard(request):
                 scheduled_at__gte=timezone.now(),
                 status__in=["scheduled", "confirmed", "reschedule_requested"]
             )
-            .order_by("scheduled_at")[:5]
+            .order_by("scheduled_at")[:6]
         )
+        tomorrow = today + timezone.timedelta(days=1)
+        for itw in upcoming_interviews:
+            itw_date = timezone.localtime(itw.scheduled_at).date()
+            itw.is_today = (itw_date == today)
+            itw.is_tomorrow = (itw_date == tomorrow)
     except Exception:
         upcoming_interviews = []
 
     metrics["upcoming_interviews"] = len(upcoming_interviews)
+
+    # AI Talent Match Recommendations across active postings
+    recommended_candidates = []
+    active_postings_count = active_jobs + active_interns
+    try:
+        from recommendations.simple_hybrid import recommend_candidates_for_job
+        # Fetch up to 3 active jobs and 3 active internships to source from
+        sample_postings = list(jobs_qs.filter(is_active=True, application_deadline__gte=today)[:3]) +                           list(interns_qs.filter(is_active=True, application_deadline__gte=today)[:3])
+        
+        seen_cand_ids = set()
+        for post in sample_postings:
+            is_job = isinstance(post, JobPost)
+            if is_job:
+                applied_cand_ids = set(Application.objects.filter(job_post=post).values_list("candidate_id", flat=True))
+                p_type = "Job"
+            else:
+                applied_cand_ids = set(Application.objects.filter(internship_post=post).values_list("candidate_id", flat=True))
+                p_type = "Internship"
+            
+            raw_recs = recommend_candidates_for_job(post, limit=8)
+            for r in raw_recs:
+                if r.obj_id not in applied_cand_ids and r.obj_id not in seen_cand_ids:
+                    cand_prof = Profile.objects.filter(id=r.obj_id).select_related("user").first()
+                    if cand_prof:
+                        seen_cand_ids.add(r.obj_id)
+                        clean_why = r.why.replace("�", "•").replace("", "•") if r.why else ""
+                        recommended_candidates.append({
+                            "profile": cand_prof,
+                            "posting": post,
+                            "post_type": p_type,
+                            "post_id": post.id,
+                            "score": int(round(r.score * 100)),
+                            "why": clean_why,
+                            "matched_skills": r.matched_skills[:4],
+                            "missing_skills": r.missing_skills[:3],
+                        })
+                        if len(recommended_candidates) >= 6:
+                            break
+            if len(recommended_candidates) >= 6:
+                break
+    except Exception:
+        recommended_candidates = []
 
     context = {
         "company": company,
@@ -317,6 +364,8 @@ def company_dashboard(request):
         "profile_completion_percent": profile_completion_percent,
         "new_applications": new_applications,
         "upcoming_interviews": upcoming_interviews,
+        "recommended_candidates": recommended_candidates,
+        "active_postings_count": active_postings_count,
         "recent_activities": recent_activities,
         "expiring_soon": expiring_soon,
     }
@@ -975,6 +1024,104 @@ def applicant_detail_partial(request, pk: int):
     }, request=request)
 
     return JsonResponse({"ok": True, "html": html, "title": f"{profile.first_name} {profile.last_name}".strip() or profile.user.username})
+
+@login_required(login_url="accounts:login")
+def candidate_quickview(request, pk: int):
+    """
+    Renders the quickview partial for an AI-recommended candidate.
+    """
+    if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company") or not hasattr(request.user, "company_profile"):
+        return JsonResponse({"ok": False, "error": "Company account required."}, status=403)
+
+    cand_profile = get_object_or_404(
+        Profile.objects.select_related("user").prefetch_related("educations", "experiences", "projects", "social_links"),
+        pk=pk
+    )
+
+    company = request.user.company_profile
+    today = timezone.localdate()
+    active_jobs = list(JobPost.objects.filter(company=company, is_active=True, application_deadline__gte=today))
+    active_interns = list(InternshipPost.objects.filter(company=company, is_active=True, application_deadline__gte=today))
+
+    html = render_to_string("company/_candidate_quickview.html", {
+        "candidate": cand_profile,
+        "active_jobs": active_jobs,
+        "active_interns": active_interns,
+    }, request=request)
+
+    cand_name = f"{cand_profile.first_name} {cand_profile.last_name}".strip() or cand_profile.user.username
+    return JsonResponse({"ok": True, "html": html, "title": cand_name})
+
+
+@login_required(login_url="accounts:login")
+@require_POST
+def candidate_invite(request):
+    """
+    Recruiter sends an invitation to an AI-matched candidate to apply for an active opening.
+    """
+    if getattr(request.user, "role", None) != getattr(request.user, "ROLE_COMPANY", "company") or not hasattr(request.user, "company_profile"):
+        return JsonResponse({"ok": False, "error": "Company account required."}, status=403)
+
+    company = request.user.company_profile
+    cand_id = request.POST.get("candidate_id")
+    post_id = request.POST.get("post_id")
+    post_type = request.POST.get("post_type", "job").lower()
+    custom_note = request.POST.get("note", "").strip()
+
+    if not cand_id or not post_id:
+        return JsonResponse({"ok": False, "error": "Candidate and posting are required."}, status=400)
+
+    cand_profile = get_object_or_404(Profile.objects.select_related("user"), pk=cand_id)
+
+    if post_type in ["job", "jobpost"]:
+        posting = get_object_or_404(JobPost, pk=post_id, company=company)
+        target_url = reverse("website:job_detail_by_pk", kwargs={"pk": posting.pk})
+    else:
+        posting = get_object_or_404(InternshipPost, pk=post_id, company=company)
+        target_url = reverse("website:internship_detail", kwargs={"pk": posting.pk})
+
+    # 1. Send in-app notification
+    notification_msg = f"{company.company_name} reviewed your profile and invited you to apply for their opening: '{posting.title}'."
+    if custom_note:
+        notification_msg += f" Note: {custom_note}"
+
+    try:
+        notify_user(
+            recipient=cand_profile.user,
+            title=f"Application Invitation: {posting.title}",
+            message=notification_msg,
+            action_url=target_url,
+            sender=request.user,
+            notification_type="general"
+        )
+    except Exception:
+        pass
+
+    # 2. Start a direct conversation in communications
+    try:
+        convo, _ = get_or_create_conversation(
+            candidate=cand_profile,
+            company=company,
+            subject=f"Invitation to Apply: {posting.title}"
+        )
+        invite_chat_text = (
+            f"Hello {cand_profile.first_name},\n\n"
+            f"We noticed your profile and background on SkillBridge and believe you would be an excellent candidate for our open position: '{posting.title}'.\n\n"
+        )
+        if custom_note:
+            invite_chat_text += f"Hiring team note: \"{custom_note}\"\n\n"
+        invite_chat_text += f"Please review the role details and apply here: {request.build_absolute_uri(target_url)}"
+
+        send_conversation_message(convo, request.user, invite_chat_text)
+    except Exception:
+        pass
+
+    return JsonResponse({
+        "ok": True,
+        "message": f"Invitation successfully sent to {cand_profile.first_name} {cand_profile.last_name}!",
+        "candidate_id": cand_profile.id,
+    })
+
 
 
 from website.models import Event, EventRegistration
