@@ -1,0 +1,222 @@
+{% load static humanize %}
+
+<div class="offcanvas-header border-bottom py-3 px-4 bg-light">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 small">
+      <i class="bi bi-stars me-1"></i> AI Sourced Profile
+    </span>
+    <h5 class="offcanvas-title fw-bold text-dark mb-0" id="quickviewDrawerLabel">
+      Candidate Snapshot
+    </h5>
+  </div>
+  <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+</div>
+
+<div class="offcanvas-body p-0">
+  <!-- Profile Executive Header -->
+  <div class="p-4 border-bottom bg-white">
+    <div class="d-flex align-items-start gap-3">
+      {% if candidate.profile_picture %}
+        <img src="{{ candidate.profile_picture.url }}" alt="{{ candidate.first_name }}" class="rounded-circle border shadow-2xs flex-shrink-0" style="width: 68px; height: 68px; object-fit: cover;">
+      {% else %}
+        <div class="rounded-circle bg-danger-subtle text-danger fw-bold fs-4 d-flex align-items-center justify-content-center border flex-shrink-0" style="width: 68px; height: 68px;">
+          {{ candidate.first_name|slice:":1" }}{{ candidate.last_name|slice:":1" }}
+        </div>
+      {% endif %}
+      
+      <div class="min-w-0 flex-grow-1">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <h4 class="fw-bold mb-0 text-dark">{{ candidate.first_name }} {{ candidate.last_name }}</h4>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-xs fw-semibold">
+            {{ candidate.get_experience_level_display|default:"Candidate" }}
+          </span>
+        </div>
+        
+        <div class="text-muted fw-medium mt-0.5" style="font-size: 0.92rem;">
+          {{ candidate.designation|default:"Aspiring Professional" }}
+        </div>
+
+        <div class="d-flex align-items-center gap-3 text-muted small mt-2 flex-wrap" style="font-size: 0.8rem;">
+          {% if candidate.city or candidate.get_province_display %}
+            <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ candidate.city }}{% if candidate.city and candidate.get_province_display %}, {% endif %}{{ candidate.get_province_display }}</span>
+          {% endif %}
+          {% if candidate.email %}
+            <span><i class="bi bi-envelope text-muted me-1"></i>{{ candidate.email }}</span>
+          {% endif %}
+          {% if candidate.phone_number %}
+            <span><i class="bi bi-telephone text-muted me-1"></i>{{ candidate.phone_number }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Social links & Resume Action -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 pt-3 border-top">
+      <div class="d-flex align-items-center gap-1.5 flex-wrap">
+        {% for s in candidate.social_links.all %}
+          <a href="{{ s.url }}" target="_blank" class="badge bg-light text-dark border rounded-pill px-2.5 py-1.5 text-decoration-none hover-lift small">
+            {% if s.platform == 'github' %}<i class="bi bi-github me-1"></i>GitHub
+            {% elif s.platform == 'linkedin' %}<i class="bi bi-linkedin text-primary me-1"></i>LinkedIn
+            {% elif s.platform == 'portfolio' %}<i class="bi bi-globe me-1"></i>Portfolio
+            {% else %}<i class="bi bi-link-45deg me-1"></i>{{ s.get_platform_display }}
+            {% endif %}
+          </a>
+        {% empty %}
+          <span class="text-muted text-xs">No external links attached</span>
+        {% endfor %}
+      </div>
+
+      {% if candidate.resume %}
+        <a href="{% url 'candidate:download_resume' candidate.id %}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center hover-lift">
+          <i class="bi bi-file-earmark-person me-1.5"></i> Download Resume
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sourcing Call-To-Action (Invite Form) -->
+  <div class="p-4 bg-light border-bottom">
+    <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h6 class="fw-bold mb-0 text-dark d-flex align-items-center">
+          <i class="bi bi-send-fill text-danger me-2"></i>Invite Candidate to Apply
+        </h6>
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill text-xs">Instant Alert</span>
+      </div>
+      <p class="text-muted small mb-3" style="font-size: 0.8rem;">
+        Send a direct hiring invitation to {{ candidate.first_name }}. An in-app alert and direct message will be dispatched immediately.
+      </p>
+
+      {% if active_jobs or active_interns %}
+        <form id="quickviewInviteForm" class="d-flex flex-column gap-2.5">
+          {% csrf_token %}
+          <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
+
+          <div>
+            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.75rem;">Select Open Opportunity</label>
+            <select name="post_target" id="quickviewPostTarget" class="form-select form-select-sm rounded-3 fw-medium" required>
+              {% for j in active_jobs %}
+                <option value="job:{{ j.id }}">[Job] {{ j.title }} ({{ j.city }})</option>
+              {% endfor %}
+              {% for i in active_interns %}
+                <option value="intern:{{ i.id }}">[Internship] {{ i.title }} ({{ i.city }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.75rem;">Personal Note to Candidate (Optional)</label>
+            <textarea name="note" id="quickviewNote" rows="2" class="form-control form-control-sm rounded-3" placeholder="e.g. We loved your backend experience and think you'd be a great fit for our current sprint goals!"></textarea>
+          </div>
+
+          <button type="submit" id="quickviewInviteBtn" class="btn btn-danger btn-sm rounded-pill py-2 fw-semibold shadow-sm hover-lift d-inline-flex align-items-center justify-content-center mt-1">
+            <i class="bi bi-envelope-paper-fill me-1.5"></i> Send Application Invitation
+          </button>
+          <div id="quickviewInviteFeedback" class="small text-center mt-1" style="display: none;"></div>
+        </form>
+      {% else %}
+        <div class="text-center py-2 text-muted small">
+          <i class="bi bi-info-circle me-1"></i> You have no active job or internship postings to invite this candidate to.
+          <div class="mt-2">
+            <a href="{% url 'company:company_post_choice' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1">
+              + Post New Opportunity
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Candidate Details Tabs / Sections -->
+  <div class="p-4">
+    <!-- About Me -->
+    {% if candidate.about_me %}
+      <div class="mb-4">
+        <h6 class="fw-bold text-dark mb-2" style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.4px;">About Candidate</h6>
+        <div class="text-muted small lh-base" style="font-size: 0.86rem;">
+          {{ candidate.about_me|safe }}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Skills Cloud -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-dark mb-2" style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.4px;">Skills & Competencies</h6>
+      <div class="d-flex flex-wrap gap-1.5">
+        {% for s in candidate.skills_list %}
+          <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-medium" style="font-size: 0.75rem;">
+            {{ s }}
+          </span>
+        {% empty %}
+          <span class="text-muted text-xs">No skills listed</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Experience Timeline -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-dark mb-2.5" style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.4px;">
+        Work Experience ({{ candidate.experiences.count }})
+      </h6>
+      {% for exp in candidate.experiences.all %}
+        <div class="p-3 rounded-3 border bg-light mb-2">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ exp.role }}</div>
+              <div class="text-danger small fw-semibold">{{ exp.company_name }}</div>
+            </div>
+            <span class="badge bg-white text-muted border rounded-pill small" style="font-size: 0.72rem;">
+              {{ exp.start_date|date:"M Y" }} – {% if exp.is_current %}Present{% elif exp.end_date %}{{ exp.end_date|date:"M Y" }}{% else %}Present{% endif %}
+            </span>
+          </div>
+          {% if exp.description %}
+            <p class="text-muted small mt-2 mb-0" style="font-size: 0.8rem; line-height: 1.4;">{{ exp.description|truncatechars:180 }}</p>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="text-muted small fst-italic">No prior work experience listed.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Education Timeline -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-dark mb-2.5" style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.4px;">
+        Education History ({{ candidate.educations.count }})
+      </h6>
+      {% for edu in candidate.educations.all %}
+        <div class="p-3 rounded-3 border bg-white mb-2 shadow-2xs">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ edu.degree }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</div>
+              <div class="text-muted small">{{ edu.institution }}</div>
+            </div>
+            <span class="badge bg-light text-muted border rounded-pill small" style="font-size: 0.72rem;">
+              {{ edu.start_date|date:"Y" }} – {% if edu.end_date %}{{ edu.end_date|date:"Y" }}{% else %}Present{% endif %}
+            </span>
+          </div>
+        </div>
+      {% empty %}
+        <div class="text-muted small fst-italic">No education records provided.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Projects Portfolio -->
+    {% if candidate.projects.exists %}
+      <div class="mb-3">
+        <h6 class="fw-bold text-dark mb-2.5" style="font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.4px;">
+          Key Projects ({{ candidate.projects.count }})
+        </h6>
+        {% for proj in candidate.projects.all %}
+          <div class="p-3 rounded-3 border bg-white mb-2 shadow-2xs">
+            <div class="fw-bold text-dark" style="font-size: 0.88rem;">{{ proj.title }}</div>
+            {% if proj.description %}
+              <p class="text-muted small mt-1 mb-1" style="font-size: 0.8rem;">{{ proj.description|truncatechars:150 }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
