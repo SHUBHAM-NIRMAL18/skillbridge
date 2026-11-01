@@ -6,6 +6,183 @@
   <li class="breadcrumb-item active" aria-current="page">
     <i class="bi bi-speedometer2 me-1.5 text-danger"></i> Dashboard Overview
   </li>
+
+  <!-- Candidate Quickview Offcanvas Drawer -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="candidateQuickviewDrawer" aria-labelledby="quickviewDrawerLabel" style="width: 540px;">
+    <div id="quickviewDrawerContent">
+      <div class="p-5 text-center text-muted">
+        <div class="spinner-border spinner-border-sm text-danger me-2" role="status"></div>
+        Loading candidate profile...
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feedback Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="dashboardLiveToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i class="bi bi-check-circle-fill text-success fs-5"></i>
+          <span id="dashboardToastMsg">Action completed successfully.</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const quickviewDrawerEl = document.getElementById("candidateQuickviewDrawer");
+  const quickviewDrawer = quickviewDrawerEl && window.bootstrap ? new bootstrap.Offcanvas(quickviewDrawerEl) : null;
+  const quickviewContent = document.getElementById("quickviewDrawerContent");
+  const toastEl = document.getElementById("dashboardLiveToast");
+  const toastMsg = document.getElementById("dashboardToastMsg");
+  const toast = toastEl && window.bootstrap ? new bootstrap.Toast(toastEl, { delay: 4000 }) : null;
+
+  function showToast(message, isSuccess = true) {
+    if (!toast) {
+      alert(message);
+      return;
+    }
+    toastMsg.textContent = message;
+    toastEl.className = `toast align-items-center text-white ${isSuccess ? 'bg-dark' : 'bg-danger'} border-0 shadow-lg`;
+    toast.show();
+  }
+
+  // Handle Quick View trigger
+  document.querySelectorAll(".js-candidate-quickview").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const candId = this.getAttribute("data-candidate-id");
+      if (!candId) return;
+
+      quickviewContent.innerHTML = `
+        <div class="p-5 text-center text-muted">
+          <div class="spinner-border spinner-border-sm text-danger me-2" role="status"></div>
+          Loading candidate profile...
+        </div>
+      `;
+      if (quickviewDrawer) quickviewDrawer.show();
+
+      fetch(`/company/candidates/${candId}/quickview/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            quickviewContent.innerHTML = data.html;
+            bindQuickviewInviteForm();
+          } else {
+            quickviewContent.innerHTML = `<div class="p-4 text-center text-danger">${data.error || 'Failed to load profile.'}</div>`;
+          }
+        })
+        .catch(err => {
+          quickviewContent.innerHTML = `<div class="p-4 text-center text-danger">Error loading candidate preview.</div>`;
+        });
+    });
+  });
+
+  // Handle 1-click Quick Invite from candidate card
+  document.querySelectorAll(".js-quick-invite").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const candId = this.getAttribute("data-candidate-id");
+      const postId = this.getAttribute("data-post-id");
+      const postType = this.getAttribute("data-post-type");
+      const candName = this.getAttribute("data-candidate-name") || "Candidate";
+
+      if (!candId || !postId) return;
+
+      const originalHtml = this.innerHTML;
+      this.disabled = true;
+      this.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Inviting...`;
+
+      const formData = new FormData();
+      formData.append("candidate_id", candId);
+      formData.append("post_id", postId);
+      formData.append("post_type", postType);
+      formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+      fetch("/company/candidates/invite/", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          this.className = "btn btn-sm btn-success rounded-pill px-3 py-1 text-xs fw-semibold";
+          this.innerHTML = `<i class="bi bi-check2-circle me-1"></i> Invited`;
+          showToast(`Invitation sent to ${candName}!`);
+        } else {
+          this.disabled = false;
+          this.innerHTML = originalHtml;
+          showToast(data.error || "Failed to send invitation.", false);
+        }
+      })
+      .catch(err => {
+        this.disabled = false;
+        this.innerHTML = originalHtml;
+        showToast("Network error. Please try again.", false);
+      });
+    });
+  });
+
+  // Handle Quickview Drawer Invite Form submission
+  function bindQuickviewInviteForm() {
+    const inviteForm = document.getElementById("quickviewInviteForm");
+    if (!inviteForm) return;
+
+    inviteForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById("quickviewInviteBtn");
+      const feedback = document.getElementById("quickviewInviteFeedback");
+      const targetVal = document.getElementById("quickviewPostTarget").value;
+      const noteVal = document.getElementById("quickviewNote") ? document.getElementById("quickviewNote").value : "";
+      const candIdInput = inviteForm.querySelector('input[name="candidate_id"]').value;
+
+      const [postType, postId] = targetVal.split(":");
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status"></span> Sending...`;
+
+      const formData = new FormData();
+      formData.append("candidate_id", candIdInput);
+      formData.append("post_id", postId);
+      formData.append("post_type", postType);
+      formData.append("note", noteVal);
+      formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+      fetch("/company/candidates/invite/", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        if (data.ok) {
+          submitBtn.className = "btn btn-success btn-sm rounded-pill py-2 fw-semibold w-100";
+          submitBtn.innerHTML = `<i class="bi bi-check2-circle me-1.5"></i> Invitation Sent!`;
+          feedback.style.display = "block";
+          feedback.className = "small text-center mt-2 text-success fw-semibold";
+          feedback.textContent = data.message;
+          showToast(data.message);
+        } else {
+          submitBtn.innerHTML = `<i class="bi bi-envelope-paper-fill me-1.5"></i> Send Application Invitation`;
+          feedback.style.display = "block";
+          feedback.className = "small text-center mt-2 text-danger fw-semibold";
+          feedback.textContent = data.error || "Failed to send invitation.";
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="bi bi-envelope-paper-fill me-1.5"></i> Send Application Invitation`;
+        feedback.style.display = "block";
+        feedback.className = "small text-center mt-2 text-danger fw-semibold";
+        feedback.textContent = "Network error. Please try again.";
+      });
+    });
+  }
+});
+</script>
+
 {% endblock %}
 
 {% block breadcrumb_actions %}
@@ -288,94 +465,305 @@
   </div>
 
   <!-- ==========================================
-       4. Priority Section: Upcoming Interviews
+       4. Priority Section: Upcoming Candidate Interviews
        ========================================== -->
-  {% if upcoming_interviews %}
   <div class="modern-section-card mb-4 border-start border-4 border-primary">
     <div class="card-header-styled d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
         <h5 class="mb-0 fw-bold text-dark d-flex align-items-center fs-6 fs-sm-5">
           <i class="bi bi-calendar2-check-fill text-primary me-2"></i>Upcoming Candidate Interviews
-          <span class="badge bg-primary text-white rounded-pill ms-2 small">{{ upcoming_interviews|length }} Active</span>
+          {% if upcoming_interviews %}
+            <span class="badge bg-primary text-white rounded-pill ms-2 small">{{ upcoming_interviews|length }} Scheduled</span>
+          {% endif %}
         </h5>
-        <small class="text-muted">Scheduled evaluation meetings with shortlisted candidates.</small>
+        <small class="text-muted">Live schedule for candidate evaluation sessions and technical interviews.</small>
       </div>
-      <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold hover-lift">
-        Manage All Interviews &rarr;
-      </a>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'company:applicants_shortlisted' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold hover-lift d-none d-sm-inline-flex align-items-center">
+          <i class="bi bi-plus-lg me-1"></i> Schedule Interview
+        </a>
+        <a href="{% url 'company:interviews' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold hover-lift">
+          Manage All &rarr;
+        </a>
+      </div>
     </div>
-    <div class="p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light text-muted small text-uppercase">
-            <tr>
-              <th class="border-0 px-3 px-sm-4 py-3 text-nowrap">Candidate</th>
-              <th class="border-0 py-3 text-nowrap">Position & Round</th>
-              <th class="border-0 py-3 text-nowrap">Schedule Date & Time</th>
-              <th class="border-0 py-3 text-nowrap">Status</th>
-              <th class="border-0 text-end px-3 px-sm-4 py-3 text-nowrap">Meeting Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for itw in upcoming_interviews %}
+    
+    {% if upcoming_interviews %}
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
               <tr>
-                <td class="px-3 px-sm-4 py-3 text-nowrap">
-                  <div class="d-flex align-items-center gap-2.5">
-                    {% if itw.candidate.profile_picture %}
-                      <img src="{{ itw.candidate.profile_picture.url }}" class="candidate-avatar-thumb" alt="Avatar" />
-                    {% else %}
-                      <div class="candidate-avatar-fallback">
-                        {{ itw.candidate.first_name|slice:":1"|default:"C" }}
+                <th class="border-0 px-3 px-sm-4 py-3 text-nowrap">Candidate</th>
+                <th class="border-0 py-3 text-nowrap">Position & Round</th>
+                <th class="border-0 py-3 text-nowrap">Scheduled Time</th>
+                <th class="border-0 py-3 text-nowrap">Candidate RSVP</th>
+                <th class="border-0 text-end px-3 px-sm-4 py-3 text-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for itw in upcoming_interviews %}
+                <tr>
+                  <td class="px-3 px-sm-4 py-3 text-nowrap">
+                    <div class="d-flex align-items-center gap-2.5">
+                      {% if itw.candidate.profile_picture %}
+                        <img src="{{ itw.candidate.profile_picture.url }}" class="candidate-avatar-thumb" alt="Avatar" />
+                      {% else %}
+                        <div class="candidate-avatar-fallback">
+                          {{ itw.candidate.first_name|slice:":1"|default:"C" }}
+                        </div>
+                      {% endif %}
+                      <div>
+                        <div class="fw-bold text-dark">{{ itw.candidate.first_name }} {{ itw.candidate.last_name }}</div>
+                        <small class="text-muted">{{ itw.candidate.user.email }}</small>
                       </div>
+                    </div>
+                  </td>
+                  <td class="py-3 text-nowrap">
+                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                      <span class="fw-semibold text-dark">{{ itw.round_name }}</span>
+                      {% if itw.interview_type == 'video' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                          <i class="bi bi-camera-video me-1"></i>Video
+                        </span>
+                      {% elif itw.interview_type == 'in_person' %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                          <i class="bi bi-geo-alt me-1"></i>In-Person
+                        </span>
+                      {% else %}
+                        <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                          <i class="bi bi-telephone me-1"></i>Phone
+                        </span>
+                      {% endif %}
+                    </div>
+                    <small class="text-muted d-block">{{ itw.application.target_title }}</small>
+                  </td>
+                  <td class="py-3 text-nowrap">
+                    <div class="d-flex align-items-center gap-1.5">
+                      {% if itw.is_today %}
+                        <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
+                          <i class="bi bi-clock-fill me-1"></i>Today
+                        </span>
+                      {% elif itw.is_tomorrow %}
+                        <span class="badge bg-primary text-white rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.68rem;">
+                          <i class="bi bi-clock me-1"></i>Tomorrow
+                        </span>
+                      {% endif %}
+                      <span class="fw-bold text-dark">{{ itw.scheduled_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="small text-muted">{{ itw.scheduled_at|date:"g:i A" }} ({{ itw.duration_minutes }}m)</div>
+                  </td>
+                  <td class="py-3 text-nowrap">
+                    {% if itw.status == 'confirmed' %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                        <i class="bi bi-check2-circle me-1"></i> Confirmed
+                      </span>
+                    {% elif itw.status == 'reschedule_requested' %}
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1" title="{{ itw.candidate_notes }}">
+                        <i class="bi bi-clock-history me-1"></i> Reschedule Requested
+                      </span>
+                      {% if itw.candidate_notes %}
+                        <div class="xsmall text-danger mt-1 fst-italic" style="font-size: 0.72rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                          "{{ itw.candidate_notes }}"
+                        </div>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1">
+                        <i class="bi bi-hourglass-split me-1"></i> Awaiting RSVP
+                      </span>
                     {% endif %}
-                    <div>
-                      <div class="fw-bold text-dark">{{ itw.candidate.first_name }} {{ itw.candidate.last_name }}</div>
-                      <small class="text-muted">{{ itw.candidate.user.email }}</small>
+                  </td>
+                  <td class="text-end px-3 px-sm-4 py-3 text-nowrap">
+                    <div class="d-inline-flex align-items-center gap-1.5">
+                      {% if itw.meeting_link and "http" in itw.meeting_link %}
+                        <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center shadow-sm hover-lift">
+                          <i class="bi bi-camera-video me-1.5"></i> Join Call
+                        </a>
+                      {% endif %}
+                      <a href="{{ itw.google_calendar_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 text-xs hover-lift" title="Add to Google Calendar">
+                        <i class="bi bi-calendar-plus text-primary me-1"></i>Calendar
+                      </a>
+                      <a href="{% url 'applications:interview_ics' itw.id %}" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-xs hover-lift" title="Download .ics event">
+                        <i class="bi bi-download"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% else %}
+      <div class="p-4 p-sm-5 text-center bg-white">
+        <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 56px; height: 56px;">
+          <i class="bi bi-calendar2-check fs-4"></i>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">No Upcoming Interviews Scheduled</h6>
+        <p class="text-muted small mb-3 mx-auto" style="max-width: 440px;">
+          Connect face-to-face with your qualified applicants. Move candidates to the interview stage from your candidate pipeline to coordinate video calls and screening rounds.
+        </p>
+        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+          <a href="{% url 'company:applicants_shortlisted' %}" class="btn btn-primary btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm hover-lift">
+            <i class="bi bi-star-fill me-1.5"></i> Shortlisted Candidates
+          </a>
+          <a href="{% url 'company:interviews' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3.5 py-2 fw-medium">
+            View Interview History
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ==========================================
+       AI Talent Match Recommendations (Proactive Sourcing)
+       ========================================== -->
+  <div class="modern-section-card mb-4 border-start border-4 border-danger">
+    <div class="card-header-styled d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h5 class="mb-0 fw-bold text-dark d-flex align-items-center fs-6 fs-sm-5">
+            <i class="bi bi-stars text-danger me-2"></i>AI Talent Match Recommendations
+          </h5>
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 text-xs fw-semibold">
+            Proactive Talent Sourcing
+          </span>
+        </div>
+        <small class="text-muted">
+          Pre-screened candidates from SkillBridge talent pool whose skills and competencies match your active openings.
+        </small>
+      </div>
+      
+      <div class="d-flex align-items-center gap-2">
+        {% if recommended_candidates %}
+          <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1.5 small fw-semibold">
+            {{ recommended_candidates|length }} Matched Profiles
+          </span>
+        {% endif %}
+        <a href="{% url 'company:applicants_all' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 text-xs fw-semibold hover-lift">
+          All Applicants &rarr;
+        </a>
+      </div>
+    </div>
+
+    <div class="p-3 p-sm-4 bg-light">
+      {% if recommended_candidates %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+          {% for cand in recommended_candidates %}
+            <div class="col">
+              <div class="card h-100 border-0 shadow-2xs p-3 rounded-3 bg-white d-flex flex-column justify-content-between hover-lift">
+                <!-- Top Row: Avatar & Match Fit -->
+                <div>
+                  <div class="d-flex align-items-start justify-content-between gap-2 mb-2.5">
+                    <div class="d-flex align-items-center gap-2.5 min-w-0">
+                      <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold text-danger flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
+                        {% if cand.profile.profile_picture %}
+                          <img src="{{ cand.profile.profile_picture.url }}" alt="{{ cand.profile.first_name }}" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                          {{ cand.profile.first_name|slice:":1" }}{{ cand.profile.last_name|slice:":1" }}
+                        {% endif %}
+                      </div>
+                      <div class="min-w-0">
+                        <h6 class="mb-0 fw-bold text-dark text-truncate" style="font-size: 0.92rem;">
+                          {{ cand.profile.first_name }} {{ cand.profile.last_name }}
+                        </h6>
+                        <span class="text-muted small text-truncate d-block" style="font-size: 0.76rem;">
+                          {{ cand.profile.designation|default:"Aspiring Candidate" }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Match Score Pill -->
+                    <span class="badge {% if cand.score >= 70 %}bg-success-subtle text-success border border-success-subtle{% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0" title="{{ cand.why }}">
+                      <i class="bi bi-stars me-1"></i>{{ cand.score }}% Fit
+                    </span>
+                  </div>
+
+                  <!-- Matched Target Position -->
+                  <div class="p-2 rounded-2 bg-light mb-2.5" style="font-size: 0.78rem;">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.3px;">Target Opening</span>
+                      <span class="badge {% if cand.post_type == 'Job' %}bg-primary text-white{% else %}bg-success text-white{% endif %} rounded-pill px-2 py-0.5" style="font-size: 0.62rem;">
+                        {{ cand.post_type }}
+                      </span>
+                    </div>
+                    <div class="fw-bold text-dark text-truncate mt-0.5">
+                      {{ cand.posting.title }}
                     </div>
                   </div>
-                </td>
-                <td class="py-3 text-nowrap">
-                  <div class="fw-semibold text-dark">{{ itw.round_name }}</div>
-                  <small class="text-muted">{{ itw.application.target_title }}</small>
-                </td>
-                <td class="py-3 text-nowrap">
-                  <div class="fw-bold text-dark">{{ itw.scheduled_at|date:"M d, Y" }}</div>
-                  <div class="small text-muted">{{ itw.scheduled_at|date:"g:i A" }} ({{ itw.duration_minutes }}m)</div>
-                </td>
-                <td class="py-3 text-nowrap">
-                  {% if itw.status == 'confirmed' %}
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                      <i class="bi bi-check2-circle me-1"></i> Confirmed
-                    </span>
-                  {% elif itw.status == 'reschedule_requested' %}
-                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                      <i class="bi bi-clock-history me-1"></i> Reschedule
-                    </span>
-                  {% else %}
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
-                      Scheduled
-                    </span>
+
+                  <!-- Matched Skills Chips -->
+                  {% if cand.matched_skills %}
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                      {% for s in cand.matched_skills %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">
+                          ✓ {{ s }}
+                        </span>
+                      {% endfor %}
+                    </div>
                   {% endif %}
-                </td>
-                <td class="text-end px-3 px-sm-4 py-3 text-nowrap">
-                  {% if itw.meeting_link and "http" in itw.meeting_link %}
-                    <a href="{{ itw.meeting_link }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center shadow-sm hover-lift">
-                      <i class="bi bi-camera-video me-1.5"></i> Join Call
-                    </a>
-                  {% else %}
-                    <a href="{% url 'company:interviews' %}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-medium">
-                      Details
-                    </a>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+                  <!-- Rationale / Location Snippet -->
+                  <div class="d-flex align-items-center justify-content-between text-muted small mb-3" style="font-size: 0.74rem;">
+                    <span class="text-truncate" style="max-width: 170px;">
+                      <i class="bi bi-geo-alt me-1"></i>{{ cand.profile.city|default:"Nepal" }}
+                    </span>
+                    <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5" style="font-size: 0.66rem;">
+                      {{ cand.profile.get_experience_level_display|default:"Candidate" }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Bottom Action Row -->
+                <div class="pt-2 border-top d-flex align-items-center justify-content-between gap-1.5">
+                  <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-xs fw-semibold js-candidate-quickview hover-lift" data-candidate-id="{{ cand.profile.id }}">
+                    <i class="bi bi-person-lines-fill me-1"></i> Quick View
+                  </button>
+
+                  <div class="d-flex align-items-center gap-1">
+                    {% if cand.profile.resume %}
+                      <a href="{% url 'candidate:download_resume' cand.profile.id %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-circle p-1" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;" title="View Resume">
+                        <i class="bi bi-file-earmark-person" style="font-size: 0.78rem;"></i>
+                      </a>
+                    {% endif %}
+                    
+                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 text-xs fw-semibold js-quick-invite hover-lift" 
+                            data-candidate-id="{{ cand.profile.id }}" 
+                            data-post-id="{{ cand.post_id }}" 
+                            data-post-type="{{ cand.post_type|lower }}"
+                            data-candidate-name="{{ cand.profile.first_name }}">
+                      <i class="bi bi-send me-1"></i> Invite to Apply
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-4 p-sm-5 text-center bg-white rounded-3 shadow-2xs">
+          <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 56px; height: 56px;">
+            <i class="bi bi-stars fs-4"></i>
+          </div>
+          {% if active_postings_count == 0 %}
+            <h6 class="fw-bold text-dark mb-1">Activate AI Candidate Sourcing</h6>
+            <p class="text-muted small mb-3 mx-auto" style="max-width: 440px;">
+              You currently have no active job or internship postings. Post an opening to automatically scout and match qualified candidates from our verified talent pool.
+            </p>
+            <a href="{% url 'company:company_post_choice' %}" class="btn btn-danger btn-sm rounded-pill px-3.5 py-2 fw-semibold shadow-sm hover-lift">
+              <i class="bi bi-plus-circle me-1.5"></i> Post Your First Opportunity
+            </a>
+          {% else %}
+            <h6 class="fw-bold text-dark mb-1">Talent Pipeline Fully Engaged</h6>
+            <p class="text-muted small mb-0 mx-auto" style="max-width: 440px;">
+              Great news! Top candidates matching your active positions have already applied or been contacted. We continuously analyze new talent registrations.
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </div>
-  {% endif %}
 
   <!-- ==========================================
        5. Two-Column Operations Center
